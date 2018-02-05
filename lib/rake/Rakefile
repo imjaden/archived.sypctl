@@ -1,0 +1,67 @@
+#!/usr/bin/env rake
+
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+load 'lib/utils/rake_instance_methods.rb'
+load 'lib/utils/rake_saas_instance_methods.rb'
+
+task default: [:environment]
+
+desc 'bundle exec rake task_name RACK_ENV=development'
+task environment: 'Gemfile.lock' do
+  ENV['RACK_ENV'] ||= 'production'
+  ENV['RAILS_ENV'] = ENV['RACK_ENV']
+  require File.expand_path('../config/boot.rb', __FILE__)
+
+  Rack::Builder.parse_file File.expand_path('../config.ru', __FILE__)
+  # eval 'Rack::Builder.new {( ' + File.read(File.expand_path('../config.ru', __FILE__)) + "\n )}"
+end
+
+desc 'Sinatra App routes list'
+task routes: :environment do
+  if Sinatra::Application.descendants.any?
+    # Classic application structure
+    applications = Sinatra::Application.descendants
+  elsif Sinatra::Base.descendants.any?
+    # Modular application structure
+    applications = Sinatra::Base.descendants
+  else
+    abort('Cannot find any defined routes.....')
+  end
+
+  applications.each do |app|
+    app_name = app.to_s
+    routes = app.routes
+
+    puts "\nApplication: #{app_name}\n"
+    routes.each do |verb, handlers|
+      next if verb.casecmp('head').zero?
+
+      puts "\n#{verb}:\n"
+      handlers.each do |handler|
+        route_text = handler[0].source.to_s.scan(/\\A(.*?)\\z/).flatten[0]
+        # deal with dot `.`
+        route_text.gsub!(/\(\?:\\\.\|%2\[Ee\]\)/, '.')
+        # deal with params `:id`
+        # #TODO only for **one** params
+        handler[1].each do |param|
+          route_text.sub!(/\(.*\)/, ":#{param}")
+        end unless handler[1].empty?
+
+        puts route_text
+      end
+    end
+  end
+end
+
+# sinatra-activerecord
+require 'sinatra/activerecord/rake'
+namespace :db do
+  task :load_config do
+    require File.expand_path('../config/boot.rb', __FILE__)
+  end
+end
+
+local_tasks = %w(remote.rake)
+load_files('lib/tasks/*.rake', local_tasks)
+load_files('lib/tasks/saas/*.rake', local_tasks)
+load app_root_join('db/seed/seed.rake')
