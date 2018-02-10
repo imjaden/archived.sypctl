@@ -14,10 +14,10 @@
 # 完整示例：
 #
 # ```
-# cmd_type="startup"
 # jar_path="/usr/local/src/providerAPI/api-service.jar"
+# cmd_type="startup"
 #
-# bash service-tools.sh "${cmd_type}" "${jar_path}"
+# bash service-tools.sh "${jar_path}" "${cmd_type}"
 # ```
 
 jar_path="$1"
@@ -26,10 +26,6 @@ cmd_type="${2:-startup}"
 test -f ~/.bash_profile && source ~/.bash_profile
 
 logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
-
-if [[ "${cmd_type}" != "agp" && ! -f ${jar_path} ]]; then
-    logger "warning: jar package not found - ${jar_path}" && exit
-fi
 
 jar_dir="$(dirname $jar_path)"
 jar_name="$(basename $jar_path)"
@@ -42,10 +38,13 @@ case "${cmd_type}" in
         echo "prompt: ${jar_dir} directory generate successfully!"
     ;;
     log)
-        cd ${jar_dir}
-        tail -f nohup.out
+        tail -f ${jar_dir}/nohup.out
     ;;
     start|startup)
+        if [[ ! -f ${jar_path} ]]; then
+            logger "warning: jar package not found - ${jar_path}"  
+            exit 2
+        fi
         logger "${begin_placeholder} start service process, begin ${begin_placeholder}"
 
         cd ${jar_dir}
@@ -59,6 +58,10 @@ case "${cmd_type}" in
         logger "${finished_placeholder} start service process, finish ${finished_placeholder}"
     ;;
     stop)
+        if [[ ! -f ${jar_path} ]]; then
+            logger "warning: jar package not found - ${jar_path}"  
+            exit 2
+        fi
         logger "${begin_placeholder} stop service process, begin ${begin_placeholder}"
         service_pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
         if [ -n "${service_pids}" ]; then
@@ -70,6 +73,10 @@ case "${cmd_type}" in
         logger "${finished_placeholder} stop service process, finish ${finished_placeholder}"
     ;;
     status|state)
+        if [[ ! -f ${jar_path} ]]; then
+            logger "warning: jar package not found - ${jar_path}"  
+            exit 2
+        fi
         service_pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
         if [ -n "${service_pids}" ]; then
             logger "service(${jar_name}) process: ${service_pids}"
@@ -78,6 +85,10 @@ case "${cmd_type}" in
         fi
     ;;
     monitor)
+        if [[ ! -f ${jar_path} ]]; then
+            logger "warning: jar package not found - ${jar_path}"  
+            exit 2
+        fi
         service_pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
         if [ -n "${service_pids}" ]; then
             logger "service(${jar_name}) process: ${service_pids}"

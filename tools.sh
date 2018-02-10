@@ -6,6 +6,10 @@ title() {
     echo
 }
 case "$1" in
+    git:pull)
+        git_current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git pull origin ${git_current_branch}
+    ;;
     install)
         title '## deploy jdk'
         bash lib/bash/jdk-tools.sh install
