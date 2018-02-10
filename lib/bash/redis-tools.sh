@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 ########################################
 #  
@@ -15,7 +15,6 @@ function fun_prompt_redis_already_installed() {
     echo "$ redis-cli --version"
     redis-cli --version
 }
-
 
 case "$1" in
     check)

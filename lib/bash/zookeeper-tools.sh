@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 ########################################
 #  
@@ -34,7 +34,7 @@ case "${cmd_type}" in
     ;; 
     install)
         if [[ -d ${zk_home} ]]; then
-            echo "prompt: ${zk_home} has already deployed, then exit!"
+            echo "prompt: ${zk_home} has already deployed!"
             exit 2
         fi
 

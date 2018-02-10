@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 ########################################
 #  
@@ -15,7 +15,7 @@
 #
 # ```
 # cmd_type="startup"
-# jar_path="/usr/local/src/providerTelecomApi/portal-api-service-1.0-SNAPSHOT.jar"
+# jar_path="/usr/local/src/providerAPI/api-service.jar"
 #
 # bash service-tools.sh "${cmd_type}" "${jar_path}"
 # ```
@@ -37,6 +37,10 @@ begin_placeholder=">>>>>>>>>>"
 finished_placeholder="<<<<<<<<<<"
 
 case "${cmd_type}" in
+    install)
+        mkdir -p ${jar_dir}
+        echo "prompt: ${jar_dir} directory generate successfully!"
+    ;;
     log)
         cd ${jar_dir}
         tail -f nohup.out

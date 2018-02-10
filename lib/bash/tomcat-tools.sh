@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 ########################################
 #  
@@ -38,7 +38,7 @@ case "${cmd_type}" in
     ;; 
     install)
         if [[ -d ${tomcat_home} ]]; then
-            echo "prompt: ${tomcat_home} has already deployed, then exit!"
+            echo "prompt: ${tomcat_home} has already deployed!"
             exit 2
         fi
 
@@ -58,6 +58,8 @@ case "${cmd_type}" in
         tomcat_port="${3:-8081}"
         cp lib/config/setting-${tomcat_port}.xml ~/tools/${tomcat_version}/conf/server.xml
         cp -r ~/tools/${tomcat_version} ${tomcat_home}
+
+        echo "prompt: ${tomcat_home} deployed with http port ${tomcat_port} successfully!"
     ;;
     log)
         cd ${tomcat_home}
