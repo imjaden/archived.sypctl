@@ -43,10 +43,21 @@ case "$1" in
         bash $0 start
     ;;
     monitor)
-        pids=$(ps aux | grep nginx | grep -v 'grep' | awk '{print $2}' | xargs)
-        if [ -n "${pids}" ]; then
-            logger "nginx pids: ${pids}"
+        nginx_process_state=0
+        if [[ -n "${NGINX_PID_PATH}" ]]; then
+            if [[ -f ${NGINX_PID_PATH} ]]; then
+                logger "nginx master(${NGINX_PID_PATH}) pid: $(cat ${NGINX_PID_PATH})"
+                nginx_process_state=1
+            fi 
         else
+            pids=$(ps aux | grep nginx | grep -v 'grep' | awk '{print $2}' | xargs)
+            if [[ -n "${pids}" ]]; then
+                logger "nginx pids: ${pids}"
+                nginx_process_state=1
+            fi
+        fi
+
+        if [[ ${nginx_process_state} -eq 0 ]]; then
             logger "nginx process not found then start..."
             logger
             bash $0 start

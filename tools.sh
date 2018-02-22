@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+test -f .saasrc && source .saasrc
+
 title() {
     echo
     echo "$1"
@@ -19,6 +21,12 @@ case "$1" in
         git pull origin ${git_current_branch}
     ;;
     install|deploy)
+        title '## .saarc '
+        test -f .saasrc && echo '.saasrc already deployed!' || {
+            cp lib/config/saasrc .saasrc
+            echo '.saasrc deployed successfully'
+        }
+
         title '## saas images'
         fun_deploy_file_folder /root/www/saas_images
 

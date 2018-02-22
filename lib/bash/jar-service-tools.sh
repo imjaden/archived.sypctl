@@ -26,6 +26,13 @@ cmd_type="${2:-startup}"
 test -f ~/.bash_profile && source ~/.bash_profile
 
 logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
+function fun_deploy_file_folder() {
+    folder_path="$1"
+    test -d ${folder_path} && echo "${folder_path} already deployed!" || {
+        mkdir -p ${folder_path}
+        echo "${folder_path} deployed successfully"
+    }
+}
 
 jar_dir="$(dirname $jar_path)"
 jar_name="$(basename $jar_path)"
@@ -34,8 +41,7 @@ finished_placeholder="<<<<<<<<<<"
 
 case "${cmd_type}" in
     install)
-        mkdir -p ${jar_dir}
-        echo "prompt: ${jar_dir} directory generate successfully!"
+        fun_deploy_file_folder ${jar_dir}
     ;;
     log)
         tail -f ${jar_dir}/nohup.out
