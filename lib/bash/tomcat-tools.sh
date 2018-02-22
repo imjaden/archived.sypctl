@@ -23,14 +23,10 @@
 # bash tomcat-tools.sh "${tomcat_home}" "${cmd_type}"
 # ```
 
+source lib/bash/common.sh
+
 tomcat_home="${1:-$TOMCAT_HOME}"
 cmd_type="${2:-startup}"
-
-test -f ~/.bash_profile && source ~/.bash_profile
-
-logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
-begin_placeholder=">>>>>>>>>>"
-finished_placeholder="<<<<<<<<<<"
 
 case "${cmd_type}" in
     check)
@@ -97,24 +93,23 @@ case "${cmd_type}" in
     ;;
     status|state)
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
+
+        printf "${status_header}" ${status_titles[@]}
+        printf "%${status_width}.${status_width}s\n" "${status_divider}"
         if [ -n "${pids}" ]; then
-            logger "tomcat(${tomcat_home}) pids: ${pids}"
+            printf "${status_format}" "war(tomcat)" "master" ${pids} "${tomcat_home}"
+            exit 0
         else
-            logger "tomcat(${tomcat_home}) process not found"
+            printf "${status_format}" "war(tomcat)" "master" "-" "${tomcat_home}"
+            exit 1
         fi
     ;;
     monitor)
-        pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
-        if [ -n "${pids}" ]; then
-            logger "tomcat(${tomcat_home}) pids: ${pids}"
-        else
+        bash $0 ${tomcat_home} status
+        if [[ $? -gt 0 ]]; then
             logger "tomcat process not found then start tomcat process..."
             logger
             bash $0 ${tomcat_home} startup
-            logger
-            logger "check tomcat process..."
-            logger
-            bash $0 ${tomcat_home} monitor
         fi
     ;;
     restart|restartup)

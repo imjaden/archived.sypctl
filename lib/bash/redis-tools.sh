@@ -6,16 +6,7 @@
 #
 ########################################
 
-logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
-function fun_prompt_redis_already_installed() {
-    echo >&2 "redis already installed:"
-    echo
-    echo "$ which redis-cli"
-    which redis-cli
-    echo
-    echo "$ redis-cli --version"
-    redis-cli --version
-}
+source lib/bash/common.sh
 
 case "$1" in
     check)

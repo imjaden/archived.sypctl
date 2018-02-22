@@ -1,25 +1,7 @@
 #!/usr/bin/env bash
 
-function fun_prompt_command_already_installed() {
-    command_name=$1
-    version_lines=${2:-2}
+source lib/bash/common.sh
 
-    test -z "${command_name}" && {
-        echo "warning: fun_prompt_command_already_installed need pass command name as paramters!";return 2
-    }
-
-    echo >&2 "${command_name} already installed:"
-    echo
-    echo "$ which ${command_name}"
-    which ${command_name}
-    echo "$ ${command_name} -v"
-    ${command_name} -v | grep -v ^$ | head -n ${version_lines}
-}
-title() {
-    echo
-    echo "$1"
-    echo
-}
 case "$1" in
     check)
         title "### zip"

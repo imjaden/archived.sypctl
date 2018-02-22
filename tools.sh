@@ -1,19 +1,6 @@
 #!/usr/bin/env bash
 
-test -f .saasrc && source .saasrc
-
-title() {
-    echo
-    echo "$1"
-    echo
-}
-function fun_deploy_file_folder() {
-    folder_path="$1"
-    test -d ${folder_path} && echo "${folder_path} already deployed!" || {
-        mkdir -p ${folder_path}
-        echo "${folder_path} deployed successfully"
-    }
-}
+source lib/bash/common.sh
 
 case "$1" in
     git:pull)

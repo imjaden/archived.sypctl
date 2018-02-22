@@ -21,12 +21,10 @@
 # bash # zookeeper-tools.sh ${zk_home} ${cmd_type}
 # ```
 
+source lib/bash/common.sh
+
 zk_home="${1:-$ZK_HOME}"
 cmd_type="${2:-start}"
-
-logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
-begin_placeholder=">>>>>>>>>>"
-finished_placeholder="<<<<<<<<<<"
 
 case "${cmd_type}" in
     check)
@@ -108,29 +106,24 @@ case "${cmd_type}" in
         logger "${finished_placeholder} stop zookeeper process, finished ${finished_placeholder}"
     ;;
     status|state)
-        test -f ~/.bash_profile && source ~/.bash_profile
+        pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools' | awk '{print $2}' | xargs)
 
-        pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
+        printf "${status_header}" ${status_titles[@]}
+        printf "%${status_width}.${status_width}s\n" "${status_divider}"
         if [ -n "${pids}" ]; then
-            logger "zookeeper(${zk_home}) pids: $pids"
+            printf "${status_format}" "zookeeper" "master" ${pids} "${zk_home}"
+            exit 0
         else
-            logger "zookeeper(${zk_home}) process not found"
+            printf "${status_format}" "zookeeper" "master" "-" "${zk_home}"
+            exit 1
         fi
     ;;
     monitor)
-        test -f ~/.bash_profile && source ~/.bash_profile
-
-        pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
-        if [ -n "${pids}" ]; then
-            logger "zookeeper(${zk_home}) pids: $pids"
-        else
+        bash $0 ${zk_home} status
+        if [ $? -gt 0 ]; then
             logger "zookeeper(${zk_home}) process not found then start..."
             logger
             bash $0 ${zk_home} startup
-            logger
-            logger "check zookeeper process..."
-            logger
-            bash $0 ${zk_home} monitor
         fi
     ;;
     restart|restartup)

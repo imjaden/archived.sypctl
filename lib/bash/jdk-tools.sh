@@ -6,15 +6,7 @@
 #
 ########################################
 
-function fun_prompt_java_already_installed() {
-    echo >&2 "java already installed!"
-    echo
-    echo "$ which java"
-    which java
-    echo
-    echo "$ java -version"
-    java -version
-}
+source lib/bash/common.sh
 
 case "$1" in
     check)

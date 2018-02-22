@@ -20,24 +20,13 @@
 # bash service-tools.sh "${jar_path}" "${cmd_type}"
 # ```
 
+source lib/bash/common.sh
+
 jar_path="$1"
 cmd_type="${2:-startup}"
 
-test -f ~/.bash_profile && source ~/.bash_profile
-
-logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
-function fun_deploy_file_folder() {
-    folder_path="$1"
-    test -d ${folder_path} && echo "${folder_path} already deployed!" || {
-        mkdir -p ${folder_path}
-        echo "${folder_path} deployed successfully"
-    }
-}
-
 jar_dir="$(dirname $jar_path)"
 jar_name="$(basename $jar_path)"
-begin_placeholder=">>>>>>>>>>"
-finished_placeholder="<<<<<<<<<<"
 
 case "${cmd_type}" in
     install)
@@ -79,33 +68,29 @@ case "${cmd_type}" in
         logger "${finished_placeholder} stop service process, finish ${finished_placeholder}"
     ;;
     status|state)
+        printf "${status_header}" ${status_titles[@]}
+        printf "%${status_width}.${status_width}s\n" "${status_divider}"
+
         if [[ ! -f ${jar_path} ]]; then
-            logger "warning: jar package not found - ${jar_path}"  
+            printf "${status_format}" "jar(service)" "master" "jar-404" "${jar_path}"
             exit 2
         fi
-        pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
+
+        pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'jar-service-tools' | awk '{print $2}' | xargs)
         if [ -n "${pids}" ]; then
-            logger "service(${jar_name}) pids: ${pids}"
+            printf "${status_format}" "jar(service)" "master" ${pids} "${jar_path}"
+            exit 0
         else
-            logger "${jar_name} process not found"
+            printf "${status_format}" "jar(service)" "master" "-" "${jar_path}"
+            exit 1
         fi
     ;;
     monitor)
-        if [[ ! -f ${jar_path} ]]; then
-            logger "warning: jar package not found - ${jar_path}"  
-            exit 2
-        fi
-        pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
-        if [ -n "${pids}" ]; then
-            logger "service(${jar_name}) pids: ${pids}"
-        else
+        bash $0 ${jar_path} status
+        if [[ $? -gt 0 ]]; then
             logger "${jar_name} process not found then start..."
             logger
             bash $0 ${jar_path} startup
-            logger
-            logger "check ${jar_name} process..."
-            logger
-            bash $0 ${jar_path} monitor
         fi
     ;;
     restart|restartup)
