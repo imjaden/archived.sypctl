@@ -6,6 +6,7 @@
 #
 ########################################
 
+logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function fun_prompt_redis_already_installed() {
     echo >&2 "redis already installed:"
     echo
@@ -61,7 +62,16 @@ case "$1" in
         echo "- cli: /usr/local/bin/redis-cli" >> ~/.project_configuration
     ;;
     start|startup)
+        logger "TODO"
     ;;
     *)
+        logger "warning: unkown params - $@"
+        logger
+        logger "Usage:"
+        logger "    $0 check"
+        logger "    $0 install"
+        logger "    $0 start"
+        logger "    $0 monitor"
+        logger "    $0 check"
     ;;
 esac

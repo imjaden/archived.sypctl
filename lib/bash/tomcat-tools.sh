@@ -78,35 +78,35 @@ case "${cmd_type}" in
     ;;
     stop)
         logger "${begin_placeholder} stop tomcat process, begin ${begin_placeholder}"
-        tomcat_pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
-        if [ ! -n "${tomcat_pids}" ]; then
+        pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
+        if [ ! -n "${pids}" ]; then
             logger "tomcat(${tomcat_home}) process not found"
         else
-            logger "tomcat(${tomcat_home}) process: ${tomcat_pids}"
+            logger "tomcat(${tomcat_home}) process: ${pids}"
             bash ${tomcat_home}/bin/shutdown.sh
 
             sleep 1s
 
-            tomcat_pids=$(ps aux | grep tomcat | grep ${tomcat_home}| grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
-            if [ -n "${tomcat_pids}" ]; then
-                logger "kill process(${tomcat_home}): ${tomcat_pids}"
-                kill -9 ${tomcat_pids}
+            pids=$(ps aux | grep tomcat | grep ${tomcat_home}| grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
+            if [ -n "${pids}" ]; then
+                logger "kill process(${tomcat_home}): ${pids}"
+                kill -9 ${pids}
             fi
         fi
         logger "${finished_placeholder} stop tomcat process, finished ${finished_placeholder}"
     ;;
     status|state)
-        tomcat_pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
-        if [ -n "${tomcat_pids}" ]; then
-            logger "tomcat(${tomcat_home}) process: ${tomcat_pids}"
+        pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
+        if [ -n "${pids}" ]; then
+            logger "tomcat(${tomcat_home}) process: ${pids}"
         else
             logger "tomcat(${tomcat_home}) process not found"
         fi
     ;;
     monitor)
-        tomcat_pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
-        if [ -n "${tomcat_pids}" ]; then
-            logger "tomcat(${tomcat_home}) process：${tomcat_pids}"
+        pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
+        if [ -n "${pids}" ]; then
+            logger "tomcat(${tomcat_home}) process：${pids}"
         else
             logger "tomcat process not found then start tomcat process..."
             logger

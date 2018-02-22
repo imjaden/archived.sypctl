@@ -5,20 +5,28 @@ title() {
     echo "$1"
     echo
 }
+function fun_deploy_file_folder() {
+    folder_path="$1"
+    test -d ${folder_path} && echo "${folder_path} already deployed!" || {
+        mkdir -p ${folder_path}
+        echo "${folder_path} deployed successfully"
+    }
+}
+
 case "$1" in
     git:pull)
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git pull origin ${git_current_branch}
     ;;
-    install)
+    install|deploy)
         title '## saas images'
-        mkdir -p /root/www/saas_images
+        fun_deploy_file_folder /root/www/saas_images
 
         title '## saas backups'
-        mkdir -p /root/www/saas_backups
+        fun_deploy_file_folder /root/www/saas_backups
 
         title '## archive toolkit'
-        mkdir -p /root/www/saas_backups
+        bash lib/bash/archive-tools.sh check
 
         title '## deploy jdk'
         bash lib/bash/jdk-tools.sh install

@@ -90,19 +90,19 @@ case "${cmd_type}" in
         test -f ~/.bash_profile && source ~/.bash_profile
 
         logger "${begin_placeholder} stop zookeeper process, begin ${begin_placeholder}"
-        zk_pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
-        if [ ! -n "${zk_pids}" ]; then
+        pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
+        if [ ! -n "${pids}" ]; then
             logger "zookeeper(${zk_home}) process not found"
         else
-            logger "zookeeper(${zk_home}) process: ${zk_pids}"
+            logger "zookeeper(${zk_home}) process: ${pids}"
             bash ${zk_home}/bin/zkServer.sh stop
 
             sleep 1s
 
-            zk_pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
-            if [ -n "${zk_pids}" ]; then
-                kill -9 ${zk_pids}
-                logger "kill zookeeper(${zk_home}) process: ${zk_pids}"
+            pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
+            if [ -n "${pids}" ]; then
+                kill -9 ${pids}
+                logger "kill zookeeper(${zk_home}) process: ${pids}"
             fi
         fi
         logger "${finished_placeholder} stop zookeeper process, finished ${finished_placeholder}"
@@ -110,9 +110,9 @@ case "${cmd_type}" in
     status|state)
         test -f ~/.bash_profile && source ~/.bash_profile
 
-        zk_pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
-        if [ -n "${zk_pids}" ]; then
-            logger "zookeeper(${zk_home}) process: $zk_pids"
+        pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
+        if [ -n "${pids}" ]; then
+            logger "zookeeper(${zk_home}) process: $pids"
         else
             logger "zookeeper(${zk_home}) process not found"
         fi
@@ -120,9 +120,9 @@ case "${cmd_type}" in
     monitor)
         test -f ~/.bash_profile && source ~/.bash_profile
 
-        zk_pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
-        if [ -n "${zk_pids}" ]; then
-            logger "zookeeper(${zk_home}) process: $zk_pids"
+        pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
+        if [ -n "${pids}" ]; then
+            logger "zookeeper(${zk_home}) process: $pids"
         else
             logger "zookeeper(${zk_home}) process not found then start..."
             logger

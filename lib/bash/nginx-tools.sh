@@ -45,7 +45,7 @@ case "$1" in
     monitor)
         pids=$(ps aux | grep nginx | grep -v 'grep' | awk '{print $2}' | xargs)
         if [ -n "${pids}" ]; then
-            logger "nginx process: ${service_pids}"
+            logger "nginx process: ${pids}"
         else
             logger "nginx process not found then start..."
             logger
