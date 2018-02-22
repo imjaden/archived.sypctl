@@ -53,8 +53,8 @@ case "${cmd_type}" in
         cd -
         
         logger
-        service_pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{ print $2 }' | xargs)
-        logger "进程 pid: ${service_pids}"
+        pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{ print $2 }' | xargs)
+        logger "service(${jar_name}) pids: ${pids}"
         logger "${finished_placeholder} start service process, finish ${finished_placeholder}"
     ;;
     stop)
@@ -63,10 +63,10 @@ case "${cmd_type}" in
             exit 2
         fi
         logger "${begin_placeholder} stop service process, begin ${begin_placeholder}"
-        service_pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
-        if [ -n "${service_pids}" ]; then
-            kill -9 ${service_pids}
-            logger "kill service(${jar_name}) process：${service_pids}"
+        pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
+        if [ -n "${pids}" ]; then
+            kill -9 ${pids}
+            logger "kill service(${jar_name}) pids: ${pids}"
         else
             logger "${jar_name} process not found"
         fi
@@ -77,9 +77,9 @@ case "${cmd_type}" in
             logger "warning: jar package not found - ${jar_path}"  
             exit 2
         fi
-        service_pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
-        if [ -n "${service_pids}" ]; then
-            logger "service(${jar_name}) process: ${service_pids}"
+        pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
+        if [ -n "${pids}" ]; then
+            logger "service(${jar_name}) pids: ${pids}"
         else
             logger "${jar_name} process not found"
         fi
@@ -89,9 +89,9 @@ case "${cmd_type}" in
             logger "warning: jar package not found - ${jar_path}"  
             exit 2
         fi
-        service_pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
-        if [ -n "${service_pids}" ]; then
-            logger "service(${jar_name}) process: ${service_pids}"
+        pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
+        if [ -n "${pids}" ]; then
+            logger "service(${jar_name}) pids: ${pids}"
         else
             logger "${jar_name} process not found then start..."
             logger

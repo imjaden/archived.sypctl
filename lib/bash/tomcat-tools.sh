@@ -82,7 +82,7 @@ case "${cmd_type}" in
         if [ ! -n "${pids}" ]; then
             logger "tomcat(${tomcat_home}) process not found"
         else
-            logger "tomcat(${tomcat_home}) process: ${pids}"
+            logger "tomcat(${tomcat_home}) pids: ${pids}"
             bash ${tomcat_home}/bin/shutdown.sh
 
             sleep 1s
@@ -98,7 +98,7 @@ case "${cmd_type}" in
     status|state)
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
         if [ -n "${pids}" ]; then
-            logger "tomcat(${tomcat_home}) process: ${pids}"
+            logger "tomcat(${tomcat_home}) pids: ${pids}"
         else
             logger "tomcat(${tomcat_home}) process not found"
         fi
@@ -106,7 +106,7 @@ case "${cmd_type}" in
     monitor)
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
         if [ -n "${pids}" ]; then
-            logger "tomcat(${tomcat_home}) process：${pids}"
+            logger "tomcat(${tomcat_home}) pids: ${pids}"
         else
             logger "tomcat process not found then start tomcat process..."
             logger

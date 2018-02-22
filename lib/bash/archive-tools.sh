@@ -15,16 +15,21 @@ function fun_prompt_command_already_installed() {
     echo "$ ${command_name} -v"
     ${command_name} -v | grep -v ^$ | head -n ${version_lines}
 }
-
+title() {
+    echo
+    echo "$1"
+    echo
+}
 case "$1" in
     check)
-        echo "========================================"
+        title "### zip"
         bash $0 check:zip
-        echo "========================================"
+
+        title "### unzip"
         bash $0 check:unzip
-        echo "========================================"
+
+        title "### rar/unrar"
         bash $0 check:unrar
-        echo "========================================"
     ;;
     check:zip)
         command -v zip >/dev/null 2>&1 && fun_prompt_command_already_installed zip || {
