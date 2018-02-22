@@ -7,7 +7,7 @@
 ########################################
 
 function fun_prompt_redis_already_installed() {
-    echo >&2 "redis already installed!"
+    echo >&2 "redis already installed:"
     echo
     echo "$ which redis-cli"
     which redis-cli

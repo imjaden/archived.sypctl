@@ -41,19 +41,19 @@ case "${cmd_type}" in
         zk_package=packages/zookeeper-3.3.6.tar.gz
         zk_version=zookeeper-3.3.6
 
-        if [[ ! -d ~/tools/${zk_version} ]]; then
-            test -d ~/tools || mkdir -p ~/tools
-            if [[ ! -f ${zk_package} ]]; then
-                echo "warning: zookeeper package not found -${zk_package}" 
-                exit 2
-            fi
-            
-            tar -xzvf ${zk_package} -C ~/tools
+        rm -fr ~/tools/${zk_version} 
+        test -d ~/tools || mkdir -p ~/tools
+        if [[ ! -f ${zk_package} ]]; then
+            echo "warning: zookeeper package not found -${zk_package}" 
+            exit 2
         fi
+        tar -xzvf ${zk_package} -C ~/tools
 
         cp -r ~/tools/${zk_version} ${zk_home}
         cp lib/config/zoo.cfg ${zk_home}/conf
         mkdir -p /usr/local/src/zookeeper/{data,log}
+
+        echo "prompt: ${zk_home} deployed successfully!"
     ;;
     log)
         cd ${zk_home}

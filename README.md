@@ -1,5 +1,27 @@
 ## 代码分支
 
-- dev-0.0.1 开发环境
-- dev-0.1.1 测试环境
-- dev-0.2.1 正式环境
+
+## 部署软件
+
+- jdk
+- redis
+- zookeeper
+- providerAPI(jar)
+- tomcat(war)
+    - tomcatAPI
+    - tomcatAdmin
+    - tomcatSuperAdmin
+
+## 环境配置
+
+- 阿里云数据库
+    - 创建数据库实例
+    - 创建账号或给账号授权
+    - 白名单配置服务器 IP
+    
+- 阿里云服务器
+    - 防火墙开放端口号：6379/8080-8090
+    - 关闭系统防火墙或开放上述端口 @iptables 
+    - mysql 代理，以便外网访问 @haproxy
+
+- 域名配置
