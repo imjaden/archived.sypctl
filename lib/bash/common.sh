@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+current_path=$(pwd)
 test -f .saasrc && source .saasrc
 test -f ~/.bash_profile && source ~/.bash_profile
+cd ${current_path}
 
 function title() {
     echo
@@ -90,6 +92,6 @@ finished_placeholder="<<<<<<<<<<"
 status_divider===============================
 status_divider=$status_divider$status_divider
 status_titles=(Service PIDType PID Comment)
-status_header="\n %-10s %8s %-10s %-11s\n"
-status_format=" %-10s %8s %-10s %-11s\n"
+status_header="\n %-15s %10s %-10s %-21s\n"
+status_format=" %-15s %10s %-10s %-21s\n"
 status_width=43

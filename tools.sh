@@ -38,12 +38,17 @@ case "$1" in
         bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
     ;;
     start|stop|status|restart|monitor)
-        bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1
-        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1
-        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1
-        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1
-        bash lib/bash/zookeeper-tools.sh   /usr/local/src/zookeeper        $1
-        bash lib/bash/nginx-tools.sh                                       $1
+        if [[ "$1" = "status" || "$1" = "monitor" ]]; then
+            printf "${status_header}" ${status_titles[@]}
+            printf "%${status_width}.${status_width}s\n" "${status_divider}"
+        fi
+
+        bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
+        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
+        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
+        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
+        bash lib/bash/zookeeper-tools.sh   /usr/local/src/zookeeper        $1 "no-header"
+        bash lib/bash/nginx-tools.sh                                       $1 "no-header"
     ;;
     *)
         echo "warning: unkown params - $@"

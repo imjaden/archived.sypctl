@@ -25,6 +25,7 @@ source lib/bash/common.sh
 
 zk_home="${1:-$ZK_HOME}"
 cmd_type="${2:-start}"
+option="${3:-use-header}"
 
 case "${cmd_type}" in
     check)
@@ -108,8 +109,10 @@ case "${cmd_type}" in
     status|state)
         pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools' | awk '{print $2}' | xargs)
 
-        printf "${status_header}" ${status_titles[@]}
-        printf "%${status_width}.${status_width}s\n" "${status_divider}"
+        if [[ "${option}" = "use-header" ]]; then
+            printf "${status_header}" ${status_titles[@]}
+            printf "%${status_width}.${status_width}s\n" "${status_divider}"
+        fi
         if [ -n "${pids}" ]; then
             printf "${status_format}" "zookeeper" "master" ${pids} "${zk_home}"
             exit 0
@@ -119,7 +122,7 @@ case "${cmd_type}" in
         fi
     ;;
     monitor)
-        bash $0 ${zk_home} status
+        bash $0 ${zk_home} status ${option}
         if [ $? -gt 0 ]; then
             logger "zookeeper(${zk_home}) process not found then start..."
             logger

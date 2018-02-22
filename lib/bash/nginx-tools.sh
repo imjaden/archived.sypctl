@@ -8,6 +8,8 @@
 
 source lib/bash/common.sh
 
+option="${2:-use-header}"
+
 case "$1" in
     check)
         command -v nginx >/dev/null 2>&1 && fun_prompt_nginx_already_installed || {
@@ -38,6 +40,11 @@ case "$1" in
         bash $0 start
     ;;
     status|state)
+        if [[ "${option}" = "use-header" ]]; then
+            printf "${status_header}" ${status_titles[@]}
+            printf "%${status_width}.${status_width}s\n" "${status_divider}"
+        fi
+
         nginx_process_state=1
         if [[ -n "${NGINX_PID_PATH}" ]]; then
             if [[ -f ${NGINX_PID_PATH} ]]; then
@@ -48,8 +55,6 @@ case "$1" in
             master_pid=$(ps aux | grep nginx | grep master | grep -v 'grep' | grep -v 'nginx-tools' | awk '{print $2}' | xargs)
             if [[ -n "${master_pid}" ]]; then
                 worker_pids=$(ps -o pid --no-headers --ppid ${master_pid} | xargs)
-                printf "${status_header}" ${status_titles[@]}
-                printf "%${status_width}.${status_width}s\n" "${status_divider}"
                 printf "${status_format}" "nginx" "master" ${master_pid} "ps aux"
                 for worker_pid in ${worker_pids[@]}; do
                     printf "${status_format}" "nginx" "worker" ${worker_pid} "ps -o pid --ppid"
@@ -60,7 +65,7 @@ case "$1" in
         exit ${nginx_process_state}
     ;;
     monitor)
-        bash $0 status 
+        bash $0 status ${option}
         if [[ $? -gt 0 ]]; then
             logger "nginx process not found then start..."
             logger

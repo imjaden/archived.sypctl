@@ -27,6 +27,7 @@ source lib/bash/common.sh
 
 tomcat_home="${1:-$TOMCAT_HOME}"
 cmd_type="${2:-startup}"
+option="${3:-use-header}"
 
 case "${cmd_type}" in
     check)
@@ -94,8 +95,10 @@ case "${cmd_type}" in
     status|state)
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
 
-        printf "${status_header}" ${status_titles[@]}
-        printf "%${status_width}.${status_width}s\n" "${status_divider}"
+        if [[ "${option}" = "use-header" ]]; then
+            printf "${status_header}" ${status_titles[@]}
+            printf "%${status_width}.${status_width}s\n" "${status_divider}"
+        fi
         if [ -n "${pids}" ]; then
             printf "${status_format}" "war(tomcat)" "master" ${pids} "${tomcat_home}"
             exit 0
@@ -105,7 +108,7 @@ case "${cmd_type}" in
         fi
     ;;
     monitor)
-        bash $0 ${tomcat_home} status
+        bash $0 ${tomcat_home} status ${option}
         if [[ $? -gt 0 ]]; then
             logger "tomcat process not found then start tomcat process..."
             logger
