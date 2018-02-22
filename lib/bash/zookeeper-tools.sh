@@ -114,7 +114,7 @@ case "${cmd_type}" in
             printf "%${status_width}.${status_width}s\n" "${status_divider}"
         fi
         if [ -n "${pids}" ]; then
-            printf "${status_format}" "zookeeper" "master" ${pids} "${zk_home}"
+            printf "${status_format}" "zookeeper" "*master" ${pids} "${zk_home}"
             exit 0
         else
             printf "${status_format}" "zookeeper" "master" "-" "${zk_home}"

@@ -55,7 +55,7 @@ case "$1" in
             master_pid=$(ps aux | grep nginx | grep master | grep -v 'grep' | grep -v 'nginx-tools' | awk '{print $2}' | xargs)
             if [[ -n "${master_pid}" ]]; then
                 worker_pids=$(ps -o pid --no-headers --ppid ${master_pid} | xargs)
-                printf "${status_format}" "nginx" "master" ${master_pid} "ps aux"
+                printf "${status_format}" "nginx" "*master" ${master_pid} "ps aux"
                 for worker_pid in ${worker_pids[@]}; do
                     printf "${status_format}" "nginx" "worker" ${worker_pid} "ps -o pid --ppid"
                 done

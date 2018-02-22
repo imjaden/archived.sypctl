@@ -81,7 +81,7 @@ case "${cmd_type}" in
 
         pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'jar-service-tools' | awk '{print $2}' | xargs)
         if [ -n "${pids}" ]; then
-            printf "${status_format}" "jar(service)" "master" ${pids} "${jar_path}"
+            printf "${status_format}" "jar(service)" "*master" ${pids} "${jar_path}"
             exit 0
         else
             printf "${status_format}" "jar(service)" "master" "-" "${jar_path}"

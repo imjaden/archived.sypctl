@@ -100,7 +100,7 @@ case "${cmd_type}" in
             printf "%${status_width}.${status_width}s\n" "${status_divider}"
         fi
         if [ -n "${pids}" ]; then
-            printf "${status_format}" "war(tomcat)" "master" ${pids} "${tomcat_home}"
+            printf "${status_format}" "war(tomcat)" "*master" ${pids} "${tomcat_home}"
             exit 0
         else
             printf "${status_format}" "war(tomcat)" "master" "-" "${tomcat_home}"

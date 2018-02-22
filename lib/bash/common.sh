@@ -91,7 +91,7 @@ finished_placeholder="<<<<<<<<<<"
 
 status_divider===============================
 status_divider=$status_divider$status_divider
-status_titles=(Service PIDType PID Comment)
+status_titles=(Service Type PID Comment)
 status_header="\n %-15s %10s %-10s %-21s\n"
 status_format=" %-15s %10s %-10s %-21s\n"
-status_width=43
+status_width=50
