@@ -95,3 +95,7 @@ status_titles=(Service Type PID Comment)
 status_header="\n %-15s %10s %-10s %-21s\n"
 status_format=" %-15s %10s %-10s %-21s\n"
 status_width=50
+
+function fun_printf_timestamp() {
+    printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"
+}
