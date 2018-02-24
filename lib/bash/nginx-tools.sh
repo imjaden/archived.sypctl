@@ -45,11 +45,21 @@ case "$1" in
             printf "%${status_width}.${status_width}s\n" "${status_divider}"
         fi
 
-        nginx_process_state=1
         if [[ -n "${NGINX_PID_PATH}" ]]; then
             if [[ -f ${NGINX_PID_PATH} ]]; then
-                logger "nginx master(${NGINX_PID_PATH}) pid: $(cat ${NGINX_PID_PATH})"
-                nginx_process_state=0
+                master_pid=$(cat ${NGINX_PID_PATH})
+                ps -ax | awk '{print $1}' | grep -e "^${master_pid}$" > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                    worker_pids=$(ps -o pid --no-headers --ppid ${master_pid} | xargs)
+                    printf "${status_format}" "nginx" "*master" ${master_pid} "ps aux"
+                    for worker_pid in ${worker_pids[@]}; do
+                        printf "${status_format}" "nginx" "worker" ${worker_pid} "ps -o pid --ppid"
+                    done
+                    exit 0
+                else
+                    printf "${status_format}" "nginx" "*master" "-" "ps aux"
+                    exit 1
+                fi
             fi 
         else
             master_pid=$(ps aux | grep nginx | grep master | grep -v 'grep' | grep -v 'nginx-tools' | awk '{print $2}' | xargs)
@@ -59,10 +69,10 @@ case "$1" in
                 for worker_pid in ${worker_pids[@]}; do
                     printf "${status_format}" "nginx" "worker" ${worker_pid} "ps -o pid --ppid"
                 done
-                nginx_process_state=0
+                exit 0
             fi
         fi
-        exit ${nginx_process_state}
+        exit 1
     ;;
     monitor)
         bash $0 status ${option}

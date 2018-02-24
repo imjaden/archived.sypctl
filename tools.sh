@@ -52,7 +52,7 @@ case "$1" in
         printf "${status_header}" ${status_titles[@]}
         printf "%${status_width}.${status_width}s\n" "${status_divider}"
 
-        printf "${status_format}" jdk $(command -v java >/dev/null 2>&1 && echo "true" || echo "false") /usr/local/src/jdk
+        printf "${status_format}" jdk $(command -v java > /dev/null 2>&1 && echo "true" || echo "false") /usr/local/src/jdk
         printf "${status_format}" report $(test -f /usr/local/src/report/index.html && echo "true" || echo "false") /usr/local/src/report/index.html
         printf "${status_format}" saas_images $(test -d /root/www/saas_images && echo "true" || echo "false") /root/www/saas_images
         printf "${status_format}" saas_backups $(test -d /root/www/saas_backups && echo "true" || echo "false") /root/www/saas_backups
@@ -76,8 +76,15 @@ case "$1" in
         bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
         bash lib/bash/zookeeper-tools.sh   /usr/local/src/zookeeper        $1 "no-header"
         bash lib/bash/nginx-tools.sh                                       $1 "no-header"
+
+        fun_printf_timestamp
     ;;
     *)
-        echo "warning: unkown params - $@"
+        logger "warning: unkown params - $@"
+        logger "Usage:"
+        logger "    $0 git:pull"
+        logger "    $0 install|deploy"
+        logger "    $0 check"
+        logger "    $0 start|stop|status|restart|monitor"
     ;;
 esac
