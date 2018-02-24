@@ -8,6 +8,8 @@ case "$1" in
         git pull origin ${git_current_branch}
     ;;
     install|deploy)
+        mkdir -p ./logs
+        
         title '## .saarc '
         test -f .saasrc && echo '.saasrc already deployed!' || {
             cp lib/config/saasrc .saasrc
