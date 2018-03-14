@@ -35,6 +35,10 @@
             <p>
                 <a class="btn btn-outline-inverse btn-lg" href="javascript:void(0);" style="min-width: 300px;" onclick="scrollToEnd()">REP UUID 查询</a>
             </p>
+            <p>
+                API 接口: 
+                <span class="api"></span>
+            </p>
         </div>
     </main>
     <div class="bs-docs-featurette" style="padding-top: 30px;">
@@ -92,6 +96,7 @@
     <script src="http://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
     <script>
         $(".domain").html(window.location.host);
+        $(".api").html(window.location.host + "/saas-api")
         function searchREPExceptionUUID() {
             var uuid = $(".search").val();
             if(!uuid.length) {
