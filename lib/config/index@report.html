@@ -11,7 +11,7 @@
     <style>
     html,
     body,
-    main {
+    main, .bs-docs-masthead, .bs-docs-featurette {
         height: 100%;
     }
     </style>
@@ -32,7 +32,105 @@
             <p>
                 <a class="btn btn-outline-inverse btn-lg" href="/monitor" target="_blank" style="min-width: 300px;">数据监控页面</a>
             </p>
+            <p>
+                <a class="btn btn-outline-inverse btn-lg" href="javascript:void(0);" style="min-width: 300px;" onclick="scrollToEnd()">REP UUID 查询</a>
+            </p>
         </div>
     </main>
+    <div class="bs-docs-featurette" style="padding-top: 30px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6 col-sm-offset-3">
+                    <div class="input-group">
+                       <input type="text" class="form-control input-lg search" placeholder="REP 接口异常 UUID"><span class="input-group-addon btn btn-primary" onclick="searchREPExceptionUUID()">查询</span>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-sm-offset-3" style="margin-top:50px;">
+                <style>
+                    .table { border-width: 0px;}
+                    .table th {width: 100px;text-align: right;}
+                    .table td {text-align: left;}
+                    pre, td {
+                        white-space: pre-wrap!important;
+                        word-wrap: break-word!important;
+                        *white-space:normal!important;
+                        line-height: 1;
+                    }
+                </style>
+                    <table class="table table-bordered">
+                      <tbody>
+                        <tr>
+                          <th scope="row">UUID</th>
+                          <td class="parameter"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row">数据源</th>
+                          <td class="data_code"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row">异常栈</th>
+                          <td class="stack_trace"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row">异常明细</th>
+                          <td class="message"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row">接口域名</th>
+                          <td class="domain"></td>
+                        </tr>
+                        <tr>
+                          <th scope="row">创建时间</th>
+                          <td class="created_at"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="http://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script>
+        $(".domain").html(window.location.host);
+        function searchREPExceptionUUID() {
+            var uuid = $(".search").val();
+            if(!uuid.length) {
+                alert("请输入 REP 接口报错 UUID");
+                return false;
+            }
+
+            $(".parameter").html(uuid);
+            $(".data_code").html('');
+            $(".message").html('');
+            $(".stack_trace").html('');
+            $(".rep_code").html('');
+            $(".created_at").html('');
+            $.ajax({
+                type: 'GET',
+                url: '/saas-api/api/portal/custom?dataSourceCode=DATA_000000&repCode=REP_000003&uuid=' + uuid,
+                success: function(response, status, xhr) {
+                    var hash = JSON.parse(response);
+                    if(hash.code === 0 && hash.data.length) {
+                        const data = hash.data[0];
+                        $(".parameter").html(uuid);
+                        $(".data_code").html(data.data_code);
+                        $(".message").html("<pre>" + data.message + "</pre>");
+                        $(".stack_trace").html(data.stack_trace);
+                        $(".rep_code").html(data.rep_code);
+                        $(".created_at").html(data.create_time);
+                    } else {
+                        $(".message").html("查询结果为空");
+                    }
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    $(".message").html("AJAX ERROR");
+                }
+            })
+        }
+        function scrollToEnd(){//滚动到底部
+            var h = $(document).height()-$(window).height();
+            $('html,body').animate({scrollTop: h}, 800); 
+        }
+    </script>
 </body>
 </html>

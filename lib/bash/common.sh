@@ -22,7 +22,7 @@ function fun_basic_check_operate_system() {
     system=$(lsb_release -i | awk '{ print $3 }')
     version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
     is_support=1
-    if [[ ${system} != "CentOS" ]]; then
+    if [[ ${system} = "CentOS" ]]; then
         if [[ ${version} = "6" || ${version} = "7" ]]; then
             is_support=0
         fi
@@ -31,7 +31,7 @@ function fun_basic_check_operate_system() {
         title "error: unsupport operate system!" 
     fi
 
-    exit is_support
+    exit ${is_support}
 }
 function title() {
     echo
@@ -39,7 +39,7 @@ function title() {
     echo
 }
 
-fun_basic_check_operate_system
+# fun_basic_check_operate_system
 
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 
