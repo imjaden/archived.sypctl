@@ -5,11 +5,41 @@ test -f .saasrc && source .saasrc
 test -f ~/.bash_profile && source ~/.bash_profile
 cd ${current_path}
 
+function fun_install_lsb_release() {
+    command -v lsb_release > /dev/null || {
+        command -v yum > /dev/null && yum install -y redhat-lsb
+        command -v apt-get > /dev/null && apt-get install -y lsb-release
+        # command -v brew > /dev/null && brew install -y lsb-release
+    }
+}
+function fun_basic_check_operate_system() {
+    fun_install_lsb_release
+    command -v lsb_release > /dev/null || {
+        title "error: unsupport operate system!" 
+        exit 1
+    }
+
+    system=$(lsb_release -i | awk '{ print $3 }')
+    version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
+    is_support=1
+    if [[ ${system} != "CentOS" ]]; then
+        if [[ ${version} = "6" || ${version} = "7" ]]; then
+            is_support=0
+        fi
+    fi
+    if [[ ${is_support} -gt 0 ]]; then
+        title "error: unsupport operate system!" 
+    fi
+
+    exit is_support
+}
 function title() {
     echo
     echo "$1"
     echo
 }
+
+fun_basic_check_operate_system
 
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 
@@ -82,6 +112,15 @@ function fun_prompt_redis_already_installed() {
     echo
     echo "$ redis-cli --version"
     redis-cli --version
+
+    exit 0
+}
+
+function fun_prompt_vncserver_already_installed() {
+    echo >&2 "redis already installed:"
+    echo
+    echo "$ which vncserver"
+    which vncserver
 
     exit 0
 }

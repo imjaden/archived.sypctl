@@ -25,8 +25,9 @@ case "$1" in
         title '## report'
         fun_deploy_file_folder /usr/local/src/report
         test -f /usr/local/src/report/index.html || {
-            cp lib/config/index@report.html /usr/local/src/report
+            cp lib/config/index@report.html /usr/local/src/report/index.html
         }
+        cp lib/config/index@report.html /root/www/syp-saas-tutorial.html
 
         title '## archive toolkit'
         bash lib/bash/archive-tools.sh check
