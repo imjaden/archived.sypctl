@@ -9,10 +9,28 @@
     <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="https://v3.bootcss.com/assets/css/docs.min.css">
     <style>
-    html,
-    body,
-    main, .bs-docs-masthead, .bs-docs-featurette {
+    html, body, main, .bs-docs-masthead, .bs-docs-featurette {
         height: 100%;
+        overflow: none;
+    }
+    .bs-docs-featurette {
+        background-image: url("https://bing.ioliu.cn/v1/rand");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-attachment: fixed;
+        background-size: cover;
+    }
+    .uuid-result {
+        border-radius: 10px; 
+        padding: 20px;
+        padding-bottom: 5px;
+        margin-top: 50px;
+        background-color: white;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";       /* IE 8 */
+        filter: alpha(opacity=90);  /* IE 5-7 */
+        -moz-opacity: 0.9;          /* Netscape */
+        -khtml-opacity: 0.9;        /* Safari 1.x */
+        opacity: 0.9;               /* Good browsers */
     }
     </style>
 </head>
@@ -20,7 +38,7 @@
     <main class="bs-docs-masthead" id="content" tabindex="-1">
         <div class="container">
             <span class="bs-docs-booticon bs-docs-booticon-lg bs-docs-booticon-outline">S</span>
-            <p class="lead">生意+ SaaS 报表系统引导面</p>
+            <p class="lead">生意+ SaaS 系统服务引导页</p>
         </div>
         <div id="masthead-tuijian">
             <p>
@@ -49,18 +67,18 @@
                        <input type="text" class="form-control input-lg search" placeholder="REP 接口异常 UUID"><span class="input-group-addon btn btn-primary" onclick="searchREPExceptionUUID()">查询</span>
                     </div>
                 </div>
-                <div class="col-sm-6 col-sm-offset-3" style="margin-top:50px;">
-                <style>
-                    .table { border-width: 0px;}
-                    .table th {width: 100px;text-align: right;}
-                    .table td {text-align: left;}
-                    pre, td {
-                        white-space: pre-wrap!important;
-                        word-wrap: break-word!important;
-                        *white-space:normal!important;
-                        line-height: 1;
-                    }
-                </style>
+                <div class="col-sm-6 col-sm-offset-3 uuid-result">
+                    <style>
+                        .table { border-width: 0px;}
+                        .table th {width: 100px;text-align: right;}
+                        .table td {text-align: left;}
+                        pre, td {
+                            white-space: pre-wrap!important;
+                            word-wrap: break-word!important;
+                            *white-space:normal!important;
+                            line-height: 1;
+                        }
+                    </style>
                     <table class="table table-bordered">
                       <tbody>
                         <tr>
@@ -93,7 +111,7 @@
             </div>
         </div>
     </div>
-    <script src="http://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
     <script>
         $(".domain").html(window.location.host);
         $(".api").html(window.location.host + "/saas-api")
@@ -132,10 +150,13 @@
                 }
             })
         }
-        function scrollToEnd(){//滚动到底部
+        function scrollToEnd(){
             var h = $(document).height()-$(window).height();
             $('html,body').animate({scrollTop: h}, 800); 
         }
+        setInterval(function() {
+            $(".bs-docs-featurette").css({"background-image": "url(https://bing.ioliu.cn/v1/rand?" + (new Date()).valueOf() + ")"});
+        },60000);
     </script>
 </body>
 </html>
