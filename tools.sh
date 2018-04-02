@@ -10,17 +10,21 @@ case "$1" in
     install|deploy)
         mkdir -p ./logs
         
-        title '## .saarc '
-        test -f .saasrc && echo '.saasrc already deployed!' || {
-            cp lib/config/saasrc .saasrc
-            echo '.saasrc deployed successfully'
+        title '## .env-files '
+        test -f .env-files && echo '.env-files already deployed!' || {
+            cp lib/config/saasrc .env-files
+            echo '.env-files deployed successfully'
         }
 
-        title '## saas images'
-        fun_deploy_file_folder /root/www/saas_images
+        check_install_defenders_include "SaaSImage" && {
+            title '## saas images'
+            fun_deploy_file_folder /root/www/saas_images
+        }
 
-        title '## saas backups'
-        fun_deploy_file_folder /root/www/saas_backups
+        check_install_defenders_include "SaaSBackup" && {
+            title '## saas backups'
+            fun_deploy_file_folder /root/www/saas_backups
+        }
 
         title '## report'
         fun_deploy_file_folder /usr/local/src/report
@@ -29,24 +33,30 @@ case "$1" in
         }
         cp lib/config/index@report.html /root/www/syp-saas-tutorial.html
 
-        title '## archive toolkit'
-        bash lib/bash/archive-tools.sh check
+        check_install_defenders_include "ziprar" && {
+            title '## archive toolkit'
+            bash lib/bash/archive-tools.sh check
+        }
 
-        title '## deploy jdk'
-        bash lib/bash/jdk-tools.sh install
+        check_install_defenders_include "jdk" && {
+            title '## deploy jdk'
+            bash lib/bash/jdk-tools.sh install
+        }
 
-        title '## deploy tomcat'
-        bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAPI        install 8081
-        bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
-        bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
+        check_install_defenders_include "SaaSSYP" && {
+            title '## deploy tomcat'
+            bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAPI        install 8081
+            bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
+            bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
 
-        title '## deploy zookeeper'
-        bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper install
+            title '## deploy service'
+            bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
+        }
 
-        title '## deploy service'
-        bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
-
-        bash lib/bash/packages-tools.sh state
+        check_install_defenders_include "zookeeper" && {
+            title '## deploy zookeeper'
+            bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper install
+        }
     ;;
     check)
         status_titles=(Service Status Comment)
@@ -73,20 +83,35 @@ case "$1" in
             printf "%${status_width}.${status_width}s\n" "${status_divider}"
         fi
 
-        bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
-        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
-        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
-        bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
-        bash lib/bash/zookeeper-tools.sh   /usr/local/src/zookeeper        $1 "no-header"
-        bash lib/bash/nginx-tools.sh                                       $1 "no-header"
+        check_install_defenders_include "SaaSSYP" && {
+            bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
+            bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
+            bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
+            bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
+        }
+
+        check_install_defenders_include "zookeeper" && {
+            bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper $1 "no-header"
+        }
+
+        check_install_defenders_include "nginx" && {
+            bash lib/bash/nginx-tools.sh $1 "no-header"
+        }
 
         fun_printf_timestamp
+    ;;
+    package:status|ps)
+        bash lib/bash/packages-tools.sh state
+    ;;
+    install:help|ih)
+        fun_user_expect_to_install_package_guides
     ;;
     *)
         logger "warning: unkown params - $@"
         logger "Usage:"
         logger "    $0 git:pull"
         logger "    $0 install|deploy"
+        logger "    $0 install:help"
         logger "    $0 check"
         logger "    $0 start|stop|status|restart|monitor"
     ;;

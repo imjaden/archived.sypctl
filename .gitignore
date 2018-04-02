@@ -1,4 +1,6 @@
 .DS_Store
 *.tar.gz
 .saasrc
+.env-files
 logs
+.install-defender

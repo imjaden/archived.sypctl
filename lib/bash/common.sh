@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 current_path=$(pwd)
-test -f .saasrc && source .saasrc
+test -f .env-files && source .env-files
 test -f ~/.bash_profile && source ~/.bash_profile
 cd ${current_path}
 
@@ -12,6 +12,8 @@ function fun_install_lsb_release() {
         # command -v brew > /dev/null && brew install -y lsb-release
     }
 }
+
+os_platform=""
 function fun_basic_check_operate_system() {
     fun_install_lsb_release
     command -v lsb_release > /dev/null || {
@@ -25,21 +27,23 @@ function fun_basic_check_operate_system() {
     if [[ ${system} = "CentOS" ]]; then
         if [[ ${version} = "6" || ${version} = "7" ]]; then
             is_support=0
+            os_platform="${system}${version}"
         fi
     fi
     if [[ ${is_support} -gt 0 ]]; then
         title "error: unsupport operate system!" 
     fi
 
-    exit ${is_support}
+    return ${is_support}
 }
+
 function title() {
     echo
     echo "$1"
     echo
 }
 
-# fun_basic_check_operate_system
+fun_basic_check_operate_system
 
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 
@@ -123,6 +127,26 @@ function fun_prompt_vncserver_already_installed() {
     which vncserver
 
     exit 0
+}
+
+function check_install_defenders_include() {
+    if [[ $(grep "$1" .install-defender | wc -l) -eq 0 ]]; then
+       return 404
+    else
+       return 0
+    fi
+}
+
+function fun_user_expect_to_install_package_guides() {
+    true > .install-defender
+    supported_packages=(nginx jdk redis zookeeper vnc tomcat ziprar SaaSSYP SaaSImage SaaSBackup)
+    for package in ${supported_packages[@]}; do
+        read -p "是否同意安装 ${package}? (y/Y 同意, 其他则否): " user_input
+        if [[ "${user_input}" = 'y' || "${user_input}" = 'Y' ]]; then
+            echo "${package}"
+            echo ${package} >> .install-defender
+        fi
+    done
 }
 
 begin_placeholder=">>>>>>>>>>"
