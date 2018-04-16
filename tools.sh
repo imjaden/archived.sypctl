@@ -28,10 +28,18 @@ case "$1" in
 
         title '## report'
         fun_deploy_file_folder /usr/local/src/report
+        test -f .tutorial.conf || {
+            echo "var_shortcut='S'" > .tutorial.txt
+            echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial.txt
+        }
+        source .tutorial.conf
+        cp lib/config/index@report.html syp-saas-tutorial.html
+        sed -i '' s/VAR_SHORTCUT/${var_shortcut}/g syp-saas-tutorial.html
+        sed -i '' s/VAR_SLOGAN/${var_slogan}/g syp-saas-tutorial.html
         test -f /usr/local/src/report/index.html || {
             cp lib/config/index@report.html /usr/local/src/report/index.html
         }
-        cp lib/config/index@report.html /root/www/syp-saas-tutorial.html
+        mv syp-saas-tutorial.html /root/www/syp-saas-tutorial.html
 
         check_install_defenders_include "ziprar" && {
             title '## archive toolkit'
@@ -56,6 +64,11 @@ case "$1" in
         check_install_defenders_include "zookeeper" && {
             title '## deploy zookeeper'
             bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper install
+        }
+
+        check_install_defenders_include "redis" && {
+            title '## deploy redis'
+            bash lib/bash/redis-tools.sh install
         }
     ;;
     check)

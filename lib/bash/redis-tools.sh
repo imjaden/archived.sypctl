@@ -53,7 +53,7 @@ case "$1" in
         echo "- cli: /usr/local/bin/redis-cli" >> ~/.project_configuration
     ;;
     start|startup)
-        logger "TODO"
+        redis-server /etc/redis/redis.conf
     ;;
     *)
         logger "warning: unkown params - $@"

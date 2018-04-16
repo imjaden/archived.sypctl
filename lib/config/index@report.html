@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <title>报表系统 | 生意+ SaaS</title>
+    <title>VAR_SLOGAN</title>
     <meta charset="utf-8">
     <link rel="icon" href="http://7jpozz.com1.z0.glb.clouddn.com/s-favicon.ico">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,6 +12,60 @@
     html, body, main, .bs-docs-masthead, .bs-docs-featurette {
         height: 100%;
         overflow: none;
+    }
+    .bs-docs-masthead {
+        text-align: center;
+    }
+    .bs-docs-masthead .bs-docs-booticon {
+        margin: 0 auto 30px;
+    }
+    .bs-docs-booticon-outline {
+        background-color: transparent;
+        border: 1px solid #cdbfe3;
+    }
+    .bs-docs-booticon-lg {
+        width: 144px;
+        height: 144px;
+        font-size: 108px;
+        line-height: 140px;
+    }
+    .bs-docs-header, .bs-docs-masthead {
+        position: relative;
+        padding: 30px 0;
+        text-shadow: 0 1px 0 rgba(0,0,0,.1);
+        background-color: #6f5499;
+        background-image: -webkit-gradient(linear,left top,left bottom,from(#563d7c),to(#6f5499));
+        background-image: -webkit-linear-gradient(top,#333 0,#333 100%);
+        background-image: -o-linear-gradient(top,#563d7c 0,#6f5499 100%);
+        background-image: linear-gradient(to bottom,#fff 0,#fff 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#563d7c', endColorstr='#6F5499', GradientType=0);
+        background-repeat: repeat-x;
+    }
+    .bs-docs-booticon {
+        display: block;
+        font-weight: 500;
+        color: #333;
+        text-align: center;
+        cursor: default;
+        border-radius: 15%;
+    }
+    .bs-docs-masthead .lead {
+        margin: 0 auto 30px;
+        font-size: 20px;
+        color: #333;
+    }
+    @media (min-width: 768px)
+    .lead {
+        font-size: 21px;
+    }
+    .lead {
+        margin-bottom: 20px;
+        font-size: 16px;
+        font-weight: 300;
+        line-height: 1.4;
+    }
+    p {
+        margin: 0 0 10px;
     }
     .bs-docs-featurette {
         background-image: url("https://bing.ioliu.cn/v1/rand");
@@ -32,13 +86,23 @@
         -khtml-opacity: 0.9;        /* Safari 1.x */
         opacity: 0.9;               /* Good browsers */
     }
+    .btn-outline-inverse {
+        color: #333;
+        background-color: transparent;
+        border-color: #cdbfe3;
+    }
+    .btn-outline-inverse:active,.btn-outline-inverse:focus,.btn-outline-inverse:hover {
+        color: purple;
+        text-shadow: none;
+        ;border-color: #333
+    }
     </style>
 </head>
 <body>
     <main class="bs-docs-masthead" id="content" tabindex="-1">
         <div class="container">
-            <span class="bs-docs-booticon bs-docs-booticon-lg bs-docs-booticon-outline">S</span>
-            <p class="lead">生意+ SaaS 系统服务引导页</p>
+            <span class="bs-docs-booticon bs-docs-booticon-lg bs-docs-booticon-outline">VAR_SHORTCUT</span>
+            <p class="lead">VAR_SLOGAN</p>
         </div>
         <div id="masthead-tuijian">
             <p>
@@ -53,7 +117,7 @@
             <p>
                 <a class="btn btn-outline-inverse btn-lg" href="javascript:void(0);" style="min-width: 300px;" onclick="scrollToEnd()">REP UUID 查询</a>
             </p>
-            <p>
+            <p style="color:purple;">
                 API 接口: 
                 <span class="api"></span>
             </p>
