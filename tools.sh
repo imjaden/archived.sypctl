@@ -28,14 +28,14 @@ case "$1" in
 
         title '## report'
         fun_deploy_file_folder /usr/local/src/report
-        test -f .tutorial.conf || {
-            echo "var_shortcut='S'" > .tutorial.txt
-            echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial.txt
+        test -f .tutorial-conf.sh || {
+            echo "var_shortcut='S'" > .tutorial-conf.sh
+            echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial-conf.sh
         }
         source .tutorial.conf
         cp lib/config/index@report.html syp-saas-tutorial.html
-        sed -i '' s/VAR_SHORTCUT/${var_shortcut}/g syp-saas-tutorial.html
-        sed -i '' s/VAR_SLOGAN/${var_slogan}/g syp-saas-tutorial.html
+        sed -i "s/VAR_SHORTCUT/${var_shortcut}/g" syp-saas-tutorial.html
+        sed -i "s/VAR_SLOGAN/${var_slogan}/g" syp-saas-tutorial.html
         test -f /usr/local/src/report/index.html || {
             cp lib/config/index@report.html /usr/local/src/report/index.html
         }

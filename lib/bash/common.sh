@@ -130,6 +130,7 @@ function fun_prompt_vncserver_already_installed() {
 }
 
 function check_install_defenders_include() {
+    test -f .install-defender || fun_user_expect_to_install_package_guides
     if [[ $(grep "$1" .install-defender | wc -l) -eq 0 ]]; then
        return 404
     else
