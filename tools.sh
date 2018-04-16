@@ -32,7 +32,7 @@ case "$1" in
             echo "var_shortcut='S'" > .tutorial-conf.sh
             echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial-conf.sh
         }
-        source .tutorial.conf
+        source .tutorial-conf.sh
         cp lib/config/index@report.html syp-saas-tutorial.html
         sed -i "s/VAR_SHORTCUT/${var_shortcut}/g" syp-saas-tutorial.html
         sed -i "s/VAR_SLOGAN/${var_slogan}/g" syp-saas-tutorial.html
