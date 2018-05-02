@@ -42,9 +42,9 @@ fun_basic_check_operate_system
 
 function fun_deploy_file_folder() {
     folder_path="$1"
-    test -d ${folder_path} && printf "$two_cols_table_format" "$1" "deployed" || {
+    test -d ${folder_path} && printf "$two_cols_table_format" "$1" "Deployed" || {
         mkdir -p ${folder_path}
-        printf "$two_cols_table_format" "$1" "successfully"
+        printf "$two_cols_table_format" "$1" "Deployed Successfully"
     }
 }
 
@@ -75,7 +75,7 @@ function fun_prompt_java_already_installed() {
 }
 
 function fun_prompt_nginx_already_installed() {
-    version=$(nginx -version)
+    version=$(nginx -V 2>&1 | awk '/version/ { print $3 }')
     printf "$two_cols_table_format" "nginx" "${version:0:40}"
 
     exit 0

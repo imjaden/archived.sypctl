@@ -3,7 +3,7 @@
 source lib/bash/common.sh
 
 case "$1" in
-    git:pull)
+    git:pull|gp)
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git pull origin ${git_current_branch}
     ;;
