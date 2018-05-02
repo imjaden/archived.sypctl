@@ -49,7 +49,6 @@ case "${cmd_type}" in
         exec ${cmd_nohup} >> ${jar_dir}/nohup.out &
         cd -
         
-        logger
         pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{ print $2 }' | xargs)
         printf "$two_cols_table_format" "${jar_name}" "${pids}"
     ;;
@@ -93,8 +92,6 @@ case "${cmd_type}" in
     ;;
     restart|restartup)
         bash $0 ${jar_path} stop
-        logger
-        logger 
         bash $0 ${jar_path} startup
     ;;
     auto:generage:praams|agp)

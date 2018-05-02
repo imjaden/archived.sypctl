@@ -68,7 +68,7 @@ function fun_prompt_command_already_installed() {
 }
 
 function fun_prompt_java_already_installed() {
-    version=$(java -version)
+    version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
     printf "$two_cols_table_format" "java" "${version:0:40}"
 
     exit 0
@@ -117,24 +117,24 @@ function fun_user_expect_to_install_package_guides() {
 
 two_cols_table_divider=------------------------------
 two_cols_table_divider=$two_cols_table_divider$two_cols_table_divider
-two_cols_table_header="+%-14.14s+%-42.42s+\n"
-two_cols_table_format="| %-12s | %-40s |\n"
+two_cols_table_header="+%-36.36s+%-42.42s+\n"
+two_cols_table_format="| %-34s | %-40s |\n"
 two_cols_table_width=59
 
-fun_print_table_header() {
+function fun_print_table_header() {
     local header_text="${1}"
     
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
-    printf "| %-55s |\n" "${header_text}"
+    printf "| %-77s |\n" "${header_text}"
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
     printf "$two_cols_table_format" "$2" "$3"
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
 }
 
-fun_print_table_footer() {
+function fun_print_table_footer() {
     local footer_text="${1-timestamp: $(date +'%Y-%m-%d %H:%M:%S')}"
 
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
-    printf "| %-55s |\n" "${footer_text}"
+    printf "| %-77s |\n" "${footer_text}"
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
 }

@@ -7,12 +7,8 @@
 #
 ########################################
 #
-status_divider===============================
-status_divider=$status_divider$status_divider
-status_titles=(Package Downloaded Integrity)
-status_header="\n %-30s %-10s %-10s\n"
-status_format=" %-30s %-10s %-10s\n"
-status_width=50
+
+source lib/bash/common.sh
 
 case $1 in
     check|deploy)

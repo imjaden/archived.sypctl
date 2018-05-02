@@ -71,6 +71,8 @@ case "${cmd_type}" in
 
         bash ${tomcat_home}/bin/startup.sh > /dev/null 2>&1
         printf "$two_cols_table_format" "${tomcat_home}" "Started"
+
+        bash $0 ${tomcat_home} status
     ;;
     stop)
         printf "$two_cols_table_format" "${tomcat_home}" "Stoping..."
@@ -107,14 +109,11 @@ case "${cmd_type}" in
         if [[ $? -gt 0 ]]; then
             printf "$two_cols_table_format" "${tomcat_home}" "Not Found"
             printf "$two_cols_table_format" "${tomcat_home}" "Starting..."
-            logger
             bash $0 ${tomcat_home} startup
         fi
     ;;
     restart|restartup)
         bash $0 ${tomcat_home} stop
-        logger
-        logger
         bash $0 ${tomcat_home} startup
     ;;
     auto:generage:praams|agp)

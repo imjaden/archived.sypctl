@@ -7,14 +7,14 @@ case "$1" in
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git pull origin ${git_current_branch}
     ;;
-    install|deploy)
+    install|deploy|check)
         mkdir -p ./logs
         bash lib/bash/packages-tools.sh state
-        fun_print_table_header "Components State" "Component" "DeployState"
+        fun_print_table_header "Components State" "Component" "DeployedState"
 
-        test -f .env-files && echo '.env-files already deployed!' || {
+        test -f .env-files && printf "$two_cols_table_format" ".env-files" "Deployed" || {
             cp lib/config/saasrc .env-files
-            printf "$two_cols_table_format" ".env-files" "successfully"
+            printf "$two_cols_table_format" ".env-files" "Deployed Successfully"
         }
 
         check_install_defenders_include "SaaSImage" && {
@@ -69,31 +69,10 @@ case "$1" in
         check_install_defenders_include "Redis" && {
             bash lib/bash/redis-tools.sh install
         }
-    ;;
-    check)
-        status_titles=(Service Status Comment)
-        status_header="\n %-20s %-10s %-30s\n"
-        status_format=" %-20s %-10s %-30s\n"
-        printf "${status_header}" ${status_titles[@]}
-        printf "%${status_width}.${status_width}s\n" "${status_divider}"
-
-        printf "${status_format}" jdk $(command -v java > /dev/null 2>&1 && echo "true" || echo "false") /usr/local/src/jdk
-        printf "${status_format}" report $(test -f /usr/local/src/report/index.html && echo "true" || echo "false") /usr/local/src/report/index.html
-        printf "${status_format}" saas_images $(test -d ~/www/saas_images && echo "true" || echo "false") ~/www/saas_images
-        printf "${status_format}" saas_backups $(test -d ~/www/saas_backups && echo "true" || echo "false") ~/www/saas_backups
-        printf "${status_format}" zookeeper $(test -d /usr/local/src/zookeeper && echo "true" || echo "false") /usr/local/src/zookeeper
-        printf "${status_format}" tomcatAPI $(test -d /usr/local/src/tomcatAPI && echo "true" || echo "false") /usr/local/src/tomcatAPI
-        printf "${status_format}" providerAPI $(test -f /usr/local/src/providerAPI/api-service.jar && echo "true" || echo "false") /usr/local/src/providerAPI/api-service.jar
-        printf "${status_format}" tomcatSuperAdmin $(test -d /usr/local/src/tomcatSuperAdmin && echo "true" || echo "false") /usr/local/src/tomcatSuperAdmin
-        printf "${status_format}" tomcatAdmin $(test -d /usr/local/src/tomcatAdmin && echo "true" || echo "false") /usr/local/src/tomcatAdmin
-
-        fun_printf_timestamp
+        fun_print_table_footer
     ;;
     start|stop|status|restart|monitor)
-        if [[ "$1" = "status" || "$1" = "monitor" ]]; then
-            printf "${status_header}" ${status_titles[@]}
-            printf "%${status_width}.${status_width}s\n" "${status_divider}"
-        fi
+        fun_print_table_header "Components Process State" "Component" "ProcessId"
 
         check_install_defenders_include "SYPAPI" && {
             bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
@@ -116,7 +95,7 @@ case "$1" in
             bash lib/bash/nginx-tools.sh $1 "no-header"
         }
 
-        fun_printf_timestamp
+        fun_print_table_footer
     ;;
     package:status|ps)
         bash lib/bash/packages-tools.sh state
