@@ -5,55 +5,40 @@ test -f .env-files && source .env-files
 test -f ~/.bash_profile && source ~/.bash_profile
 cd ${current_path}
 
+function title() { printf "\n%s\n\n", "$1"; }
+function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
+function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
+
 function fun_install_lsb_release() {
     command -v lsb_release > /dev/null || {
         command -v yum > /dev/null && yum install -y redhat-lsb
         command -v apt-get > /dev/null && apt-get install -y lsb-release
         # command -v brew > /dev/null && brew install -y lsb-release
     }
-}
 
-os_platform=""
-function fun_basic_check_operate_system() {
-    fun_install_lsb_release
     command -v lsb_release > /dev/null || {
-        title "error: unsupport operate system!" 
+        title "ERROR: The script is incompatible with the system!" 
+        cat /etc/issue
         exit 1
     }
+}
+
+supported_os_platforms=(CentOS6 CentOS7 Ubuntu16)
+function fun_basic_check_operate_system() {
+    fun_install_lsb_release
 
     system=$(lsb_release -i | awk '{ print $3 }')
     version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
-    is_support=1
-    if [[ ${system} = "CentOS" ]]; then
-        if [[ ${version} = "6" || ${version} = "7" ]]; then
-            is_support=0
-            os_platform="${system}${version}"
-        fi
-    fi
-    if [[ ${is_support} -gt 0 ]]; then
-        title "error: unsupport operate system!" 
-    fi
+    if [[ "${supported_os_platforms[@]}" =~ "${system}${version}" ]]; then
+        return 0
+    else
+        lsb_release -a
 
-    return ${is_support}
-}
-
-function title() {
-    echo
-    echo "$1"
-    echo
+        return 1
+    fi
 }
 
 fun_basic_check_operate_system
-
-function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
-
-function fun_deploy_file_folder() {
-    folder_path="$1"
-    test -d ${folder_path} && echo "${folder_path} already deployed!" || {
-        mkdir -p ${folder_path}
-        echo "${folder_path} deployed successfully"
-    }
-}
 
 function fun_deploy_file_folder() {
     folder_path="$1"
@@ -68,7 +53,8 @@ function fun_prompt_command_already_installed() {
     version_lines=${2:-2}
 
     test -z "${command_name}" && {
-        echo "warning: fun_prompt_command_already_installed need pass command name as paramters!";return 2
+        echo "warning: fun_prompt_command_already_installed need pass command name as paramters!"
+        return 2
     }
 
     echo >&2 "${command_name} already installed:"
@@ -140,10 +126,10 @@ function check_install_defenders_include() {
 
 function fun_user_expect_to_install_package_guides() {
     true > .install-defender
-    supported_packages=(nginx jdk redis zookeeper vnc tomcat ziprar SaaSSYP SaaSImage SaaSBackup)
+    supported_packages=(Nginx JDK Redis Zookeeper VNC Tomcat ZipRaR Report SaaSImage SaaSBackup SYPSuperAdmin SYPAdmin SYPAPI SYPAPIService)
     for package in ${supported_packages[@]}; do
-        read -p "是否同意安装 ${package}? (y/Y 同意, 其他则否): " user_input
-        if [[ "${user_input}" = 'y' || "${user_input}" = 'Y' ]]; then
+        read -p "Do you agree with the install ${package}? y/n: " user_input
+        if [[ "${user_input}" = 'y' ]]; then
             echo "${package}"
             echo ${package} >> .install-defender
         fi
@@ -159,7 +145,3 @@ status_titles=(Service Type PID Comment)
 status_header="\n %-15s %10s %-10s %-21s\n"
 status_format=" %-15s %10s %-10s %-21s\n"
 status_width=50
-
-function fun_printf_timestamp() {
-    printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"
-}

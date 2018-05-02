@@ -17,56 +17,65 @@ case "$1" in
         }
 
         check_install_defenders_include "SaaSImage" && {
-            title '## saas images'
-            fun_deploy_file_folder /root/www/saas_images
+            title '## SaaSImage'
+            fun_deploy_file_folder ~/www/saas_images
         }
 
         check_install_defenders_include "SaaSBackup" && {
-            title '## saas backups'
-            fun_deploy_file_folder /root/www/saas_backups
+            title '## SaaSBackup'
+            fun_deploy_file_folder ~/www/saas_backups
         }
 
-        title '## report'
-        fun_deploy_file_folder /usr/local/src/report
-        test -f .tutorial-conf.sh || {
-            echo "var_shortcut='S'" > .tutorial-conf.sh
-            echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial-conf.sh
-        }
-        source .tutorial-conf.sh
-        cp lib/config/index@report.html syp-saas-tutorial.html
-        sed -i "s/VAR_SHORTCUT/${var_shortcut}/g" syp-saas-tutorial.html
-        sed -i "s/VAR_SLOGAN/${var_slogan}/g" syp-saas-tutorial.html
-        test -f /usr/local/src/report/index.html || {
-            cp lib/config/index@report.html /usr/local/src/report/index.html
-        }
-        mv syp-saas-tutorial.html /root/www/syp-saas-tutorial.html
 
-        check_install_defenders_include "ziprar" && {
+        check_install_defenders_include "Report" && {
+            title '## Report'
+            fun_deploy_file_folder /usr/local/src/report
+            test -f .tutorial-conf.sh || {
+                echo "var_shortcut='S'" > .tutorial-conf.sh
+                echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial-conf.sh
+            }
+            source .tutorial-conf.sh
+            cp lib/config/index@report.html syp-saas-tutorial.html
+            sed -i "s/VAR_SHORTCUT/${var_shortcut}/g" syp-saas-tutorial.html
+            sed -i "s/VAR_SLOGAN/${var_slogan}/g" syp-saas-tutorial.html
+            test -f /usr/local/src/report/index.html || {
+                cp syp-saas-tutorial.html /usr/local/src/report/index.html
+            }
+            mv syp-saas-tutorial.html ~/www/syp-saas-tutorial.html
+        }
+
+        check_install_defenders_include "ZipRaR" && {
             title '## archive toolkit'
             bash lib/bash/archive-tools.sh check
         }
 
-        check_install_defenders_include "jdk" && {
+        check_install_defenders_include "JDK" && {
             title '## deploy jdk'
             bash lib/bash/jdk-tools.sh install
         }
 
-        check_install_defenders_include "SaaSSYP" && {
-            title '## deploy tomcat'
+        check_install_defenders_include "SYPAPI" && {
+            title '## deploy SYPAPI'
             bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAPI        install 8081
-            bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
-            bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
-
-            title '## deploy service'
             bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
         }
 
-        check_install_defenders_include "zookeeper" && {
+        check_install_defenders_include "SYPSuperAdmin" && {
+            title '## deploy SYPSuperAdmin'
+            bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
+        }
+
+        check_install_defenders_include "SYPAdmin" && {
+            title '## deploy SYPAdmin'
+            bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
+        }
+
+        check_install_defenders_include "Zookeeper" && {
             title '## deploy zookeeper'
             bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper install
         }
 
-        check_install_defenders_include "redis" && {
+        check_install_defenders_include "Redis" && {
             title '## deploy redis'
             bash lib/bash/redis-tools.sh install
         }
@@ -80,8 +89,8 @@ case "$1" in
 
         printf "${status_format}" jdk $(command -v java > /dev/null 2>&1 && echo "true" || echo "false") /usr/local/src/jdk
         printf "${status_format}" report $(test -f /usr/local/src/report/index.html && echo "true" || echo "false") /usr/local/src/report/index.html
-        printf "${status_format}" saas_images $(test -d /root/www/saas_images && echo "true" || echo "false") /root/www/saas_images
-        printf "${status_format}" saas_backups $(test -d /root/www/saas_backups && echo "true" || echo "false") /root/www/saas_backups
+        printf "${status_format}" saas_images $(test -d ~/www/saas_images && echo "true" || echo "false") ~/www/saas_images
+        printf "${status_format}" saas_backups $(test -d ~/www/saas_backups && echo "true" || echo "false") ~/www/saas_backups
         printf "${status_format}" zookeeper $(test -d /usr/local/src/zookeeper && echo "true" || echo "false") /usr/local/src/zookeeper
         printf "${status_format}" tomcatAPI $(test -d /usr/local/src/tomcatAPI && echo "true" || echo "false") /usr/local/src/tomcatAPI
         printf "${status_format}" providerAPI $(test -f /usr/local/src/providerAPI/api-service.jar && echo "true" || echo "false") /usr/local/src/providerAPI/api-service.jar
@@ -96,18 +105,24 @@ case "$1" in
             printf "%${status_width}.${status_width}s\n" "${status_divider}"
         fi
 
-        check_install_defenders_include "SaaSSYP" && {
+        check_install_defenders_include "SYPAPI" && {
             bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
             bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
-            bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
+        }
+
+        check_install_defenders_include "SYPSuperAdmin" && {
             bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
         }
 
-        check_install_defenders_include "zookeeper" && {
+        check_install_defenders_include "SYPAdmin" && {
+            bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
+        }
+
+        check_install_defenders_include "Zookeeper" && {
             bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper $1 "no-header"
         }
 
-        check_install_defenders_include "nginx" && {
+        check_install_defenders_include "Nginx" && {
             bash lib/bash/nginx-tools.sh $1 "no-header"
         }
 
