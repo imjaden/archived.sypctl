@@ -23,12 +23,12 @@ case "$1" in
         redis_version=redis-stable
 
         if [[ ! -f ${redis_package} ]]; then
-            echo "warning: redis package not found -${jdk_package}"
+            printf "$two_cols_table_format" "redis" "Tar Package Not Found"
             exit 2
         fi
 
         if [[ -d ${redis_install_path}/${redis_version} ]]; then
-            echo "warning: redis has deployed - ${redis_install_path}/${redis_version}"
+            printf "$two_cols_table_format" "redis" "Error: Deployed"
         fi
 
         tar -xzvf ${redis_package} -C ${redis_install_path}

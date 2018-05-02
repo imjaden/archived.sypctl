@@ -42,9 +42,9 @@ fun_basic_check_operate_system
 
 function fun_deploy_file_folder() {
     folder_path="$1"
-    test -d ${folder_path} && echo "${folder_path} already deployed!" || {
+    test -d ${folder_path} && printf "$two_cols_table_format" "$1" "deployed" || {
         mkdir -p ${folder_path}
-        echo "${folder_path} deployed successfully"
+        printf "$two_cols_table_format" "$1" "successfully"
     }
 }
 
@@ -68,49 +68,28 @@ function fun_prompt_command_already_installed() {
 }
 
 function fun_prompt_java_already_installed() {
-    echo >&2 "java already installed!"
-    echo
-    echo "$ which java"
-    which java
-    echo
-    echo "$ java -version"
-    java -version
+    version=$(java -version)
+    printf "$two_cols_table_format" "java" "${version:0:40}"
 
     exit 0
 }
 
 function fun_prompt_nginx_already_installed() {
-    echo >&2 "nginx already installed:"
-    echo
-    echo "$ which nginx"
-    which nginx
-    echo
-    echo "$ nginx -v"
-    nginx -v
-    echo
-    echo "$ nginx -t"
-    nginx -t
+    version=$(nginx -version)
+    printf "$two_cols_table_format" "nginx" "${version:0:40}"
 
     exit 0
 }
 
 function fun_prompt_redis_already_installed() {
-    echo >&2 "redis already installed:"
-    echo
-    echo "$ which redis-cli"
-    which redis-cli
-    echo
-    echo "$ redis-cli --version"
-    redis-cli --version
+    version=$(redis-cli --version)
+    printf "$two_cols_table_format" "redis-cli" "${version:0:40}"
 
     exit 0
 }
 
 function fun_prompt_vncserver_already_installed() {
-    echo >&2 "redis already installed:"
-    echo
-    echo "$ which vncserver"
-    which vncserver
+    printf "$two_cols_table_format" "vncserver" "$(which vncserver)"
 
     exit 0
 }
@@ -126,7 +105,7 @@ function check_install_defenders_include() {
 
 function fun_user_expect_to_install_package_guides() {
     true > .install-defender
-    supported_packages=(Nginx JDK Redis Zookeeper VNC Tomcat ZipRaR Report SaaSImage SaaSBackup SYPSuperAdmin SYPAdmin SYPAPI SYPAPIService)
+    supported_packages=(Nginx JDK Redis Zookeeper VNC Report SaaSImage SaaSBackup SYPSuperAdmin SYPAdmin SYPAPI)
     for package in ${supported_packages[@]}; do
         read -p "Do you agree with the install ${package}? y/n: " user_input
         if [[ "${user_input}" = 'y' ]]; then
@@ -136,12 +115,26 @@ function fun_user_expect_to_install_package_guides() {
     done
 }
 
-begin_placeholder=">>>>>>>>>>"
-finished_placeholder="<<<<<<<<<<"
+two_cols_table_divider=------------------------------
+two_cols_table_divider=$two_cols_table_divider$two_cols_table_divider
+two_cols_table_header="+%-14.14s+%-42.42s+\n"
+two_cols_table_format="| %-12s | %-40s |\n"
+two_cols_table_width=59
 
-status_divider===============================
-status_divider=$status_divider$status_divider
-status_titles=(Service Type PID Comment)
-status_header="\n %-15s %10s %-10s %-21s\n"
-status_format=" %-15s %10s %-10s %-21s\n"
-status_width=50
+fun_print_table_header() {
+    local header_text="${1}"
+    
+    printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
+    printf "| %-55s |\n" "${header_text}"
+    printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
+    printf "$two_cols_table_format" "$2" "$3"
+    printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
+}
+
+fun_print_table_footer() {
+    local footer_text="${1-timestamp: $(date +'%Y-%m-%d %H:%M:%S')}"
+
+    printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
+    printf "| %-55s |\n" "${footer_text}"
+    printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
+}

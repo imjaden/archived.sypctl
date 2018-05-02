@@ -23,11 +23,13 @@ case "$1" in
         jdk_version=jdk1.8.0_151
 
         if [[ ! -f ${jdk_package} ]]; then
-          echo "error: jdk package not found -${jdk_package}"; exit 2;
+          printf "$two_cols_table_format" "JDK package" "Error: Not Found"
+          exit 2
         fi
 
         if [[ -d ${jdk_install_path}/jdk ]]; then
-          echo "error: jdk has already deployed - ${jdk_install_path}/jdk"; exit 2;
+          printf "$two_cols_table_format" "JDK folder" "Error: Deployed"
+          exit 2
         fi
 
         tar -xzvf ${jdk_package} -C ${jdk_install_path}
@@ -47,12 +49,14 @@ case "$1" in
         if [[ -f ${java_bin_path} ]]; then
           ln -sf ${jdk_install_path}/jdk/bin/java /usr/bin/java
         fi
-        java -version
+            
+        version=$(java -version)
+        printf "$two_cols_table_format" "java" "${version:0:40}"
 
         echo "source ~/.bash_profile"
         echo "java -version"
 
-        echo "## jdk" >> ~/.project_configuration
+        echo "## JDK" >> ~/.project_configuration
         echo ""       >> ~/.project_configuration
         echo "- path: ${jdk_install_path}/jdk" >> ~/.project_configuration
     ;;

@@ -38,10 +38,11 @@ case "${cmd_type}" in
     ;;
     start|startup)
         if [[ ! -f ${jar_path} ]]; then
-            logger "warning: jar package not found - ${jar_path}"  
+            printf "$two_cols_table_format" "${jar_name}" "Jar Package Not Found"
             exit 2
         fi
-        logger "${begin_placeholder} start service process, begin ${begin_placeholder}"
+
+        printf "$two_cols_table_format" "${jar_name}" "Starting..."
 
         cd ${jar_dir}
         cmd_nohup="nohup java -jar ${jar_name}"
@@ -50,49 +51,43 @@ case "${cmd_type}" in
         
         logger
         pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{ print $2 }' | xargs)
-        logger "service(${jar_name}) pids: ${pids}"
-        logger "${finished_placeholder} start service process, finish ${finished_placeholder}"
+        printf "$two_cols_table_format" "${jar_name}" "${pids}"
     ;;
     stop)
         if [[ ! -f ${jar_path} ]]; then
-            logger "warning: jar package not found - ${jar_path}"  
+            printf "$two_cols_table_format" "${jar_name}" "Not Found"
             exit 2
         fi
-        logger "${begin_placeholder} stop service process, begin ${begin_placeholder}"
+        printf "$two_cols_table_format" "${jar_name}" "Stoping..."
         pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'service-tools' | awk '{print $2}' | xargs)
         if [ -n "${pids}" ]; then
             kill -9 ${pids}
-            logger "kill service(${jar_name}) pids: ${pids}"
+            printf "$two_cols_table_format" "${jar_name}" "killing ${pids}"
         else
-            logger "${jar_name} process not found"
+            printf "$two_cols_table_format" "${jar_name}" "Process Not Found"
         fi
-        logger "${finished_placeholder} stop service process, finish ${finished_placeholder}"
+        printf "$two_cols_table_format" "${jar_name}" "Stoped"
     ;;
     status|state)
-        if [[ "${option}" = "use-header" ]]; then
-            printf "${status_header}" ${status_titles[@]}
-            printf "%${status_width}.${status_width}s\n" "${status_divider}"
-        fi
-
         if [[ ! -f ${jar_path} ]]; then
-            printf "${status_format}" "jar(service)" "master" "jar-404" "${jar_path}"
+            printf "$two_cols_table_format" "${jar_name}" "Jar Package Not Found"
             exit 2
         fi
 
         pids=$(ps aux | grep ${jar_name} | grep -v 'grep' | grep -v 'jar-service-tools' | awk '{print $2}' | xargs)
         if [ -n "${pids}" ]; then
-            printf "${status_format}" "jar(service)" "*master" ${pids} "${jar_path}"
+            printf "$two_cols_table_format" "${jar_name}" "${pids}"
             exit 0
         else
-            printf "${status_format}" "jar(service)" "master" "-" "${jar_path}"
+            printf "$two_cols_table_format" "${jar_name}" "-"
             exit 1
         fi
     ;;
     monitor)
         bash $0 ${jar_path} status ${option}
         if [[ $? -gt 0 ]]; then
-            logger "${jar_name} process not found then start..."
-            logger
+            printf "$two_cols_table_format" "${jar_name}" "Process Not Found"
+            printf "$two_cols_table_format" "${jar_name}" "Starting..."
             bash $0 ${jar_path} startup
         fi
     ;;

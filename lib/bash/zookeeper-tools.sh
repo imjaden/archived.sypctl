@@ -33,7 +33,7 @@ case "${cmd_type}" in
     ;; 
     install)
         if [[ -d ${zk_home} ]]; then
-            echo "prompt: ${zk_home} has already deployed!"
+            printf "$two_cols_table_format" "zookeeper" "Deployed"
             exit 2
         fi
 
@@ -43,7 +43,7 @@ case "${cmd_type}" in
         rm -fr ~/tools/${zk_version} 
         test -d ~/tools || mkdir -p ~/tools
         if [[ ! -f ${zk_package} ]]; then
-            echo "warning: zookeeper package not found -${zk_package}" 
+            printf "$two_cols_table_format" "zookeeper" "ERROR: Package Not Found"
             exit 2
         fi
         tar -xzvf ${zk_package} -C ~/tools
@@ -52,7 +52,7 @@ case "${cmd_type}" in
         cp lib/config/zoo.cfg ${zk_home}/conf
         mkdir -p /usr/local/src/zookeeper/{data,log}
 
-        echo "prompt: ${zk_home} deployed successfully!"
+        printf "$two_cols_table_format" "zookeeper" "Deployed Successfully"
     ;;
     log)
         cd ${zk_home}
@@ -64,36 +64,35 @@ case "${cmd_type}" in
         zk_version=zookeeper-3.3.6
 
         if [[ ! -f ${zk_package} ]]; then
-            echo "warning: zookeeper package not found - ${zk_package}"
+            printf "$two_cols_table_format" "zookeeper" "Tar Package Not Found"
             exit 2
         fi
 
         if [[ -d ${zk_install_path}/zookeeper ]]; then
-            echo "prompt: zookeeper has already deployed - ${zk_install_path}/zookeeper"
+            printf "$two_cols_table_format" "zookeeper" "Deployed"
             exit 2
         fi
 
         tar -xzvf ${zk_package} -C ${zk_install_path}
         mv ${zk_install_path}/${zk_version} ${zk_install_path}/zookeeper
         mkdir -p /usr/local/src/zookeeper/{data,log}
-        echo "${zk_install_path}/zookeeper"
     ;;
     start|startup)
         test -f ~/.bash_profile && source ~/.bash_profile
 
-        logger "${begin_placeholder} start zookeeper process, begin ${begin_placeholder}"
+        printf "$two_cols_table_format" "zookeeper" "Starting..."
         bash ${zk_home}/bin/zkServer.sh start
-        logger "${finished_placeholder} start zookeeper process, finished ${finished_placeholder}"
+        printf "$two_cols_table_format" "zookeeper" "Started"
     ;;
     stop)
         test -f ~/.bash_profile && source ~/.bash_profile
 
-        logger "${begin_placeholder} stop zookeeper process, begin ${begin_placeholder}"
+        printf "$two_cols_table_format" "zookeeper" "Stroping..."
         pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
         if [ ! -n "${pids}" ]; then
-            logger "zookeeper(${zk_home}) process not found"
+        printf "$two_cols_table_format" "zookeeper" "Process Not Found"
         else
-            logger "zookeeper(${zk_home}) pids: ${pids}"
+            printf "$two_cols_table_format" "zookeeper" "${pids}"
             bash ${zk_home}/bin/zkServer.sh stop
 
             sleep 1s
@@ -101,38 +100,32 @@ case "${cmd_type}" in
             pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
             if [ -n "${pids}" ]; then
                 kill -9 ${pids}
-                logger "kill zookeeper(${zk_home}) process: ${pids}"
+                printf "$two_cols_table_format" "zookeeper" "KILL ${pids}"
             fi
         fi
-        logger "${finished_placeholder} stop zookeeper process, finished ${finished_placeholder}"
+        printf "$two_cols_table_format" "zookeeper" "Stoped"
     ;;
     status|state)
         pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools' | awk '{print $2}' | xargs)
 
-        if [[ "${option}" = "use-header" ]]; then
-            printf "${status_header}" ${status_titles[@]}
-            printf "%${status_width}.${status_width}s\n" "${status_divider}"
-        fi
         if [ -n "${pids}" ]; then
-            printf "${status_format}" "zookeeper" "*master" ${pids} "${zk_home}"
+            printf "$two_cols_table_format" "zookeeper" "${pids}"
             exit 0
         else
-            printf "${status_format}" "zookeeper" "master" "-" "${zk_home}"
+            printf "$two_cols_table_format" "zookeeper" "-"
             exit 1
         fi
     ;;
     monitor)
         bash $0 ${zk_home} status ${option}
         if [ $? -gt 0 ]; then
-            logger "zookeeper(${zk_home}) process not found then start..."
-            logger
+            printf "$two_cols_table_format" "zookeeper" "Process Not Found"
+            printf "$two_cols_table_format" "zookeeper" "Starting..."
             bash $0 ${zk_home} startup
         fi
     ;;
     restart|restartup)
         bash $0 ${zk_home} stop 
-        logger
-        logger
         bash $0 ${zk_home} start 
     ;;
     auto:generage:praams|agp)

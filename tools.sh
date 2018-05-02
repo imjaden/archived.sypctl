@@ -9,26 +9,23 @@ case "$1" in
     ;;
     install|deploy)
         mkdir -p ./logs
-        
-        title '## .env-files '
+        bash lib/bash/packages-tools.sh state
+        fun_print_table_header "Components State" "Component" "DeployState"
+
         test -f .env-files && echo '.env-files already deployed!' || {
             cp lib/config/saasrc .env-files
-            echo '.env-files deployed successfully'
+            printf "$two_cols_table_format" ".env-files" "successfully"
         }
 
         check_install_defenders_include "SaaSImage" && {
-            title '## SaaSImage'
             fun_deploy_file_folder ~/www/saas_images
         }
 
         check_install_defenders_include "SaaSBackup" && {
-            title '## SaaSBackup'
             fun_deploy_file_folder ~/www/saas_backups
         }
 
-
         check_install_defenders_include "Report" && {
-            title '## Report'
             fun_deploy_file_folder /usr/local/src/report
             test -f .tutorial-conf.sh || {
                 echo "var_shortcut='S'" > .tutorial-conf.sh
@@ -44,39 +41,32 @@ case "$1" in
             mv syp-saas-tutorial.html ~/www/syp-saas-tutorial.html
         }
 
-        check_install_defenders_include "ZipRaR" && {
-            title '## archive toolkit'
-            bash lib/bash/archive-tools.sh check
-        }
+        # check_install_defenders_include "ZipRaR" && {
+        #     bash lib/bash/archive-tools.sh check
+        # }
 
         check_install_defenders_include "JDK" && {
-            title '## deploy jdk'
             bash lib/bash/jdk-tools.sh install
         }
 
         check_install_defenders_include "SYPAPI" && {
-            title '## deploy SYPAPI'
             bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAPI        install 8081
             bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
         }
 
         check_install_defenders_include "SYPSuperAdmin" && {
-            title '## deploy SYPSuperAdmin'
             bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
         }
 
         check_install_defenders_include "SYPAdmin" && {
-            title '## deploy SYPAdmin'
             bash lib/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
         }
 
         check_install_defenders_include "Zookeeper" && {
-            title '## deploy zookeeper'
             bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper install
         }
 
         check_install_defenders_include "Redis" && {
-            title '## deploy redis'
             bash lib/bash/redis-tools.sh install
         }
     ;;

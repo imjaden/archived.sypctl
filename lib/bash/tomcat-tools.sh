@@ -31,11 +31,11 @@ option="${3:-use-header}"
 
 case "${cmd_type}" in
     check)
-        logger "TODO"
+        printf "$two_cols_table_format" "Tomcat:check" "TODO"
     ;; 
     install)
         if [[ -d ${tomcat_home} ]]; then
-            echo "prompt: ${tomcat_home} has already deployed!"
+            printf "$two_cols_table_format" "${tomcat_home}" "Deployed"
             exit 2
         fi
 
@@ -45,7 +45,7 @@ case "${cmd_type}" in
         if [[ ! -d ~/tools/${tomcat_version} ]]; then
             test -d ~/tools || mkdir -p ~/tools
             if [[ ! -f ${tomcat_package} ]]; then
-                echo "warning: tomcat package not found -${tomcat_package}" 
+                printf "$two_cols_table_format" "Tomcat package" "ERROR: Not Found"
                 exit 2
             fi
             
@@ -56,61 +56,57 @@ case "${cmd_type}" in
         cp lib/config/setting-${tomcat_port}.xml ~/tools/${tomcat_version}/conf/server.xml
         cp -r ~/tools/${tomcat_version} ${tomcat_home}
 
-        echo "prompt: ${tomcat_home} deployed with http port ${tomcat_port} successfully!"
+        printf "$two_cols_table_format" "${tomcat_home}" "deployed successfully"
     ;;
     log)
         cd ${tomcat_home}
         tail -f logs/catalina.out
     ;;
     start|startup)
-        logger "${begin_placeholder} start tomcat process, start ${begin_placeholder}"
+        printf "$two_cols_table_format" "${tomcat_home}" "Starting..."
         cat /dev/null > ${tomcat_home}/logs/catalina.out
         rm -rf ${tomcat_home}/work/* 
-        logger "clear catalina.out、remove tomcat/work, done"
 
         sleep 1s
 
-        bash ${tomcat_home}/bin/startup.sh
-        logger "${finished_placeholder} start tomcat process, finished ${finished_placeholder}"
+        bash ${tomcat_home}/bin/startup.sh > /dev/null 2>&1
+        printf "$two_cols_table_format" "${tomcat_home}" "Started"
     ;;
     stop)
-        logger "${begin_placeholder} stop tomcat process, begin ${begin_placeholder}"
+        printf "$two_cols_table_format" "${tomcat_home}" "Stoping..."
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
         if [ ! -n "${pids}" ]; then
-            logger "tomcat(${tomcat_home}) process not found"
+            printf "$two_cols_table_format" "${tomcat_home}" "Pid Not Found"
         else
-            logger "tomcat(${tomcat_home}) pids: ${pids}"
+            printf "$two_cols_table_format" "${tomcat_home}" "${pids}"
             bash ${tomcat_home}/bin/shutdown.sh
 
             sleep 1s
 
             pids=$(ps aux | grep tomcat | grep ${tomcat_home}| grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
             if [ -n "${pids}" ]; then
-                logger "kill process(${tomcat_home}): ${pids}"
+                printf "$two_cols_table_format" "${tomcat_home}" "KILL ${pids}"
                 kill -9 ${pids}
             fi
         fi
-        logger "${finished_placeholder} stop tomcat process, finished ${finished_placeholder}"
+        printf "$two_cols_table_format" "${tomcat_home}" "Stoped"
     ;;
     status|state)
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
 
-        if [[ "${option}" = "use-header" ]]; then
-            printf "${status_header}" ${status_titles[@]}
-            printf "%${status_width}.${status_width}s\n" "${status_divider}"
-        fi
         if [ -n "${pids}" ]; then
-            printf "${status_format}" "war(tomcat)" "*master" ${pids} "${tomcat_home}"
+            printf "$two_cols_table_format" "${tomcat_home}" "${pids}"
             exit 0
         else
-            printf "${status_format}" "war(tomcat)" "master" "-" "${tomcat_home}"
+            printf "$two_cols_table_format" "${tomcat_home}" "-"
             exit 1
         fi
     ;;
     monitor)
         bash $0 ${tomcat_home} status ${option}
         if [[ $? -gt 0 ]]; then
-            logger "tomcat process not found then start tomcat process..."
+            printf "$two_cols_table_format" "${tomcat_home}" "Not Found"
+            printf "$two_cols_table_format" "${tomcat_home}" "Starting..."
             logger
             bash $0 ${tomcat_home} startup
         fi

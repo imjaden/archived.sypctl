@@ -40,24 +40,19 @@ case "$1" in
         bash $0 start
     ;;
     status|state)
-        if [[ "${option}" = "use-header" ]]; then
-            printf "${status_header}" ${status_titles[@]}
-            printf "%${status_width}.${status_width}s\n" "${status_divider}"
-        fi
-
         if [[ -n "${NGINX_PID_PATH}" ]]; then
             if [[ -f ${NGINX_PID_PATH} ]]; then
                 master_pid=$(cat ${NGINX_PID_PATH})
                 ps -ax | awk '{print $1}' | grep -e "^${master_pid}$" > /dev/null 2>&1
                 if [[ $? -eq 0 ]]; then
                     worker_pids=$(ps -o pid --no-headers --ppid ${master_pid} | xargs)
-                    printf "${status_format}" "nginx" "*master" ${master_pid} "ps aux"
+                        printf "$two_cols_table_format" "nginx" "*${master_pid}"
                     for worker_pid in ${worker_pids[@]}; do
-                        printf "${status_format}" "nginx" "worker" ${worker_pid} "ps -o pid --ppid"
+                        printf "$two_cols_table_format" "nginx" "${worker_pid}"
                     done
                     exit 0
                 else
-                    printf "${status_format}" "nginx" "*master" "-" "ps aux"
+                    printf "$two_cols_table_format" "nginx" "-"
                     exit 1
                 fi
             fi 
@@ -65,9 +60,9 @@ case "$1" in
             master_pid=$(ps aux | grep nginx | grep master | grep -v 'grep' | grep -v 'nginx-tools' | awk '{print $2}' | xargs)
             if [[ -n "${master_pid}" ]]; then
                 worker_pids=$(ps -o pid --no-headers --ppid ${master_pid} | xargs)
-                printf "${status_format}" "nginx" "*master" ${master_pid} "ps aux"
+                printf "$two_cols_table_format" "nginx" "*${master_pid}"
                 for worker_pid in ${worker_pids[@]}; do
-                    printf "${status_format}" "nginx" "worker" ${worker_pid} "ps -o pid --ppid"
+                    printf "$two_cols_table_format" "nginx" "${worker_pid}"
                 done
                 exit 0
             fi
@@ -77,8 +72,8 @@ case "$1" in
     monitor)
         bash $0 status ${option}
         if [[ $? -gt 0 ]]; then
-            logger "nginx process not found then start..."
-            logger
+            printf "$two_cols_table_format" "nginx" "Process Not Found"
+            printf "$two_cols_table_format" "nginx" "Starting..."
             bash $0 start
         fi
     ;;
