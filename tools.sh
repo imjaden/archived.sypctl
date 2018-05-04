@@ -74,6 +74,14 @@ case "$1" in
     start|stop|status|restart|monitor)
         fun_print_table_header "Components Process State" "Component" "ProcessId"
 
+        check_install_defenders_include "Redis" && {
+            bash lib/bash/redis-tools.sh $1 "no-header"
+        }
+
+        check_install_defenders_include "Zookeeper" && {
+            bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper $1 "no-header"
+        }
+
         check_install_defenders_include "SYPAPI" && {
             bash lib/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
             bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
@@ -86,11 +94,6 @@ case "$1" in
         check_install_defenders_include "SYPAdmin" && {
             bash lib/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
         }
-
-        check_install_defenders_include "Zookeeper" && {
-            bash lib/bash/zookeeper-tools.sh /usr/local/src/zookeeper $1 "no-header"
-        }
-
         check_install_defenders_include "Nginx" && {
             bash lib/bash/nginx-tools.sh $1 "no-header"
         }

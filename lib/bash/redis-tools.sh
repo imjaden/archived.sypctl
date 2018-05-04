@@ -53,7 +53,26 @@ case "$1" in
         echo "- cli: /usr/local/bin/redis-cli" >> ~/.project_configuration
     ;;
     start|startup)
-        redis-server /etc/redis/redis.conf
+        printf "$two_cols_table_format" "redis" "Starting..."
+        redis-server /etc/redis/redis.conf > /dev/null 2>&1
+        printf "$two_cols_table_format" "redis" "Started"
+    ;;
+    status|state)
+        pid=$(ps aux | grep redis | grep -v 'grep' | grep -v 'redis-tools' | awk '{print $2}' | xargs)
+        if [[ -n "${pid}" ]]; then
+            printf "$two_cols_table_format" "redis" "${pid}"
+            exit 0
+        fi
+        printf "$two_cols_table_format" "redis" "Process Not Found"
+        exit 1
+    ;;
+    monitor)
+        bash $0 status
+        if [[ $? -gt 0 ]]; then
+            printf "$two_cols_table_format" "redis" "Process Not Found"
+            printf "$two_cols_table_format" "redis" "Starting..."
+            bash $0 start
+        fi
     ;;
     *)
         logger "warning: unkown params - $@"
