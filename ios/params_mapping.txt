@@ -1,0 +1,10 @@
+BUGLY_ID,bugly_id 
+AMAP_KEY,amap_key
+UMENG_APP_ID,umeng_app_id
+WEIXIN_APP_ID,weixin_app_id
+WEIXIN_APP_SECRET,weixin_app_secret
+HOT_FIX,hot_fix
+PGYER_APP_KEY,pgyer_app_key
+PGYER_API_KEY,pgyer_api_key
+PGYER_USER_KEY,pgyer_user_key
+PGYER_INSTALL_URL,pgyer_install_url
