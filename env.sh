@@ -46,10 +46,12 @@ command -v apt-get > /dev/null && {
     done
 }
 
-mkdir -p /opt/scripts
-cd /opt/scripts
-git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp/syp-saas-scripts.git
-cd syp-saas-scripts
+test -d /opt/scripts/syp-saas-scripts || {
+    mkdir -p /opt/scripts/
+    cd /opt/scripts
+    git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp/syp-saas-scripts.git
+    cd syp-saas-scripts
+}
 
 bash server/bash/jdk-tools.sh install
 
