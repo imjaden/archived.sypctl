@@ -79,7 +79,7 @@ command -v bundle >/dev/null 2>&1 && bundle -v || {
 }
 
 custom_col1_width=22
-custom_col1_width=32
+custom_col2_width=32
 source server/bash/common.sh
 
 fun_print_table_header "Installed State" "Component" "Version"
