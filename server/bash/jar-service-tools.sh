@@ -20,7 +20,7 @@
 # bash service-tools.sh "${jar_path}" "${cmd_type}"
 # ```
 
-source lib/bash/common.sh
+source server/bash/common.sh
 
 jar_path="$1"
 cmd_type="${2:-startup}"

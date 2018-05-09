@@ -7,7 +7,7 @@
 #
 ########################################
 #
-source lib/bash/common.sh
+source server/bash/common.sh
 
 cmd_type="${1:-start}"
 option="${2:-use-header}"

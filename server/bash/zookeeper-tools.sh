@@ -21,7 +21,7 @@
 # bash # zookeeper-tools.sh ${zk_home} ${cmd_type}
 # ```
 
-source lib/bash/common.sh
+source server/bash/common.sh
 
 zk_home="${1:-$ZK_HOME}"
 cmd_type="${2:-start}"

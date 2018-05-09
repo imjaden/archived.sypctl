@@ -23,7 +23,7 @@
 # bash tomcat-tools.sh "${tomcat_home}" "${cmd_type}"
 # ```
 
-source lib/bash/common.sh
+source server/bash/common.sh
 
 tomcat_home="${1:-$TOMCAT_HOME}"
 cmd_type="${2:-startup}"

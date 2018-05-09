@@ -6,7 +6,7 @@
 #
 ########################################
 
-source lib/bash/common.sh
+source server/bash/common.sh
 
 option="${2:-use-header}"
 
