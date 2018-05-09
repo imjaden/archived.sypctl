@@ -17,10 +17,8 @@ else
 fi
 
 command -v yum > /dev/null && {
-    # printf "\n## yum update\n\n"
     # yum update -y
 
-    printf "\n## install dependency packages\n\n"
     packages=(git vim wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
       command -v ${package} > /dev/null || {
@@ -31,10 +29,8 @@ command -v yum > /dev/null && {
     done
 }
 command -v apt-get > /dev/null && {
-    # printf "\n## apt-get update\n\n"
     # apt-get update -y
 
-    printf "\n## install dependency packages\n\n"
     packages=(git git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
     for package in ${packages[@]}; do
       command -v ${package} > /dev/null || {
@@ -69,7 +65,6 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
     type rbenv
 }
 
-printf "\n## install ruby#2.4.0\n\n"
 command -v ruby >/dev/null 2>&1 && ruby -v || { 
     rbenv install 2.4.0
     rbenv rehash
@@ -82,3 +77,14 @@ command -v bundle >/dev/null 2>&1 && bundle -v || {
     bundle config mirror.https://rubygems.org https://gems.ruby-china.org
     bundle config build.nokogiri --use-system-libraries
 }
+
+source server/bash/common.sh
+
+fun_print_table_header "Installed State" "Component" "Version"
+dependency_commands=(git rbenv ruby gem bundle)
+for cmd in ${dependency_commands[@]}; do
+    version=$(${cmd} --version)
+    printf "$two_cols_table_format" "${cmd}" "${version:0:40}"
+done
+fun_prompt_java_already_installed
+fun_print_table_footer
