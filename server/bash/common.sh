@@ -120,11 +120,11 @@ function fun_user_expect_to_install_package_guides() {
 
 col1_width=${custom_col1_width:-36}
 col2_width=${custom_col1_width:-42}
-header_col1_width=$[$custom_col1_width * 2 + 5]
+header_col1_width=$[$col1_width*2+5]
 two_cols_table_divider=------------------------------
 two_cols_table_divider=$two_cols_table_divider$two_cols_table_divider
 two_cols_table_header="+%-${col1_width}.${col1_width}s+%-${col2_width}.${col2_width}s+\n"
-two_cols_table_format="| %-$[$col1_width - 2]s | %-$[$col2_width - 2]s |\n"
+two_cols_table_format="| %-$[$col1_width-2]s | %-$[$col2_width-2]s |\n"
 
 function fun_print_table_header() {
     local header_text="${1}"
