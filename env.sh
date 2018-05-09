@@ -78,6 +78,8 @@ command -v bundle >/dev/null 2>&1 && bundle -v || {
     bundle config build.nokogiri --use-system-libraries
 }
 
+custom_col1_width=22
+custom_col2_width=42
 source server/bash/common.sh
 
 fun_print_table_header "Installed State" "Component" "Version"
