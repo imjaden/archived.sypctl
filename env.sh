@@ -79,13 +79,14 @@ command -v bundle >/dev/null 2>&1 && bundle -v || {
 }
 
 custom_col1_width=22
+custom_col1_width=32
 source server/bash/common.sh
 
 fun_print_table_header "Installed State" "Component" "Version"
 dependency_commands=(git rbenv ruby gem bundle)
 for cmd in ${dependency_commands[@]}; do
     version=$(${cmd} --version)
-    printf "$two_cols_table_format" "${cmd}" "${version:0:20}"
+    printf "$two_cols_table_format" "${cmd}" "${version:0:30}"
 done
 fun_prompt_java_already_installed
 fun_print_table_footer
