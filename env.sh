@@ -17,13 +17,13 @@ else
 fi
 
 command -v yum > /dev/null && {
-    printf "\n## yum update\n\n"
-    yum update -y
+    # printf "\n## yum update\n\n"
+    # yum update -y
 
     printf "\n## install dependency packages\n\n"
     packages=(git vim wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
-      type -v ${package} > /dev/null || {
+      command -v ${package} > /dev/null || {
           echo "installing ${package}..."
           yum install -y ${package} > /dev/null 2>&1
           echo "installing ${package} $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
@@ -31,13 +31,13 @@ command -v yum > /dev/null && {
     done
 }
 command -v apt-get > /dev/null && {
-    printf "\n## apt-get update\n\n"
-    apt-get update -y
+    # printf "\n## apt-get update\n\n"
+    # apt-get update -y
 
     printf "\n## install dependency packages\n\n"
     packages=(git git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
     for package in ${packages[@]}; do
-      type -v ${package} > /dev/null || {
+      command -v ${package} > /dev/null || {
           printf "installing ${package}..."
           apt-get build-dep -y ${package} > /dev/null 2>&1
           apt-get install -y ${package} > /dev/null 2>&1
