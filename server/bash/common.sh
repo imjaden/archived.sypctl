@@ -119,8 +119,8 @@ function fun_user_expect_to_install_package_guides() {
 }
 
 col1_width=${custom_col1_width:-36}
-col2_width=${custom_col1_width:-42}
-header_col1_width=$[$col1_width*2+5]
+col2_width=${custom_col2_width:-42}
+header_col1_width=$[$col1_width*2]
 two_cols_table_divider=------------------------------
 two_cols_table_divider=$two_cols_table_divider$two_cols_table_divider
 two_cols_table_header="+%-${col1_width}.${col1_width}s+%-${col2_width}.${col2_width}s+\n"
