@@ -49,7 +49,7 @@ test -d /opt/scripts/syp-saas-scripts || {
     cd syp-saas-scripts
 }
 
-cd opt/scripts/syp-saas-scripts
+cd /opt/scripts/syp-saas-scripts
 git pull origin dev-0.0.1 > /dev/null 2>&1
 bash server/bash/jdk-tools.sh install
 
