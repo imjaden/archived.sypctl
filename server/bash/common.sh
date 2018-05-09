@@ -118,17 +118,19 @@ function fun_user_expect_to_install_package_guides() {
     done
 }
 
+col1_width=${custom_col1_width:-36}
+col2_width=${custom_col1_width:-42}
+header_col1_width=$[$custom_col1_width * 2 + 5]
 two_cols_table_divider=------------------------------
 two_cols_table_divider=$two_cols_table_divider$two_cols_table_divider
-two_cols_table_header="+%-36.36s+%-42.42s+\n"
-two_cols_table_format="| %-34s | %-40s |\n"
-two_cols_table_width=59
+two_cols_table_header="+%-${col1_width}.${col1_width}s+%-${col2_width}.${col2_width}s+\n"
+two_cols_table_format="| %-$[$col1_width - 2]s | %-$[$col2_width - 2]s |\n"
 
 function fun_print_table_header() {
     local header_text="${1}"
     
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
-    printf "| %-77s |\n" "${header_text}"
+    printf "| %-${header_col1_width}s |\n" "${header_text}"
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
     printf "$two_cols_table_format" "$2" "$3"
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
@@ -138,6 +140,6 @@ function fun_print_table_footer() {
     local footer_text="${os_platform} | ${1-Timestamp: $(date +'%Y-%m-%d %H:%M:%S')}"
 
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
-    printf "| %-77s |\n" "${footer_text}"
+    printf "| %-${header_col1_width}s |\n" "${footer_text}"
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
 }
