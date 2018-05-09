@@ -24,9 +24,9 @@ command -v yum > /dev/null && {
     packages=(git vim wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
       command -v ${package} > /dev/null || {
-          echo "installing ${package}..."
+          printf "installing ${package}..."
           yum install -y ${package} > /dev/null 2>&1
-          echo "installing ${package} $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')"
+          printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
       }
     done
 }
@@ -41,7 +41,7 @@ command -v apt-get > /dev/null && {
           printf "installing ${package}..."
           apt-get build-dep -y ${package} > /dev/null 2>&1
           apt-get install -y ${package} > /dev/null 2>&1
-          printf " $([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
+          printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
       }
     done
 }
