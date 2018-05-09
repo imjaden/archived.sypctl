@@ -67,34 +67,34 @@ function fun_prompt_command_already_installed() {
     echo "$ ${command_name} -v"
     ${command_name} -v | grep -v ^$ | head -n ${version_lines}
 
-    exit 0
+    return 0
 }
 
 function fun_prompt_java_already_installed() {
     version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
     printf "$two_cols_table_format" "java" "${version:0:40}"
 
-    exit 0
+    return 0
 }
 
 function fun_prompt_nginx_already_installed() {
     version=$(nginx -V 2>&1 | awk '/version/ { print $3 }')
     printf "$two_cols_table_format" "nginx" "${version:0:40}"
 
-    exit 0
+    return 0
 }
 
 function fun_prompt_redis_already_installed() {
     version=$(redis-cli --version)
     printf "$two_cols_table_format" "redis-cli" "${version:0:40}"
 
-    exit 0
+    return 0
 }
 
 function fun_prompt_vncserver_already_installed() {
     printf "$two_cols_table_format" "vncserver" "$(which vncserver)"
 
-    exit 0
+    return 0
 }
 
 function check_install_defenders_include() {

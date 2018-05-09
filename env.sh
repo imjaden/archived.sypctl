@@ -50,7 +50,7 @@ test -d /opt/scripts/syp-saas-scripts || {
 }
 
 cd opt/scripts/syp-saas-scripts
-git pull origin dev-0.0.1
+git pull origin dev-0.0.1 > /dev/null 2>&1
 bash server/bash/jdk-tools.sh install
 
 command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || { 
