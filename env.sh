@@ -53,6 +53,7 @@ test -d /opt/scripts/syp-saas-scripts || {
     cd syp-saas-scripts
 }
 
+cd opt/scripts/syp-saas-scripts
 bash server/bash/jdk-tools.sh install
 
 command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || { 
