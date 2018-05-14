@@ -2,7 +2,7 @@
 
 source server/bash/common.sh
 current_path="$(pwd)"
-# cd /opt/scripts/syp-saas-scripts
+cd /opt/scripts/syp-saas-scripts
 
 case "$1" in
     git:pull|gp)
@@ -115,27 +115,27 @@ case "$1" in
         bash ios/tools.sh "$1"
     ;;
     *)
-        echo ""
+        echo 
         echo "Usage: sypctl <command>"
-        echo ""
+        echo 
         echo "sypctl help         sypctl 支持的命令参数列表，及已部署服务的信息"
         echo "sypctl deploy       部署服务引导，并安装部署输入 \`y\` 确认的服务"
-        echo ""
+        echo 
         echo "sypctl monitor      已部署的服务进程状态，若未监测到进程则启动该服务"
         echo "sypctl start        启动已部署的服务进程"
         echo "sypctl status       已部署的服务进程状态"
         echo "sypctl restart      重启已部署的服务进程"
         echo "sypctl stop         关闭已部署的服务进程"
-        echo ""
+        echo 
         echo "sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下："
         echo "                      - 生意+ shengyiplus"
         echo "                      - 睿商+ ruishangplus"
         echo "                      - 永辉 yh_android"
         echo "                      - 保臻 shenzhenpoly"
         echo "sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上"
-        echo ""
+        echo 
         echo "sypctl git:pull     更新脚本代码"
-        echo ""
+        echo 
     ;;
 esac
 
