@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-source server/bash/common.sh
 current_path="$(pwd)"
 cd /opt/scripts/syp-saas-scripts
+source server/bash/common.sh
 
 case "$1" in
     git:pull|gp)
