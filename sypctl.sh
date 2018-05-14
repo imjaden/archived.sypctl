@@ -161,7 +161,7 @@ case "$1" in
         echo "                      - 保臻 shenzhenpoly"
         echo "sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上"
         echo 
-        echo "Current version is $VERSION."
+        echo "Current version is $VERSION"
         echo "For full documentation, see: http://gitlab.ibi.ren/syp/syp-saas-scripts"
     ;;
 esac

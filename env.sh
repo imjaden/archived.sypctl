@@ -91,8 +91,8 @@ done
 fun_prompt_java_already_installed
 fun_print_table_footer
 
-command -v sypctl >/dev/null 2>&1 && { sypctl help } || { 
+command -v sypctl >/dev/null 2>&1 && sypctl help || { 
     echo "alias sypctl=/opt/scripts/syp-saas-scripts/sypctl.sh" >> ~/.bash_profile
-    source ~/.bash_profile
-    sypctl help
+    /opt/scripts/syp-saas-scripts/sypctl.sh help
+    
 }
