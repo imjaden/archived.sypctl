@@ -114,6 +114,32 @@ case "$1" in
     shengyiplus|ruishangplus|yh_android|shenzhenpoly)
         bash ios/tools.sh "$1"
     ;;
+    deployed)
+        custom_col1_width=22
+        custom_col2_width=32
+        source server/bash/common.sh
+
+        fun_print_table_header "Deployed State" "Component" "Version"
+        dependency_commands=(git rbenv ruby gem bundle)
+        for cmd in ${dependency_commands[@]}; do
+            version=$(${cmd} --version)
+            printf "$two_cols_table_format" "${cmd}" "${version:0:30}"
+        done
+        fun_prompt_java_already_installed
+
+        while read line; do
+            printf "$two_cols_table_format" "Component" "$line"
+        done < .install-defender
+
+        fun_print_table_footer
+    ;;
+    env)
+        echo "same as execute bash below:"
+        echo
+        echo "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
+        echo 
+        bash env.sh
+    ;;
     *)
         echo 
         echo "Usage: sypctl <command>"

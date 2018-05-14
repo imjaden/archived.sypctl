@@ -108,7 +108,7 @@ function check_install_defenders_include() {
 
 function fun_user_expect_to_install_package_guides() {
     true > .install-defender
-    supported_packages=(Nginx JDK Redis Zookeeper VNC Report SaaSImage SaaSBackup SYPSuperAdmin SYPAdmin SYPAPI)
+    supported_packages=(Nginx Redis Zookeeper VNC Report SaaSImage SaaSBackup SYPSuperAdmin SYPAdmin SYPAPI)
     for package in ${supported_packages[@]}; do
         read -p "Do you agree with the install ${package}? y/n: " user_input
         if [[ "${user_input}" = 'y' ]]; then
