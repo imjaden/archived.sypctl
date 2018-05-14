@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+VERSION='0.0.1a'
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"

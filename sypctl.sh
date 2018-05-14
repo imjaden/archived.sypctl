@@ -5,7 +5,7 @@ cd /opt/scripts/syp-saas-scripts
 source server/bash/common.sh
 
 case "$1" in
-    git:pull|gp)
+    git:pull|gp|upgrade)
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git pull origin ${git_current_branch}
     ;;
@@ -141,11 +141,12 @@ case "$1" in
         bash env.sh
     ;;
     *)
-        echo 
-        echo "Usage: sypctl <command>"
+        echo "Usage: sypctl <command> [<args>]"
         echo 
         echo "sypctl help         sypctl 支持的命令参数列表，及已部署服务的信息"
         echo "sypctl deploy       部署服务引导，并安装部署输入 \`y\` 确认的服务"
+        echo "sypctl env          部署基础环境依赖：JDK/Rbenv/Ruby"
+        echo "sypctl upgrade      更新 sypctl 源码"
         echo 
         echo "sypctl monitor      已部署的服务进程状态，若未监测到进程则启动该服务"
         echo "sypctl start        启动已部署的服务进程"
@@ -160,8 +161,8 @@ case "$1" in
         echo "                      - 保臻 shenzhenpoly"
         echo "sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上"
         echo 
-        echo "sypctl git:pull     更新脚本代码"
-        echo 
+        echo "Current version is $VERSION."
+        echo "For full documentation, see: http://gitlab.ibi.ren/syp/syp-saas-scripts"
     ;;
 esac
 
