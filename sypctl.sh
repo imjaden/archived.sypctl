@@ -145,6 +145,7 @@ case "$1" in
         echo 
         echo "sypctl help         sypctl 支持的命令参数列表，及已部署服务的信息"
         echo "sypctl deploy       部署服务引导，并安装部署输入 \`y\` 确认的服务"
+        echo "sypctl deployed     查看已部署服务"
         echo "sypctl env          部署基础环境依赖：JDK/Rbenv/Ruby"
         echo "sypctl upgrade      更新 sypctl 源码"
         echo 

@@ -6,8 +6,8 @@
 # -----------------------------------------------
 # >>>>>>>>>>>>>>>>>>>> 脚本开始 >>>>>>>>>>>>>>>>>>>
 cd /opt/scripts/syp-saas-scripts
-sudo -u root bash tools.sh monitor
-sudo -u root crontab lib/config/syp@crontab.conf
+sudo -u root bash sypctl.sh monitor
+sudo -u root crontab server/config/syp@crontab.conf
 
 cd /root/www/shengyiplus-server 
 sudo -u root bash tool.sh start
@@ -20,4 +20,6 @@ systemctl daemon-reload
 vncserver
 systemctl enable vncserver@:1.service
 systemctl start vncserver@:1.service
+
+nginx
 # <<<<<<<<<<<<<<<<<<<< 脚本结束 <<<<<<<<<<<<<<<<<<<<
