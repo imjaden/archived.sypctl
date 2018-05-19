@@ -2,6 +2,7 @@
 *.tar.gz
 .saasrc
 .env-files
-logs
+server/rake/logs
+server/packages
 .install-defender
 .tutorial-conf.sh

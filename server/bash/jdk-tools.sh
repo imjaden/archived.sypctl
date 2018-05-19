@@ -23,13 +23,27 @@ case "$1" in
         jdk_version=jdk1.8.0_151
 
         if [[ ! -f ${jdk_package} ]]; then
-          printf "$two_cols_table_format" "JDK package" "Error: Not Found"
-          exit 2
+            printf "$two_cols_table_format" "JDK package" "Error: Not Found"
+            printf "$two_cols_table_format" "JDK package" "Downloading..."
+
+            mkdir -p server/packages
+            package_name='jdk-8u151-linux-x64.tar.gz'
+            if [[ -f server/packages/${package_name} ]]; then
+              tar jtvf packages/${package_name} > /dev/null 2>&1
+              if [[ $? -gt 0 ]]; then
+                  rm -f server/packages/${package_name}
+              fi
+            fi
+
+            if [[ ! -f server/packages/${package_name} ]]; then
+                wget -q -P server/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                printf "$two_cols_table_format" "JDK package" "Downloaded"
+            fi
         fi
 
         if [[ -d ${jdk_install_path}/jdk ]]; then
-          printf "$two_cols_table_format" "JDK folder" "Error: Deployed"
-          exit 2
+            printf "$two_cols_table_format" "JDK folder" "Warning: Deployed"
+            exit 2
         fi
 
         tar -xzvf ${jdk_package} -C ${jdk_install_path}
