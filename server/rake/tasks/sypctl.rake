@@ -8,7 +8,7 @@ namespace :sypctl do
   end
 
   def logger(text, config = {})
-    File.open("logs/#{config['description'] || 'ssh'}.log", "a:utf-8") do |file|
+    File.open("logs/#{Time.now.strftime('%y%m%d')}-#{config['description'] || 'ssh'}.log", "a:utf-8") do |file|
       file.puts(text.to_s.force_encoding('UTF-8'))
     end
   end
@@ -27,12 +27,14 @@ namespace :sypctl do
     server_list.keys.map do |node|
       config = server_list[node]
       Thread.new(config) do |config|
-        puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} #{config['outer_ip']}:#{config['outer_port']} doing..."
+        puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} doing..."
         Net::SSH.start(config["outer_ip"], config["username"], port: config["outer_port"], password: config["password"]) do |ssh|
-          # command = "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
+          command = "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
           command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh deployed"
+          command = "ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9"
+          command = "yum install deltarpm"
           execute!(ssh, command, config)
-          puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} #{config['outer_ip']}:#{config['outer_port']} done"
+          puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} done"
         end
       end
     end.each(&:join)

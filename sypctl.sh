@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 current_path="$(pwd)"
-cd /opt/scripts/syp-saas-scripts
+test -d /opt/scripts/syp-saas-scripts && cd /opt/scripts/syp-saas-scripts
 source server/bash/common.sh
 test -f ~/.bash_profile && source ~/.bash_profile
 
@@ -9,9 +9,17 @@ case "$1" in
     version)
         echo "${VERSION}"
     ;;
-    git:pull|gp|upgrade)
+    git:pull|gp|upgrade|update)
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git pull origin ${git_current_branch}
+    ;;
+    yum:kill)
+        ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9
+    ;;
+    yum:upgrade)
+        yum provides '*/applydeltarpm'
+        yum install -y deltarpm
+        yum upgrade -y
     ;;
     install|deploy|check)
         mkdir -p ./logs
@@ -143,6 +151,11 @@ case "$1" in
         echo "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
         echo 
         bash env.sh
+    ;;
+    bundle)
+        cd server/rake
+        echo "$ $@"
+        $@
     ;;
     *)
         echo "Usage: sypctl <command> [<args>]"
