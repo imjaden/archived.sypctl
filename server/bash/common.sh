@@ -26,14 +26,16 @@ function fun_install_lsb_release() {
     # }
 }
 
-supported_os_platforms=(RedHatEnterpriseServer6 RedHatEnterpriseServer7 CentOS6 CentOS7 Ubuntu16)
+os_type="UnKnownOSType"
+os_version="UnKnownOSVersion"
 os_platform="UnknownOS"
+supported_os_platforms=(RedHatEnterpriseServer6 RedHatEnterpriseServer7 CentOS6 CentOS7 Ubuntu16)
 function fun_basic_check_operate_system() {
     fun_install_lsb_release
 
-    system=$(lsb_release -i | awk '{ print $3 }')
-    version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
-    if [[ "${supported_os_platforms[@]}" =~ "${system}${version}" ]]; then
+    os_type=$(lsb_release -i | awk '{ print $3 }')
+    os_version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
+    if [[ "${supported_os_platforms[@]}" =~ "${os_type}${os_version}" ]]; then
         os_platform="${system}${version}"
         return 0
     else

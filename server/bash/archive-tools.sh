@@ -14,21 +14,21 @@ case "$1" in
         bash $0 check:unrar
     ;;
     check:zip)
-        command -v zip >/dev/null 2>&1 && fun_prompt_command_already_installed zip || {
+        command -v zip > /dev/null 2>&1 && fun_prompt_command_already_installed zip || {
             echo "zip command not found then installing..."
             yum install -y zip > /dev/null 2>&1
             bash $0 check:zip
         }
     ;;
     check:unzip)
-        command -v unzip >/dev/null 2>&1 && fun_prompt_command_already_installed unzip || {
+        command -v unzip > /dev/null 2>&1 && fun_prompt_command_already_installed unzip || {
             echo "unzip command not found then installing..."
             yum install -y unzip > /dev/null 2>&1
             bash $0 check:unzip
         }
     ;;
     check:rar|check:unrar)
-        command -v rar >/dev/null 2>&1 && {
+        command -v rar > /dev/null 2>&1 && {
             fun_prompt_command_already_installed rar 
             fun_prompt_command_already_installed unrar 
         } || {
