@@ -13,14 +13,6 @@ case "$1" in
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git pull origin ${git_current_branch}
     ;;
-    yum:kill)
-        ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9
-    ;;
-    yum:upgrade)
-        yum provides '*/applydeltarpm'
-        yum install -y deltarpm
-        yum upgrade -y
-    ;;
     install|deploy|check)
         mkdir -p ./logs
         bash server/bash/packages-tools.sh state
@@ -156,6 +148,24 @@ case "$1" in
         cd server/rake
         echo "$ $@"
         $@
+    ;;
+    yum:kill)
+        ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9
+    ;;
+    yum:upgrade)
+        yum provides '*/applydeltarpm'
+        yum install -y deltarpm
+        yum upgrade -y
+    ;;
+    ssh-keygen)
+        test -d ~/.ssh || ssh-keygen  -t rsa -P ''
+        test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
+
+        chmod -R 700 ~/.ssh
+        chmod 600 ~/.ssh/authorized_keys
+
+        ls -l ~/.ssh/
+        cat ~/.ssh/id_rsa.pub
     ;;
     *)
         echo "Usage: sypctl <command> [<args>]"

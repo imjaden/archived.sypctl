@@ -30,9 +30,7 @@ namespace :sypctl do
         puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} doing..."
         Net::SSH.start(config["outer_ip"], config["username"], port: config["outer_port"], password: config["password"]) do |ssh|
           command = "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
-          command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh deployed"
-          command = "ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9"
-          command = "yum install deltarpm"
+          command = "ls -A ~/"
           execute!(ssh, command, config)
           puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} done"
         end
