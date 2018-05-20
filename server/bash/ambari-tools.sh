@@ -11,8 +11,8 @@ case "$1" in
           wget "http://public-repo-1.hortonworks.com/ambari/centos${os_version}/2.x/updates/2.2.1.0/ambari.repo"
         }
 
-        command -v ambari-server > /dev/null 2>&1 || yum install -y ambari-server
-        command -v ambari-agent > /dev/null 2>&1 || yum install -y ambari-agent
+        command -v ambari-server > /dev/null 2>&1 && yum info ambari-server || yum install -y ambari-server
+        command -v ambari-agent > /dev/null 2>&1 && yum info ambari-agent || yum install -y ambari-agent
     ;;
     start|startup)
         # ambari-server setup

@@ -55,7 +55,7 @@ namespace :sypctl do
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
             command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh update"
             execute!(ssh, command, config)
-            command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh update"
+            command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh ambari:install"
             execute!(ssh, command, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} done"
           end
