@@ -158,7 +158,7 @@ case "$1" in
         yum upgrade -y
     ;;
     ssh-keygen)
-        test -d ~/.ssh || ssh-keygen  -t rsa -P ''
+        test -d ~/.ssh || ssh-keygen  -t rsa -P '' -f ~/.ssh/id_rsa
         test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
 
         chmod -R 700 ~/.ssh
