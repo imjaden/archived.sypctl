@@ -3,8 +3,12 @@
 current_path="$(pwd)"
 cd /opt/scripts/syp-saas-scripts
 source server/bash/common.sh
+test -f ~/.bash_profile && source ~/.bash_profile
 
 case "$1" in
+    version)
+        echo "${VERSION}"
+    ;;
     git:pull|gp|upgrade)
         git_current_branch=$(git rev-parse --abbrev-ref HEAD)
         git pull origin ${git_current_branch}
@@ -127,7 +131,7 @@ case "$1" in
         done
         fun_prompt_java_already_installed
 
-        while read line; do
+        test -f .install-defender && while read line; do
             printf "$two_cols_table_format" "Component" "$line"
         done < .install-defender
 

@@ -1,5 +1,6 @@
 .DS_Store
 *.tar.gz
+*.ya[m]l
 .saasrc
 .env-files
 server/rake/logs

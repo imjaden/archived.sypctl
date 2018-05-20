@@ -14,7 +14,7 @@ namespace :sypctl do
   end
 
   def execute!(ssh, command, config = {})
-    logger("\n\n--------------------\ntimestamp: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}\ncommand: #{command}\n--------------------\n\n", config)
+    logger("\n\n#{'>'*30}\ntimestamp: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}\ncommand: #{command}\n#{'<'*30}\n\n", config)
 
     ssh.exec!(command) do |_, stream, data|
       logger(data, config)
@@ -27,12 +27,12 @@ namespace :sypctl do
     server_list.keys.map do |node|
       config = server_list[node]
       Thread.new(config) do |config|
-        puts config["outer_ip"] + " doing..."
+        puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} #{config['outer_ip']}:#{config['outer_port']} doing..."
         Net::SSH.start(config["outer_ip"], config["username"], port: config["outer_port"], password: config["password"]) do |ssh|
-          command = "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
+          # command = "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
           command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh deployed"
           execute!(ssh, command, config)
-          puts config["outer_ip"] + " done"
+          puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} #{config['outer_ip']}:#{config['outer_port']} done"
         end
       end
     end.each(&:join)

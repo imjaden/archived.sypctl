@@ -5,7 +5,7 @@
   outer_port: 10821
   description: 'hadoop1'
   username: 'root'
-  password: 'Dtic87Hdicu(#COfuyw'
+  password: '******'
 192.168.30.111:
   inner_ip: '192.168.30.111'
   inner_port: 22
@@ -13,7 +13,7 @@
   outer_port: 10822
   description: 'hadoop2'
   username: 'root'
-  password: 'Ktmc7&8%CvdiflYTEsKL'
+  password: '******'
 192.168.30.112:
   inner_ip: '192.168.30.112'
   inner_port: 22
@@ -21,7 +21,7 @@
   outer_port: 10823
   description: 'hadoop3'
   username: 'root'
-  password: 'Fcb^3cdo5#iGCvbwqcK'
+  password: '******'
 192.168.30.113:
   inner_ip: '192.168.30.113'
   inner_port: 22
@@ -29,7 +29,7 @@
   outer_port: 10824
   description: 'hadoop4'
   username: 'root'
-  password: 'Udc(*3Hdc&2DfoicdnH'
+  password: '******'
 192.168.30.114:
   inner_ip: '192.168.30.114'
   inner_port: 22
@@ -37,4 +37,4 @@
   outer_port: 10825
   description: 'hadoop5'
   username: 'root'
-  password: 'Fcdu^#7GHDj3ioPCFdk'
+  password: '******'

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+test -f ~/.bash_profile && source ~/.bash_profile
+
 command -v lsb_release > /dev/null || {
     command -v yum > /dev/null && yum install -y redhat-lsb
     command -v apt-get > /dev/null && apt-get install -y lsb-release
