@@ -53,8 +53,10 @@ namespace :sypctl do
         begin
           Net::SSH.start(config["outer_ip"], config["username"], port: config["outer_port"], password: config["password"]) do |ssh|
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
-            command = "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
-
+            command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh update"
+            execute!(ssh, command, config)
+            command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh update"
+            execute!(ssh, command, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} done"
           end
         rescue => e

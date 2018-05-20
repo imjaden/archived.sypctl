@@ -167,6 +167,9 @@ case "$1" in
         ls -l ~/.ssh/
         cat ~/.ssh/id_rsa.pub
     ;;
+    ambari:install)
+        bash server/bash/ambari-tools.sh install
+    ;;
     *)
         echo "Usage: sypctl <command> [<args>]"
         echo 

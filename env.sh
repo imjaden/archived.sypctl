@@ -95,5 +95,5 @@ fun_print_table_footer
 
 command -v sypctl >/dev/null 2>&1 && sypctl help || { 
     echo "alias sypctl=/opt/scripts/syp-saas-scripts/sypctl.sh" >> ~/.bash_profile
-    /opt/scripts/syp-saas-scripts/sypctl.sh help  
+    bash /opt/scripts/syp-saas-scripts/sypctl.sh help  
 }
