@@ -139,7 +139,7 @@ case "$1" in
     env)
         echo "same as execute bash below:"
         echo
-        echo "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
+        echo "curl -sS http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
         echo 
         bash env.sh
     ;;
