@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+test -f ~/.bash_profile && source ~/.bash_profile
+
 command -v lsb_release > /dev/null || {
     command -v yum > /dev/null && yum install -y redhat-lsb
     command -v apt-get > /dev/null && apt-get install -y lsb-release
@@ -91,8 +93,9 @@ done
 fun_prompt_java_already_installed
 fun_print_table_footer
 
+unalias sypctl > /dev/null 2>&1
 command -v sypctl >/dev/null 2>&1 && sypctl help || {
     test -f /usr/bin/sypctl && rm -f /usr/bin/sypctl
-    ln -s sypctl=/opt/scripts/syp-saas-scripts/sypctl.sh /usr/bin/sypctl
+    ln -s /opt/scripts/syp-saas-scripts/sypctl.sh /usr/bin/sypctl
     sypctl help  
 }

@@ -70,15 +70,14 @@ namespace :sypctl do
     server_list.keys.select { |i| i != '192.168.30.110' }.map do |node|
       config = server_list[node]
       Thread.new(config) do |config|
-        device_id = "#{config['outer_ip']}:#{config['outer_port']}"
+        device_id = "#{config['outer_ip']}:#{config['outer_port']}@#{config['description']}"
         start_time = Time.now
         puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} doing..."
         begin
           Net::SSH.start(config["outer_ip"], config["username"], port: config["outer_port"], password: config["password"]) do |ssh|
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
             commands = [
-              "bash /opt/scripts/syp-saas-scripts/sypctl.sh update",
-              "ambari-agent start"
+              "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
             ]
             execute!(ssh, commands, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"

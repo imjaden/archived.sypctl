@@ -5,6 +5,7 @@ current_path=$(pwd)
 test -f .env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"
 done < .env-files
+test -f ~/.bash_profile && source ~/.bash_profile
 cd ${current_path}
 
 function title() { printf "\n%s\n\n", "$1"; }
