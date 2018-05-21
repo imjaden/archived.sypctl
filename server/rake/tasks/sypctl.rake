@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'yaml'
 require 'json'
+require 'fileutils'
 
 namespace :sypctl do
   def encode(data)
@@ -13,11 +14,11 @@ namespace :sypctl do
     end
   end
 
-  def execute!(ssh, command, config = {})
-    logger("\n\n#{'>'*30}\ntimestamp: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}\ncommand: #{command}\n#{'<'*30}\n\n", config)
-
-    ssh.exec!(command) do |_, stream, data|
-      logger(data, config)
+  def execute!(ssh, commands, config = {})
+    commands = commands.is_a?(Array) ? commands : [commands]
+    commands.each do |command|
+      logger("\n\n#{'>'*30}\ntimestamp: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}\ncommand: #{command}\n#{'<'*30}\n\n", config)
+      ssh.exec!(command) { |_, stream, data| logger(data, config) }
     end
   end
 
@@ -43,24 +44,47 @@ namespace :sypctl do
     end
   end
 
+  def print_server_info(server_list)
+    server_list.keys.each do |node|
+      config = server_list[node]
+
+      puts "## #{config['description']}(#{config['inner_ip']})"
+      puts
+      puts "- 内网/端口: #{config['inner_ip']}/#{config['inner_port']}"
+      puts "- 外网/端口: #{config['outer_ip']}/#{config['outer_port']}"
+      puts "- 账号: #{config['username']}"
+      puts "- 密码: #{config['password']}"
+      puts
+    end
+  end
+
+  desc 'backup logs'
+  task logs: :environment do
+    FileUtils.mv("logs", "#{Time.now.strftime("%y%m%d%H%M%S")}-logs")
+    FileUtils.mkdir("logs")
+  end
+
   desc "deploy sypctl env"
   task deploy: :environment do
     server_list = YAML.load(IO.read('config/server.yaml'))
-    server_list.keys.map do |node|
+    server_list.keys.select { |i| i != '192.168.30.110' }.map do |node|
       config = server_list[node]
       Thread.new(config) do |config|
-        puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} doing..."
+        device_id = "#{config['outer_ip']}:#{config['outer_port']}"
+        start_time = Time.now
+        puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} doing..."
         begin
           Net::SSH.start(config["outer_ip"], config["username"], port: config["outer_port"], password: config["password"]) do |ssh|
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
-            command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh update"
-            execute!(ssh, command, config)
-            command = "bash /opt/scripts/syp-saas-scripts/sypctl.sh ambari:install"
-            execute!(ssh, command, config)
-            puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} done"
+            commands = [
+              "bash /opt/scripts/syp-saas-scripts/sypctl.sh update",
+              "ambari-agent start"
+            ]
+            execute!(ssh, commands, config)
+            puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"
           end
         rescue => e
-          puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{config['outer_ip']}:#{config['outer_port']} abort for #{e.message}"
+          puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} abort for #{e.message}"
         end
       end
     end.each(&:join)

@@ -170,6 +170,14 @@ case "$1" in
     ambari:install)
         bash server/bash/ambari-tools.sh install
     ;;
+    free:memory|fm)
+        free -m
+        echo
+        echo "$ echo 1 > /proc/sys/vm/drop_caches"
+        echo
+        echo 1 > /proc/sys/vm/drop_caches
+        free -m
+    ;;
     *)
         echo "Usage: sypctl <command> [<args>]"
         echo 

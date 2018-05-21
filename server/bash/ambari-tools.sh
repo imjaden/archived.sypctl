@@ -17,6 +17,7 @@ case "$1" in
     start|startup)
         # ambari-server setup
         # ambari-server start
+        # vim /etc/ambari-agent/conf/ambari-agent.ini
         echo "browser http://<ambari-server-host>:8080"
     ;;
     *)

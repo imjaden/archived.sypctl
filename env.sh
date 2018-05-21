@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-test -f ~/.bash_profile && source ~/.bash_profile
-
 command -v lsb_release > /dev/null || {
     command -v yum > /dev/null && yum install -y redhat-lsb
     command -v apt-get > /dev/null && apt-get install -y lsb-release
@@ -21,9 +19,9 @@ fi
 command -v yum > /dev/null && {
     # yum update -y
 
-    packages=(git vim wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
+    packages=(git iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
-      command -v ${package} > /dev/null || {
+      rpm -q ${package} > /dev/null 2>&1 || {
           printf "installing ${package}..."
           yum install -y ${package} > /dev/null 2>&1
           printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
@@ -93,7 +91,8 @@ done
 fun_prompt_java_already_installed
 fun_print_table_footer
 
-command -v sypctl >/dev/null 2>&1 && sypctl help || { 
-    echo "alias sypctl=/opt/scripts/syp-saas-scripts/sypctl.sh" >> ~/.bash_profile
-    bash /opt/scripts/syp-saas-scripts/sypctl.sh help  
+command -v sypctl >/dev/null 2>&1 && sypctl help || {
+    test -f /usr/bin/sypctl && rm -f /usr/bin/sypctl
+    ln -s sypctl=/opt/scripts/syp-saas-scripts/sypctl.sh /usr/bin/sypctl
+    sypctl help  
 }
