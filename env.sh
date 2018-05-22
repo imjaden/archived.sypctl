@@ -19,9 +19,7 @@ else
 fi
 
 command -v yum > /dev/null && {
-    # yum update -y
-
-    packages=(git iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
+    packages=(git vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
       rpm -q ${package} > /dev/null 2>&1 || {
           printf "installing ${package}..."
@@ -31,8 +29,6 @@ command -v yum > /dev/null && {
     done
 }
 command -v apt-get > /dev/null && {
-    # apt-get update -y
-
     packages=(git git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
     for package in ${packages[@]}; do
       command -v ${package} > /dev/null || {
@@ -97,5 +93,7 @@ unalias sypctl > /dev/null 2>&1
 command -v sypctl >/dev/null 2>&1 && sypctl help || {
     test -L /usr/bin/sypctl && rm -f /usr/bin/sypctl
     ln -s /opt/scripts/syp-saas-scripts/sypctl.sh /usr/bin/sypctl
-    sypctl help  
+    sypctl help
 }
+
+sypctl ssh-keygen

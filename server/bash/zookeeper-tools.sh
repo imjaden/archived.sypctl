@@ -49,7 +49,7 @@ case "${cmd_type}" in
         tar -xzvf ${zk_package} -C ~/tools
 
         cp -r ~/tools/${zk_version} ${zk_home}
-        cp lib/config/zoo.cfg ${zk_home}/conf
+        cp server/config/zoo.cfg ${zk_home}/conf
         mkdir -p /usr/local/src/zookeeper/{data,log}
 
         printf "$two_cols_table_format" "zookeeper" "Deployed Successfully"

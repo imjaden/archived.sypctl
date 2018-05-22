@@ -53,7 +53,7 @@ case "${cmd_type}" in
         fi
 
         tomcat_port="${3:-8081}"
-        cp lib/config/setting-${tomcat_port}.xml ~/tools/${tomcat_version}/conf/server.xml
+        cp server/config/setting-${tomcat_port}.xml ~/tools/${tomcat_version}/conf/server.xml
         cp -r ~/tools/${tomcat_version} ${tomcat_home}
 
         printf "$two_cols_table_format" "${tomcat_home}" "deployed successfully"

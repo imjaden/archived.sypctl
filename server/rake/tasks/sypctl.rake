@@ -67,7 +67,7 @@ namespace :sypctl do
   desc "deploy sypctl env"
   task deploy: :environment do
     server_list = YAML.load(IO.read('config/server.yaml'))
-    server_list.keys.select { |i| i != '192.168.30.110' }.map do |node|
+    server_list.keys.map do |node|
       config = server_list[node]
       Thread.new(config) do |config|
         device_id = "#{config['outer_ip']}:#{config['outer_port']}@#{config['description']}"
@@ -77,7 +77,11 @@ namespace :sypctl do
           Net::SSH.start(config["outer_ip"], config["username"], port: config["outer_port"], password: config["password"]) do |ssh|
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
             commands = [
-              "curl -S http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
+              "systemctl stop iptables.service",
+              "systemctl disable iptables.service",
+              "systemctl stop firewalld.service",
+              "systemctl disable firewalld.service",
+              "iptables -L"
             ]
             execute!(ssh, commands, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"
