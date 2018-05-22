@@ -2,7 +2,7 @@
 
 current_path="$(pwd)"
 test -d /opt/scripts/syp-saas-scripts && cd /opt/scripts/syp-saas-scripts
-source server/bash/common.sh
+source linux/bash/common.sh
 
 case "$1" in
     version)
