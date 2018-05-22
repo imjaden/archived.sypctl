@@ -148,6 +148,16 @@ function fun_print_sypctl_help() {
     echo "For full documentation, see: http://gitlab.ibi.ren/syp/sypctl.git"
 }
 
+function fun_upgrade() {
+    git_current_branch=$(git rev-parse --abbrev-ref HEAD)
+    git pull origin ${git_current_branch}
+    cd agent
+    bundle > /dev/null 2>&1
+    cd ..
+    
+    sypctl htlp
+}
+
 function fun_generate_sshkey_when_not_exist() {
     test -d ~/.ssh || ssh-keygen  -t rsa -P '' -f ~/.ssh/id_rsa
     test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
@@ -312,8 +322,13 @@ function fun_execute_env_script() {
     bash env.sh
 }
 
-function fun_execute_bundle_utils_rake() {
-    cd utils
+function fun_execute_bundle_rake() {
+    cd agent
+
+    archived_path=logs/archived/$(date +'%Y%m%d%H%M%S')
+    mkdir -p ${archived_path}
+    mv logs/*.log ${archived_path}/
+    
     echo "$ $@"
     $@
 }

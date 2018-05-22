@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 current_path="$(pwd)"
-test -d /opt/scripts/sypctl && cd /opt/scripts/sypctl
+cd /opt/scripts/sypctl
 source linux/bash/common.sh
 
 case "$1" in
@@ -9,8 +9,7 @@ case "$1" in
         echo "${VERSION}"
     ;;
     git:pull|gp|upgrade|update)
-        git_current_branch=$(git rev-parse --abbrev-ref HEAD)
-        git pull origin ${git_current_branch}
+        fun_upgrade
     ;;
     deploy)
         fun_deploy_service_guides
@@ -34,7 +33,7 @@ case "$1" in
         fun_execute_env_script
     ;;
     bundle)
-        fun_execute_bundle_utils_rake $@
+        fun_execute_bundle_rake $@
     ;;
     yum:kill)
         ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9

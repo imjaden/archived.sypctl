@@ -3,8 +3,9 @@
 *.ya[m]l
 .saasrc
 .env-files
-linux/rake/logs
-linux/packages
 .install-defender
 .tutorial-conf.sh
-linux/rake/config/id_rsa_pub.list
+*.lock
+linux/packages
+agent/config/id_rsa_pub.list
+agent/logs/

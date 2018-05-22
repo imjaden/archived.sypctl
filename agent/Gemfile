@@ -8,3 +8,9 @@ end
 
 gem 'rake', '~> 12.3.0'
 gem 'httparty', '~> 0.13.7'
+
+return if `uname -s`.strip != 'Darwin'
+
+gem 'net-ssh', '~>4.2.0'
+gem 'net-scp', '~>1.2.1'
+
