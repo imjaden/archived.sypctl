@@ -5,8 +5,8 @@
 # Ubuntu: /etc/rc.local
 # -----------------------------------------------
 # >>>>>>>>>>>>>>>>>>>> 脚本开始 >>>>>>>>>>>>>>>>>>>
-test -d /opt/scripts/syp-saas-scripts && {
-  cd /opt/scripts/syp-saas-scripts
+test -d /opt/scripts/sypctl && {
+  cd /opt/scripts/sypctl
   sudo -u root bash sypctl.sh monitor
   sudo -u root bash sypctl.sh firewalld:stop
   sudo -u root crontab linux/config/syp@crontab.conf

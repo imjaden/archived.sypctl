@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 current_path="$(pwd)"
-test -d /opt/scripts/syp-saas-scripts && cd /opt/scripts/syp-saas-scripts
+test -d /opt/scripts/sypctl && cd /opt/scripts/sypctl
 source linux/bash/common.sh
 
 case "$1" in

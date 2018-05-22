@@ -97,4 +97,4 @@ command -v sypctl >/dev/null 2>&1 && sypctl help || {
     sypctl help
 }
 
-sypctl ssh-keygen
+sypctl ssh-keygen > /dev/null 2>&1

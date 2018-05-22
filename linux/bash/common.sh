@@ -145,7 +145,7 @@ function fun_print_sypctl_help() {
     echo "sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上"
     echo 
     echo "Current version is $VERSION"
-    echo "For full documentation, see: http://gitlab.ibi.ren/syp/syp-saas-scripts"
+    echo "For full documentation, see: http://gitlab.ibi.ren/syp/sypctl.git"
 }
 
 function fun_generate_sshkey_when_not_exist() {
@@ -307,7 +307,7 @@ function fun_disable_firewalld() {
 function fun_execute_env_script() {
     echo "same as execute bash below:"
     echo
-    echo "curl -sS http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
+    echo "curl -sS http://gitlab.ibi.ren/syp/sypctl/raw/dev-0.0.1/env.sh | bash"
     echo 
     bash env.sh
 }

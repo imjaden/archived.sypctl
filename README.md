@@ -30,7 +30,7 @@ sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下：
 sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上
 
 Current version is 0.0.7
-For full documentation, see: http://gitlab.ibi.ren/syp/syp-saas-scripts
+For full documentation, see: http://gitlab.ibi.ren/syp/sypctl.git
 ```
 
 ## 约束
