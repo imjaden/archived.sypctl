@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 #
+########################################
+#  
+#  Ambari Tool
+#
+########################################
+#
 # referenced: http://www.codeclip.com/3660.html
 #
 source server/bash/common.sh

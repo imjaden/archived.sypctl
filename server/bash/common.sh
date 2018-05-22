@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.7'
+VERSION='0.0.9'
+
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"
@@ -280,6 +281,30 @@ function fun_free_memory() {
     echo
     echo 1 > /proc/sys/vm/drop_caches
     free -m
+}
+
+function fun_disable_firewalld() {
+    command -v systemctl > /dev/null 2>&1 && {
+        systemctl stop iptables.service
+        systemctl disable iptables.service
+        systemctl stop firewalld.service
+        systemctl disable firewalld.service
+        iptables -L
+    }
+}
+
+function fun_execute_env_script() {
+    echo "same as execute bash below:"
+    echo
+    echo "curl -sS http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
+    echo 
+    bash env.sh
+}
+
+function fun_execute_bundle_rake() {
+    cd server/rake
+    echo "$ $@"
+    $@
 }
 
 col1_width=${custom_col1_width:-36}

@@ -2,7 +2,7 @@
 #
 ########################################
 #  
-#  Redis Installer
+#  Redis Tool
 #
 ########################################
 
@@ -17,18 +17,33 @@ case "$1" in
             fun_prompt_redis_already_installed
             exit 1
         }
-
+        
         redis_package=server/packages/redis-stable.tar.gz
         redis_install_path=/usr/local/src
         redis_version=redis-stable
 
-        if [[ ! -f ${redis_package} ]]; then
-            printf "$two_cols_table_format" "redis" "Tar Package Not Found"
-            exit 2
+        if [[ -d ${redis_install_path}/${redis_version} ]]; then
+            rm -fr ${redis_install_path}/${redis_version} 
+            printf "$two_cols_table_format" "Redis package" "Removed Useless Package"
         fi
 
-        if [[ -d ${redis_install_path}/${redis_version} ]]; then
-            printf "$two_cols_table_format" "redis" "Error: Deployed"
+        if [[ ! -f ${redis_package} ]]; then
+            printf "$two_cols_table_format" "Redis package" "Not Found"
+            printf "$two_cols_table_format" "Redis package" "Downloading..."
+
+            mkdir -p server/packages
+            package_name='redis-stable.tar.gz'
+            if [[ -f server/packages/${package_name} ]]; then
+              tar jtvf packages/${package_name} > /dev/null 2>&1
+              if [[ $? -gt 0 ]]; then
+                  rm -f server/packages/${package_name}
+              fi
+            fi
+
+            if [[ ! -f server/packages/${package_name} ]]; then
+                wget -q -P server/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                printf "$two_cols_table_format" "Redis package" "Downloaded"
+            fi
         fi
 
         tar -xzvf ${redis_package} -C ${redis_install_path}
@@ -36,15 +51,17 @@ case "$1" in
         make
         cd -
 
-        cp ${redis_install_path}/${redis_version}/src/redis-server /usr/local/bin/
-        cp ${redis_install_path}/${redis_version}/src/redis-cli /usr/local/bin/
-        mkdir -p /etc/redis/
-        cp ${redis_install_path}/${redis_version}/redis.conf /etc/redis/
+        cp -f ${redis_install_path}/${redis_version}/src/redis-server /usr/local/bin/
+        cp -f ${redis_install_path}/${redis_version}/src/redis-cli /usr/local/bin/
+        test ! -f /etc/redis/redis.conf || {
+            mkdir -p /etc/redis/
+            cp ${redis_install_path}/${redis_version}/redis.conf /etc/redis/
+        }
 
         echo "redis-server -> /usr/local/bin/redis-server"
         echo "redis-cli -> /usr/local/bin/redis-cli"
         echo 
-        echo "vim /etc/redis/redis.conf"
+        echo "$ vim /etc/redis/redis.conf"
 
         echo "## redis" >> ~/.project_configuration
         echo ""       >> ~/.project_configuration

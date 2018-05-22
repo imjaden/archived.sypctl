@@ -7,3 +7,4 @@ server/rake/logs
 server/packages
 .install-defender
 .tutorial-conf.sh
+server/rake/config/id_rsa_pub.list

@@ -91,7 +91,8 @@ fun_print_table_footer
 
 unalias sypctl > /dev/null 2>&1
 command -v sypctl >/dev/null 2>&1 && sypctl help || {
-    test -L /usr/bin/sypctl && rm -f /usr/bin/sypctl
+    # test -L /usr/bin/sypctl && rm -f /usr/bin/sypctl
+    unlink /usr/bin/sypctl
     ln -s /opt/scripts/syp-saas-scripts/sypctl.sh /usr/bin/sypctl
     sypctl help
 }

@@ -45,7 +45,7 @@ case "${cmd_type}" in
         printf "$two_cols_table_format" "${jar_name}" "Starting..."
 
         cd ${jar_dir}
-        test -f ${jar_dir}/nohup.out && mv "${jar_dir}/nohup.out.$(date +'%y%m%d%H%M%S')"
+        test -f ${jar_dir}/nohup.out && mv ${jar_dir}/nohup.out ${jar_dir}/nohup.out.$(date +'%y%m%d%H%M%S')
         cmd_nohup="nohup java -jar ${jar_name}"
         exec ${cmd_nohup} >> ${jar_dir}/nohup.out &
         cd -

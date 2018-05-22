@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=kettle
+Exec=/usr/local/src/kettle/spoon.sh
+Icon=/usr/local/src/kettle/spoon.ico
+Terminal=false
+Type=Application
+Categories=Application;

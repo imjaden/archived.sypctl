@@ -34,16 +34,10 @@ case "$1" in
         bash ios/tools.sh "$1"
     ;;
     env)
-        echo "same as execute bash below:"
-        echo
-        echo "curl -sS http://gitlab.ibi.ren/syp/syp-saas-scripts/raw/dev-0.0.1/env.sh | bash"
-        echo 
-        bash env.sh
+        fun_execute_env_script
     ;;
     bundle)
-        cd server/rake
-        echo "$ $@"
-        $@
+        fun_execute_bundle_rake $@
     ;;
     yum:kill)
         ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9
@@ -59,17 +53,17 @@ case "$1" in
     ambari:install)
         bash server/bash/ambari-tools.sh install
     ;;
+    vnc:install)
+        bash server/bash/vnc-tools.sh install
+    ;;
+    redis:install)
+        bash server/bash/redis-tools.sh install
+    ;;
     memory:free|mf)
         fun_free_memory
     ;;
     firewalld:stop|fs)
-        command -v systemctl > /dev/null 2>&1 && {
-            systemctl stop iptables.service
-            systemctl disable iptables.service
-            systemctl stop firewalld.service
-            systemctl disable firewalld.service
-            iptables -L
-        }
+        fun_disable_firewalld
     ;;
     *)
         fun_print_sypctl_help
