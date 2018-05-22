@@ -6,7 +6,7 @@
 #
 ########################################
 
-source server/bash/common.sh
+source linux/bash/common.sh
 
 case "$1" in
     check)
@@ -18,7 +18,7 @@ case "$1" in
             exit 1
         }
         
-        redis_package=server/packages/redis-stable.tar.gz
+        redis_package=linux/packages/redis-stable.tar.gz
         redis_install_path=/usr/local/src
         redis_version=redis-stable
 
@@ -31,17 +31,17 @@ case "$1" in
             printf "$two_cols_table_format" "Redis package" "Not Found"
             printf "$two_cols_table_format" "Redis package" "Downloading..."
 
-            mkdir -p server/packages
-            package_name='redis-stable.tar.gz'
-            if [[ -f server/packages/${package_name} ]]; then
+            mkdir -p linux/packages
+            package_name="$(basename $redis_package)"
+            if [[ -f linux/packages/${package_name} ]]; then
               tar jtvf packages/${package_name} > /dev/null 2>&1
               if [[ $? -gt 0 ]]; then
-                  rm -f server/packages/${package_name}
+                  rm -f linux/packages/${package_name}
               fi
             fi
 
-            if [[ ! -f server/packages/${package_name} ]]; then
-                wget -q -P server/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+            if [[ ! -f linux/packages/${package_name} ]]; then
+                wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
                 printf "$two_cols_table_format" "Redis package" "Downloaded"
             fi
         fi

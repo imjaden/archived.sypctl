@@ -7,7 +7,7 @@
 #
 ########################################
 #
-source server/bash/common.sh
+source linux/bash/common.sh
 
 cmd_type="${1:-start}"
 option="${2:-use-header}"
@@ -33,6 +33,8 @@ case "${cmd_type}" in
             unlink /etc/systemd/system/default.target
             ln -sf /lib/systemd/system/graphical.target /etc/systemd/system/default.target
         }
+
+        yum install -y git cmake jq gnome-shell-browser-plugin gnome-tweak-tool gnome-shell* gstreamer-python
     ;;
     list|status)
         vncserver -list

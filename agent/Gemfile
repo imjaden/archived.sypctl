@@ -1,0 +1,10 @@
+# encoding: utf-8
+source 'https://rubygems.org'
+
+if defined? Encoding
+  Encoding.default_external = Encoding::UTF_8
+  Encoding.default_internal = Encoding::UTF_8
+end
+
+gem 'rake', '~> 12.3.0'
+gem 'httparty', '~> 0.13.7'

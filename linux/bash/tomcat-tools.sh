@@ -23,7 +23,7 @@
 # bash tomcat-tools.sh "${tomcat_home}" "${cmd_type}"
 # ```
 
-source server/bash/common.sh
+source linux/bash/common.sh
 
 tomcat_home="${1:-$TOMCAT_HOME}"
 cmd_type="${2:-startup}"
@@ -39,21 +39,35 @@ case "${cmd_type}" in
             exit 2
         fi
 
-        tomcat_package=server/packages/apache-tomcat-8.5.24.tar.gz
+        tomcat_package=linux/packages/apache-tomcat-8.5.24.tar.gz
         tomcat_version=apache-tomcat-8.5.24
 
         if [[ ! -d ~/tools/${tomcat_version} ]]; then
             test -d ~/tools || mkdir -p ~/tools
             if [[ ! -f ${tomcat_package} ]]; then
-                printf "$two_cols_table_format" "Tomcat package" "ERROR: Not Found"
-                exit 2
+                printf "$two_cols_table_format" "Tomcat package" "Not Found"
+                printf "$two_cols_table_format" "Tomcat package" "Downloading..."
+
+                mkdir -p linux/packages
+                package_name="$(basename $redis_package)"
+                if [[ -f linux/packages/${package_name} ]]; then
+                  tar jtvf packages/${package_name} > /dev/null 2>&1
+                  if [[ $? -gt 0 ]]; then
+                      rm -f linux/packages/${package_name}
+                  fi
+                fi
+
+                if [[ ! -f linux/packages/${package_name} ]]; then
+                    wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                    printf "$two_cols_table_format" "Tomcat package" "Downloaded"
+                fi
             fi
             
             tar -xzvf ${tomcat_package} -C ~/tools
         fi
 
         tomcat_port="${3:-8081}"
-        cp server/config/setting-${tomcat_port}.xml ~/tools/${tomcat_version}/conf/server.xml
+        cp linux/config/setting-${tomcat_port}.xml ~/tools/${tomcat_version}/conf/server.xml
         cp -r ~/tools/${tomcat_version} ${tomcat_home}
 
         printf "$two_cols_table_format" "${tomcat_home}" "deployed successfully"

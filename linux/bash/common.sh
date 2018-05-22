@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.9'
+VERSION='0.0.11'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -161,11 +161,11 @@ function fun_generate_sshkey_when_not_exist() {
 
 function fun_deploy_service_guides() {
     mkdir -p ./logs
-    bash server/bash/packages-tools.sh state
+    bash linux/bash/packages-tools.sh state
     fun_print_table_header "Components State" "Component" "DeployedState"
 
     test -f .env-files && printf "$two_cols_table_format" ".env-files" "Deployed" || {
-        cp server/config/saasrc .env-files
+        cp linux/config/saasrc .env-files
         printf "$two_cols_table_format" ".env-files" "Deployed Successfully"
     }
 
@@ -184,7 +184,7 @@ function fun_deploy_service_guides() {
             echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial-conf.sh
         }
         source .tutorial-conf.sh
-        cp server/config/index@report.html syp-saas-tutorial.html
+        cp linux/config/index@report.html syp-saas-tutorial.html
         sed -i "s/VAR_SHORTCUT/${var_shortcut}/g" syp-saas-tutorial.html
         sed -i "s/VAR_SLOGAN/${var_slogan}/g" syp-saas-tutorial.html
         test -f /usr/local/src/report/index.html || {
@@ -194,32 +194,32 @@ function fun_deploy_service_guides() {
     }
 
     # check_install_defenders_include "ZipRaR" && {
-    #     bash server/bash/archive-tools.sh check
+    #     bash linux/bash/archive-tools.sh check
     # }
 
     check_install_defenders_include "JDK" && {
-        bash server/bash/jdk-tools.sh install
+        bash linux/bash/jdk-tools.sh install
     }
 
     check_install_defenders_include "SYPAPI" && {
-        bash server/bash/tomcat-tools.sh /usr/local/src/tomcatAPI        install 8081
-        bash server/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
+        bash linux/bash/tomcat-tools.sh /usr/local/src/tomcatAPI        install 8081
+        bash linux/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
     }
 
     check_install_defenders_include "SYPSuperAdmin" && {
-        bash server/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
+        bash linux/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
     }
 
     check_install_defenders_include "SYPAdmin" && {
-        bash server/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
+        bash linux/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
     }
 
     check_install_defenders_include "Zookeeper" && {
-        bash server/bash/zookeeper-tools.sh /usr/local/src/zookeeper install
+        bash linux/bash/zookeeper-tools.sh /usr/local/src/zookeeper install
     }
 
     check_install_defenders_include "Redis" && {
-        bash server/bash/redis-tools.sh install
+        bash linux/bash/redis-tools.sh install
     }
     fun_print_table_footer
 }
@@ -227,7 +227,7 @@ function fun_deploy_service_guides() {
 function fun_print_deployed_services() {
     custom_col1_width=22
     custom_col2_width=32
-    source server/bash/common.sh
+    source linux/bash/common.sh
 
     fun_print_table_header "Deployed State" "Component" "Version"
     dependency_commands=(git rbenv ruby gem bundle)
@@ -248,27 +248,27 @@ function fun_operator_service_process() {
     fun_print_table_header "Components Process State" "Component" "ProcessId"
 
     check_install_defenders_include "Redis" && {
-        bash server/bash/redis-tools.sh $1 "no-header"
+        bash linux/bash/redis-tools.sh $1 "no-header"
     }
 
     check_install_defenders_include "Zookeeper" && {
-        bash server/bash/zookeeper-tools.sh /usr/local/src/zookeeper $1 "no-header"
+        bash linux/bash/zookeeper-tools.sh /usr/local/src/zookeeper $1 "no-header"
     }
 
     check_install_defenders_include "SYPAPI" && {
-        bash server/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
-        bash server/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
+        bash linux/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
+        bash linux/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
     }
 
     check_install_defenders_include "SYPSuperAdmin" && {
-        bash server/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
+        bash linux/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
     }
 
     check_install_defenders_include "SYPAdmin" && {
-        bash server/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
+        bash linux/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
     }
     check_install_defenders_include "Nginx" && {
-        bash server/bash/nginx-tools.sh $1 "no-header"
+        bash linux/bash/nginx-tools.sh $1 "no-header"
     }
 
     fun_print_table_footer
@@ -285,11 +285,22 @@ function fun_free_memory() {
 
 function fun_disable_firewalld() {
     command -v systemctl > /dev/null 2>&1 && {
-        systemctl stop iptables.service
-        systemctl disable iptables.service
         systemctl stop firewalld.service
         systemctl disable firewalld.service
-        iptables -L
+        systemctl stop iptables.service
+        systemctl disable iptables.service
+        chkconfig iptables off
+        firewall-cmd --state
+        systemctl status iptables
+
+        return 0
+    }
+
+    command -v service > /dev/null 2>&1 && {
+        service iptables stop
+        service iptables status
+
+        return 0
     }
 }
 
@@ -301,8 +312,8 @@ function fun_execute_env_script() {
     bash env.sh
 }
 
-function fun_execute_bundle_rake() {
-    cd server/rake
+function fun_execute_bundle_utils_rake() {
+    cd utils
     echo "$ $@"
     $@
 }

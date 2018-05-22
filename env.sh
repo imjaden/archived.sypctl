@@ -40,23 +40,23 @@ command -v apt-get > /dev/null && {
     done
 }
 
-test -d /opt/scripts/syp-saas-scripts || {
+test -d /opt/scripts/sypctl || {
     mkdir -p /opt/scripts/
     cd /opt/scripts
-    git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp/syp-saas-scripts.git
-    cd syp-saas-scripts
+    git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp/sypctl.git
+    cd sypctl
 }
 
-cd /opt/scripts/syp-saas-scripts
+cd /opt/scripts/sypctl
 git pull origin dev-0.0.1 > /dev/null 2>&1
-bash server/bash/jdk-tools.sh install
+bash linux/bash/jdk-tools.sh install
 
 command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || { 
     git clone --depth 1 git://github.com/sstephenson/rbenv.git ~/.rbenv
-    git clone --depth 1  git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
-    git clone --depth 1  git://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
-    git clone --depth 1  https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
-    git clone --depth 1  https://github.com/andorchen/rbenv-china-mirror.git ~/.rbenv/plugins/rbenv-china-mirror
+    git clone --depth 1 git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+    git clone --depth 1 git://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
+    git clone --depth 1 https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
+    git clone --depth 1 https://github.com/andorchen/rbenv-china-mirror.git ~/.rbenv/plugins/rbenv-china-mirror
     echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
     echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
     source ~/.bash_profile
@@ -78,7 +78,7 @@ command -v bundle >/dev/null 2>&1 && bundle -v || {
 
 custom_col1_width=22
 custom_col2_width=32
-source server/bash/common.sh
+source linux/bash/common.sh
 
 fun_print_table_header "Installed State" "Component" "Version"
 dependency_commands=(git rbenv ruby gem bundle)
@@ -91,8 +91,7 @@ fun_print_table_footer
 
 unalias sypctl > /dev/null 2>&1
 command -v sypctl >/dev/null 2>&1 && sypctl help || {
-    # test -L /usr/bin/sypctl && rm -f /usr/bin/sypctl
-    unlink /usr/bin/sypctl
+    test -L /usr/bin/sypctl && unlink /usr/bin/sypctl
     ln -s /opt/scripts/syp-saas-scripts/sypctl.sh /usr/bin/sypctl
     sypctl help
 }

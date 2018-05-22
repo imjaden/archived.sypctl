@@ -21,9 +21,6 @@ case "$1" in
     start|stop|status|restart|monitor)
         fun_operator_service_process "$1"
     ;;
-    package:status|ps)
-        bash server/bash/packages-tools.sh state
-    ;;
     guide|install:help|ih)
         fun_user_expect_to_install_package_guides
     ;;
@@ -37,7 +34,7 @@ case "$1" in
         fun_execute_env_script
     ;;
     bundle)
-        fun_execute_bundle_rake $@
+        fun_execute_bundle_utils_rake $@
     ;;
     yum:kill)
         ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9
@@ -51,13 +48,13 @@ case "$1" in
         fun_generate_sshkey_when_not_exist
     ;;
     ambari:install)
-        bash server/bash/ambari-tools.sh install
+        bash linux/bash/ambari-tools.sh install
     ;;
     vnc:install)
-        bash server/bash/vnc-tools.sh install
+        bash linux/bash/vnc-tools.sh install
     ;;
     redis:install)
-        bash server/bash/redis-tools.sh install
+        bash linux/bash/redis-tools.sh install
     ;;
     memory:free|mf)
         fun_free_memory

@@ -9,7 +9,7 @@ test -d /opt/scripts/syp-saas-scripts && {
   cd /opt/scripts/syp-saas-scripts
   sudo -u root bash sypctl.sh monitor
   sudo -u root bash sypctl.sh firewalld:stop
-  sudo -u root crontab server/config/syp@crontab.conf
+  sudo -u root crontab linux/config/syp@crontab.conf
 }
 
 test -d /root/www/syp-saas-server && {

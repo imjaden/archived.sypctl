@@ -6,7 +6,7 @@
 #
 ########################################
 
-source server/bash/common.sh
+source linux/bash/common.sh
 
 case "$1" in
     check)

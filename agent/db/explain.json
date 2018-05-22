@@ -1,0 +1,85 @@
+{
+  "information": "该服务使用纯文本记录，各文本命名规范如下:",
+  "tables": [
+    {
+      "table": "agent.json",
+      "information": "代理端信息记录",
+      "fields": [
+        {
+          "field": "uuid",
+          "information": "自我创建唯一标识"
+        },
+        {
+          "field": "api_token",
+          "information": "服务器提供的 API TOKEN"
+        },
+        {
+          "field": "username",
+          "information": "代理端 Web 登录用户名（暂不使用）"
+        },
+        {
+          "field": "password",
+          "information": "代理端 Web 登录密码（暂不使用）"
+        },
+        {
+          "field": "version",
+          "information": "代理版本，代理升级时需要重新提交代理端信息"
+        },
+        {
+          "field": "os_type",
+          "information": "系统类型"
+        },
+        {
+          "field": "os_version",
+          "information": "系统版本"
+        },
+        {
+          "field": "memory",
+          "information": "内存"
+        },
+        {
+          "field": "cpu",
+          "information": "CPU"
+        },
+        {
+          "field": "disk",
+          "information": "磁盘"
+        },
+        {
+          "field": "synced",
+          "information": "同步服务器状态"
+        }
+      ]
+    },
+    {
+      "table": "system-{{yymmdd}}.json",
+      "information": "服务器信息记录，以天为单位",
+      "fields": [
+        {
+          "field": "timestamp",
+          "information": "时间戳，180520214859"
+        },
+        {
+          "field": "uuid",
+          "information": "自我创建的唯一标识"
+        }
+        {
+          "field": "memory",
+          "information": "内存"
+        },
+        {
+          "field": "cpu",
+          "information": "CPU"
+        },
+        {
+          "field": "disk",
+          "information": "磁盘"
+        },
+        {
+          "field": "synced",
+          "information": "同步服务器状态"
+        }
+      ]
+    }
+  ]
+}

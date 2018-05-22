@@ -1,12 +1,14 @@
-## 命令说明
+## 使用手册
 
 ```
 $ sypctl.sh help
-
-Usage: sypctl <command>
+Usage: sypctl <command> [<args>]
 
 sypctl help         sypctl 支持的命令参数列表，及已部署服务的信息
 sypctl deploy       部署服务引导，并安装部署输入 `y` 确认的服务
+sypctl deployed     查看已部署服务
+sypctl env          部署基础环境依赖：JDK/Rbenv/Ruby
+sypctl upgrade      更新 sypctl 源码
 
 sypctl monitor      已部署的服务进程状态，若未监测到进程则启动该服务
 sypctl start        启动已部署的服务进程
@@ -21,8 +23,16 @@ sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下：
                       - 保臻 shenzhenpoly
 sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上
 
-sypctl git:pull     更新脚本代码
+Current version is 0.0.7
+For full documentation, see: http://gitlab.ibi.ren/syp/syp-saas-scripts
 ```
+
+## 约束
+
+- 软件安装目录：/usr/local/src
+- 数据存储目录: /data/
+- 配置信息目录: /opt/syp-config/
+- Web 服务目录: /var/www/
 
 ## 部署软件
 

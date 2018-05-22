@@ -8,7 +8,7 @@
 #
 # referenced: http://www.codeclip.com/3660.html
 #
-source server/bash/common.sh
+source linux/bash/common.sh
 
 case "$1" in
     install)

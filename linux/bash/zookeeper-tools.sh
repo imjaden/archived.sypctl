@@ -21,7 +21,7 @@
 # bash # zookeeper-tools.sh ${zk_home} ${cmd_type}
 # ```
 
-source server/bash/common.sh
+source linux/bash/common.sh
 
 zk_home="${1:-$ZK_HOME}"
 cmd_type="${2:-start}"
@@ -33,26 +33,40 @@ case "${cmd_type}" in
     ;; 
     install)
         if [[ -d ${zk_home} ]]; then
-            printf "$two_cols_table_format" "zookeeper" "Deployed"
+            printf "$two_cols_table_format" "Zookeeper" "Deployed"
             exit 2
         fi
 
-        zk_package=server/packages/zookeeper-3.3.6.tar.gz
+        zk_package=linux/packages/zookeeper-3.3.6.tar.gz
         zk_version=zookeeper-3.3.6
 
         rm -fr ~/tools/${zk_version} 
         test -d ~/tools || mkdir -p ~/tools
         if [[ ! -f ${zk_package} ]]; then
-            printf "$two_cols_table_format" "zookeeper" "ERROR: Package Not Found"
-            exit 2
+            printf "$two_cols_table_format" "Zookeeper Package" "Not Found"
+            printf "$two_cols_table_format" "Zookeeper package" "Downloading..."
+
+            mkdir -p linux/packages
+            package_name="$(basename $zk_package)"
+            if [[ -f linux/packages/${package_name} ]]; then
+              tar jtvf packages/${package_name} > /dev/null 2>&1
+              if [[ $? -gt 0 ]]; then
+                  rm -f linux/packages/${package_name}
+              fi
+            fi
+
+            if [[ ! -f linux/packages/${package_name} ]]; then
+                wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                printf "$two_cols_table_format" "Zookeeper package" "Downloaded"
+            fi
         fi
         tar -xzvf ${zk_package} -C ~/tools
 
         cp -r ~/tools/${zk_version} ${zk_home}
-        cp server/config/zoo.cfg ${zk_home}/conf
+        cp linux/config/zoo.cfg ${zk_home}/conf
         mkdir -p /usr/local/src/zookeeper/{data,log}
 
-        printf "$two_cols_table_format" "zookeeper" "Deployed Successfully"
+        printf "$two_cols_table_format" "Zookeeper" "Deployed Successfully"
     ;;
     log)
         cd ${zk_home}
@@ -64,12 +78,12 @@ case "${cmd_type}" in
         zk_version=zookeeper-3.3.6
 
         if [[ ! -f ${zk_package} ]]; then
-            printf "$two_cols_table_format" "zookeeper" "Tar Package Not Found"
+            printf "$two_cols_table_format" "Zookeeper" "Tar Package Not Found"
             exit 2
         fi
 
         if [[ -d ${zk_install_path}/zookeeper ]]; then
-            printf "$two_cols_table_format" "zookeeper" "Deployed"
+            printf "$two_cols_table_format" "Zookeeper" "Deployed"
             exit 2
         fi
 
@@ -80,9 +94,9 @@ case "${cmd_type}" in
     start|startup)
         test -f ~/.bash_profile && source ~/.bash_profile
 
-        printf "$two_cols_table_format" "zookeeper" "Starting..."
+        printf "$two_cols_table_format" "Zookeeper" "Starting..."
         bash ${zk_home}/bin/zkServer.sh start
-        printf "$two_cols_table_format" "zookeeper" "Started"
+        printf "$two_cols_table_format" "Zookeeper" "Started"
     ;;
     stop)
         test -f ~/.bash_profile && source ~/.bash_profile
@@ -90,9 +104,9 @@ case "${cmd_type}" in
         printf "$two_cols_table_format" "zookeeper" "Stroping..."
         pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
         if [ ! -n "${pids}" ]; then
-        printf "$two_cols_table_format" "zookeeper" "Process Not Found"
+        printf "$two_cols_table_format" "Zookeeper" "Process Not Found"
         else
-            printf "$two_cols_table_format" "zookeeper" "${pids}"
+            printf "$two_cols_table_format" "Zookeeper" "${pids}"
             bash ${zk_home}/bin/zkServer.sh stop
 
             sleep 1s
@@ -100,27 +114,27 @@ case "${cmd_type}" in
             pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools.sh' | awk '{print $2}' | xargs)
             if [ -n "${pids}" ]; then
                 kill -9 ${pids}
-                printf "$two_cols_table_format" "zookeeper" "KILL ${pids}"
+                printf "$two_cols_table_format" "Zookeeper" "KILL ${pids}"
             fi
         fi
-        printf "$two_cols_table_format" "zookeeper" "Stoped"
+        printf "$two_cols_table_format" "Zookeeper" "Stoped"
     ;;
     status|state)
         pids=$(ps aux | grep zookeeper | grep ${zk_home} | grep -v grep | grep -v 'zookeeper-tools' | awk '{print $2}' | xargs)
 
         if [ -n "${pids}" ]; then
-            printf "$two_cols_table_format" "zookeeper" "${pids}"
+            printf "$two_cols_table_format" "Zookeeper" "${pids}"
             exit 0
         else
-            printf "$two_cols_table_format" "zookeeper" "-"
+            printf "$two_cols_table_format" "Zookeeper" "-"
             exit 1
         fi
     ;;
     monitor)
         bash $0 ${zk_home} status ${option}
         if [ $? -gt 0 ]; then
-            printf "$two_cols_table_format" "zookeeper" "Process Not Found"
-            printf "$two_cols_table_format" "zookeeper" "Starting..."
+            printf "$two_cols_table_format" "Zookeeper" "Process Not Found"
+            printf "$two_cols_table_format" "Zookeeper" "Starting..."
             bash $0 ${zk_home} startup
         fi
     ;;
