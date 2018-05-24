@@ -37,11 +37,10 @@ function fun_basic_check_operate_system() {
     os_type=$(lsb_release -i | awk '{ print $3 }')
     os_version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
     if [[ "${supported_os_platforms[@]}" =~ "${os_type}${os_version}" ]]; then
-        os_platform="${system}${version}"
-        return 0
+        os_platform="${os_type}${os_version}"
     else
+        os_platform=$(uname -s)
         lsb_release -a
-        return 1
     fi
 }
 
@@ -325,12 +324,23 @@ function fun_execute_env_script() {
 function fun_execute_bundle_rake() {
     cd agent
 
-    archived_path=logs/archived/$(date +'%Y%m%d%H%M%S')
-    mkdir -p ${archived_path}
-    mv logs/*.log ${archived_path}/
-    
+    log_count=$(ls logs/ | grep '.log' | wc -l)
+    if [[ $log_count -gt 0 ]]; then
+        archived_path=logs/archived/$(date +'%Y%m%d%H%M%S')
+        mkdir -p ${archived_path}
+        mv logs/*.log ${archived_path}/
+    fi
     echo "$ $@"
     $@
+}
+
+function fun_print_variable() {
+    variable="$1"
+    test -z $variable && {
+        echo "please input variable name"
+        return 1
+    }
+    eval "echo \${$variable}"
 }
 
 col1_width=${custom_col1_width:-36}

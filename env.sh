@@ -9,12 +9,13 @@ command -v lsb_release > /dev/null || {
 
 supported_os_platforms=(RedHatEnterpriseServer6 RedHatEnterpriseServer7 CentOS6 CentOS7 Ubuntu16)
 os_platform="UnknownOS"
-system=$(lsb_release -i | awk '{ print $3 }')
-version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
-if [[ "${supported_os_platforms[@]}" =~ "${system}${version}" ]]; then
-    os_platform="${system}${version}"
+os_type=$(lsb_release -i | awk '{ print $3 }')
+os_version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
+if [[ "${supported_os_platforms[@]}" =~ "${os_type}${os_version}" ]]; then
+    os_platform="${os_type}${os_version}"
 else
-    echo "ERROR: unsupport system!"
+    os_platform=$(uname -s)
+    echo "ERROR: unsupport system - ${os_platform}"
     exit 1
 fi
 
@@ -68,9 +69,9 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
 }
 
 command -v ruby >/dev/null 2>&1 && ruby -v || { 
-    rbenv install 2.4.0
+    rbenv install 2.3.0
     rbenv rehash
-    rbenv global 2.4.0
+    rbenv global 2.3.0
     ruby -v
 }
 

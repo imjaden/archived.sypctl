@@ -1,6 +1,4 @@
-#!/usr/bin/env rake
-require 'rubygems'
-
+# encoding: utf-8
 class String
   # Strips indentation in heredocs.
   #
@@ -25,25 +23,4 @@ class String
       stripped.freeze if frozen?
     end
   end
-end
-
-task default: [:environment]
-
-desc 'bundle exec rake task_name RACK_ENV=development'
-task environment: 'Gemfile.lock' do
-  ENV['RACK_ENV'] ||= 'production'
-  ENV['RAILS_ENV'] = ENV['RACK_ENV']
-  begin
-    ENV['BUNDLE_GEMFILE'] ||= "./Gemfile"
-    require 'rake'
-    require 'bundler'
-    Bundler.setup
-  rescue => e
-    puts e.backtrace && exit
-  end
-  Bundler.require(:default, ENV['RACK_ENV'])
-end
-
-Dir.glob('./tasks/*.rake') do |filepath|
-  load filepath
 end

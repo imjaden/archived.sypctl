@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 current_path="$(pwd)"
-cd /opt/scripts/sypctl
+test -d /opt/scripts/sypctl && cd /opt/scripts/sypctl
+test -n "$SYPCTL_HOME" && cd $SYPCTL_HOME
+
 source linux/bash/common.sh
 
 case "$1" in
@@ -60,6 +62,9 @@ case "$1" in
     ;;
     firewalld:stop|fs)
         fun_disable_firewalld
+    ;;
+    variable)
+        fun_print_variable "$2"
     ;;
     *)
         fun_print_sypctl_help

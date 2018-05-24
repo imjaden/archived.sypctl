@@ -5,7 +5,11 @@
 .env-files
 .install-defender
 .tutorial-conf.sh
+agent/.device-uuid
+agent/.password
 *.lock
 linux/packages
 agent/config/id_rsa_pub.list
 agent/logs/
+agent/db/agent.json
+agent/db/records-*

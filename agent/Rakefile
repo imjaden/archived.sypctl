@@ -1,31 +1,17 @@
 #!/usr/bin/env rake
 require 'rubygems'
 
-class String
-  # Strips indentation in heredocs.
-  #
-  # For example in
-  #
-  #   if options[:usage]
-  #     puts <<-USAGE.strip_heredoc
-  #       This command does such and such.
-  #
-  #       Supported options are:
-  #         -h         This message
-  #         ...
-  #     USAGE
-  #   end
-  #
-  # the user would see the usage message aligned against the left margin.
-  #
-  # Technically, it looks for the least indented non-empty line
-  # in the whole string, and removes that amount of leading whitespace.
-  def strip_heredoc
-    gsub(/^#{scan(/^[ \t]*(?=\S)/).min}/, "".freeze).tap do |stripped|
-      stripped.freeze if frozen?
-    end
-  end
-end
+ENV["SYPCTL-VERSION"] = "0.0.12"
+ENV["SYPCTL-API"] = "http://sypctl-api.idata.mobi"
+ENV["SYPCTL-API"] = "http://localhost:4567"
+ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
+
+$LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])
+$LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/config))
+$LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/lib/tasks))
+
+require 'lib/core_ext/string.rb'
+require 'lib/utils/rake_instance_methods.rb'
 
 task default: [:environment]
 
