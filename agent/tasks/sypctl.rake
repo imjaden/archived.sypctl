@@ -18,8 +18,8 @@ namespace :sypctl do
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
 
             commands = []
-            commands << "curl -sS http://gitlab.ibi.ren/syp/sypctl/raw/dev-0.0.1/env.sh | bash"
-            commands << "sypctl version"
+            # commands << "curl -sS http://gitlab.ibi.ren/syp/sypctl/raw/dev-0.0.1/env.sh | bash"
+            commands << "sypctl firewalld:stop"
             execute!(ssh, commands, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"
           end

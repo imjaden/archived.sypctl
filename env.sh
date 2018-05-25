@@ -41,7 +41,13 @@ command -v apt-get > /dev/null && {
     done
 }
 
+# remove deprecated sypctl command
+# -----------------------------------
 test -d /opt/scripts/syp-saas-scripts && rm -fr /opt/scripts/syp-saas-scripts
+test -f ~/.bash_profile && sed -i /sypctl/d ~/.bash_profile > /dev/null 2>&1
+unalias sypctl > /dev/null 2>&1
+# -----------------------------------
+
 test -d /opt/scripts/sypctl || {
     mkdir -p /opt/scripts/
     cd /opt/scripts
@@ -94,7 +100,6 @@ done
 fun_prompt_java_already_installed
 fun_print_table_footer
 
-unalias sypctl > /dev/null 2>&1
 command -v sypctl >/dev/null 2>&1 && sypctl help || {
     test -L /usr/bin/sypctl && unlink /usr/bin/sypctl
     ln -s /opt/scripts/sypctl/sypctl.sh /usr/bin/sypctl

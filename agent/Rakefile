@@ -1,9 +1,8 @@
 #!/usr/bin/env rake
 require 'rubygems'
 
-ENV["SYPCTL-VERSION"] = "0.0.12"
+ENV["SYPCTL-VERSION"] = "0.0.13"
 ENV["SYPCTL-API"] = "http://sypctl-api.idata.mobi"
-ENV["SYPCTL-API"] = "http://localhost:4567"
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
 
 $LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])

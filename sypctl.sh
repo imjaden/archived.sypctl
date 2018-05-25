@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 current_path="$(pwd)"
-test -d /opt/scripts/sypctl && cd /opt/scripts/sypctl
-test -n "$SYPCTL_HOME" && cd $SYPCTL_HOME
+test -n "$SYPCTL_HOME" && cd $SYPCTL_HOME || {
+    test -d /opt/scripts/sypctl && cd /opt/scripts/sypctl
+}
 
 source linux/bash/common.sh
 
