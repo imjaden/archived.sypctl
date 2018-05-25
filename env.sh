@@ -79,13 +79,13 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
     rbenv install 2.3.0
     rbenv rehash
     rbenv global 2.3.0
-    ruby -v
-}
 
-command -v bundle >/dev/null 2>&1 && bundle -v || { 
     gem install bundle
     bundle config mirror.https://rubygems.org https://gems.ruby-china.org
     bundle config build.nokogiri --use-system-libraries
+
+    ruby -v
+    bundler -v
 }
 
 custom_col1_width=22

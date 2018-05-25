@@ -148,7 +148,7 @@ class Device
     def uuid
       uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"], ".device-uuid")
       unless File.exists?(uuid_tmp_path)
-        device_uuid = klass.device_uuid
+        device_uuid = klass.device_uuid.gsub("/", "_")
         File.open(uuid_tmp_path, "w:utf-8") { |file| file.puts(device_uuid) }
       end
       File.read(uuid_tmp_path).strip
