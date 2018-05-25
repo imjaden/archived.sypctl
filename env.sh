@@ -51,10 +51,11 @@ unalias sypctl > /dev/null 2>&1
 test -d /opt/scripts/sypctl || {
     mkdir -p /opt/scripts/
     cd /opt/scripts
-    git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp/sypctl.git
+    git clone --branch dev-0.0.1 --depth 1 git@gitlab.ibi.ren:syp-apps/sypctl.git
 }
 
 cd /opt/scripts/sypctl
+git remote set-url origin git@gitlab.ibi.ren:syp-apps/sypctl.git
 git pull origin dev-0.0.1 > /dev/null 2>&1
 cd agent
 bundle > /dev/null 2>&1

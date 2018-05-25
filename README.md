@@ -1,7 +1,7 @@
 ## 初始化
 
 ```
-$ curl -sS http://gitlab.ibi.ren/syp/sypctl/raw/dev-0.0.1/env.sh | bash
+$ curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash
 ```
 
 ## 使用手册
