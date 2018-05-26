@@ -150,11 +150,11 @@ function fun_print_sypctl_help() {
 function fun_upgrade() {
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
-    git pull origin ${git_current_branch}
+    sudo git pull origin ${git_current_branch}
 
     cd agent
-    rm -f .bundle-done
-    bundle install
+    sudo rm -f .bundle-done
+    sudo bundle install
     cd ..
     
     echo 
