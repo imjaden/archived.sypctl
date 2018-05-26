@@ -1,5 +1,5 @@
 # encoding:utf-8
-require 'lib/utils/device.rb'
+require 'lib/utils/Utils::Device.rb'
 
 def agent_root_join(path)
   File.join(ENV["RAKE_ROOT_PATH"], path)
@@ -20,18 +20,18 @@ end
 
 def agent_device_init_info
   @device ||= {
-    uuid: Device.uuid,
-    hostname: Device.hostname,
+    uuid: Utils::Device.uuid,
+    hostname: Utils::Device.hostname,
     username: 'sypagent',
     password: password,
-    os_type: Device.os_type,
-    os_version: Device.os_version,
-    memory: Device.memory,
-    memory_description: Device.memory_usage_description.to_json,
-    cpu: Device.cpu,
-    cpu_description: Device.cpu_usage_description.to_json,
-    disk: Device.disk,
-    disk_description: Device.disk_usage_description.to_json
+    os_type: Utils::Device.os_type,
+    os_version: Utils::Device.os_version,
+    memory: Utils::Device.memory,
+    memory_description: Utils::Device.memory_usage_description.to_json,
+    cpu: Utils::Device.cpu,
+    cpu_description: Utils::Device.cpu_usage_description.to_json,
+    disk: Utils::Device.disk,
+    disk_description: Utils::Device.disk_usage_description.to_json
   }
 end
 
@@ -41,12 +41,12 @@ def agent_device_state_info
     uuid: agent_hsh['uuid'],
     api_token: agent_hsh['api_token'],
     version: ENV['SYPCTL-VERSION'],
-    memory_usage: Device.memory_usage,
-    memory_usage_description: Device.memory_usage_description.to_json,
-    cpu_usage: Device.cpu_usage,
-    cpu_usage_description: Device.cpu_usage_description.to_json,
-    disk_usage: Device.disk_usage,
-    disk_usage_description: Device.disk_usage_description.to_json
+    memory_usage: Utils::Device.memory_usage,
+    memory_usage_description: Utils::Device.memory_usage_description.to_json,
+    cpu_usage: Utils::Device.cpu_usage,
+    cpu_usage_description: Utils::Device.cpu_usage_description.to_json,
+    disk_usage: Utils::Device.disk_usage,
+    disk_usage_description: Utils::Device.disk_usage_description.to_json
   }
 end
 

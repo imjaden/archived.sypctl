@@ -35,8 +35,11 @@ case "$1" in
     env)
         fun_execute_env_script
     ;;
-    bundle)
+    bundle) # agent task
         fun_execute_bundle_rake $@
+    ;;
+    crontab) # sypctl crontab jobs
+        fun_update_crontab_jobs
     ;;
     yum:kill)
         ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9

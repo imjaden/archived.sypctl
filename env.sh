@@ -29,6 +29,7 @@ command -v yum > /dev/null && {
       }
     done
 }
+
 command -v apt-get > /dev/null && {
     packages=(git git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
     for package in ${packages[@]}; do
@@ -61,7 +62,22 @@ cd agent
 bundle > /dev/null 2>&1
 cd ..
 
-bash linux/bash/jdk-tools.sh install
+command -v java > /dev/null || {
+  bash linux/bash/jdk-tools.sh install
+}
+
+function fun_rbenv_install_ruby() {
+    rbenv install --skip-existing 2.3.0 
+    rbenv rehash
+    rbenv global 2.3.0
+
+    gem install bundle
+    bundle config mirror.https://rubygems.org https://gems.ruby-china.org
+    bundle config build.nokogiri --use-system-libraries
+
+    ruby -v
+    bundler -v
+}
 
 command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || { 
     git clone --depth 1 git://github.com/sstephenson/rbenv.git ~/.rbenv
@@ -73,19 +89,12 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
     echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
     source ~/.bash_profile
     type rbenv
+
+    fun_rbenv_install_ruby
 }
 
 command -v ruby >/dev/null 2>&1 && ruby -v || { 
-    rbenv install 2.3.0
-    rbenv rehash
-    rbenv global 2.3.0
-
-    gem install bundle
-    bundle config mirror.https://rubygems.org https://gems.ruby-china.org
-    bundle config build.nokogiri --use-system-libraries
-
-    ruby -v
-    bundler -v
+    fun_rbenv_install_ruby
 }
 
 custom_col1_width=22
@@ -107,4 +116,6 @@ command -v sypctl >/dev/null 2>&1 && sypctl help || {
 }
 
 sypctl ssh-keygen > /dev/null 2>&1
+sypctl bundle exec rake agent:submitor
+sypctl crontab
 sypctl help

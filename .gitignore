@@ -13,3 +13,5 @@ agent/config/id_rsa_pub.list
 agent/logs/
 agent/db/agent.json
 agent/db/records-*
+.crontab-*
+linux/bash/sqoop-*
