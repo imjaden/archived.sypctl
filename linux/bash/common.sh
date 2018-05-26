@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.13'
+VERSION='0.0.14'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -148,13 +148,28 @@ function fun_print_sypctl_help() {
 }
 
 function fun_upgrade() {
+    old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     git pull origin ${git_current_branch}
+
     cd agent
-    bundle > /dev/null 2>&1
+    rm -f .bundle-done
+    bundle install
     cd ..
     
-    sypctl htlp
+    echo 
+    echo '                               m    ""#'
+    echo '  mmm   m   m  mmmm    mmm   mm#mm    #'
+    echo ' #   "  "m m"  #" "#  #"  "    #      #'
+    echo '  """m   #m#   #   #  #        #      #'
+    echo ' "mmm"   "#    ##m#"  "#mm"    "mm    "mm'
+    echo '         m"    #'
+    echo '        ""     "'
+    echo 
+    echo " upgrade from ${old_version} => $(sypctl version) successfully!"
+    echo
+
+    sypctl help
 }
 
 function fun_generate_sshkey_when_not_exist() {
@@ -324,12 +339,23 @@ function fun_execute_env_script() {
 function fun_execute_bundle_rake() {
     cd agent
 
-    log_count=$(ls logs/ | grep '.log' | wc -l)
-    if [[ $log_count -gt 0 ]]; then
-        archived_path=logs/archived/$(date +'%Y%m%d%H%M%S')
-        mkdir -p ${archived_path}
-        mv logs/*.log ${archived_path}/
-    fi
+    test -f .bundle-done || {
+        bundle install
+        
+        if [[ $? -eq 0 ]]; then
+          echo "$ bundle install --local successfully"
+          echo $(date +'%Y-%m-%d %H:%M:%S') > .bundle-done
+        fi
+    }
+
+    test -d logs || mkdir logs && { 
+        log_count=$(ls logs/ | grep '.log' | wc -l)
+        if [[ $log_count -gt 0 ]]; then
+            archived_path=logs/archived/$(date +'%Y%m%d%H%M%S')
+            mkdir -p ${archived_path}
+            mv logs/*.log ${archived_path}/
+        fi
+    }
     echo "$ $@"
     $@
 }

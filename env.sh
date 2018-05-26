@@ -104,7 +104,7 @@ fun_print_table_footer
 command -v sypctl >/dev/null 2>&1 && sypctl help || {
     test -L /usr/bin/sypctl && unlink /usr/bin/sypctl
     ln -s /opt/scripts/sypctl/sypctl.sh /usr/bin/sypctl
-    sypctl help
 }
 
 sypctl ssh-keygen > /dev/null 2>&1
+sypctl help
