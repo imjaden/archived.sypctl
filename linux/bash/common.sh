@@ -380,8 +380,8 @@ function fun_update_crontab_jobs() {
     sudo cp ${crontab_conf} tmp/${crontab_conf}
 
     if [[ $(grep "# Begin sypctl" ~/.${crontab_conf} | wc -l) -gt 0 ]]; then
-        begin_line_num=$(sed -n '/# Begin sypctl/=' ${crontab_conf} | head -n 1)
-        end_line_num=$(sed -n '/# End sypctl/=' ${crontab_conf} | tail -n 1)
+        begin_line_num=$(sed -n '/# Begin sypctl/=' ./${crontab_conf} | head -n 1)
+        end_line_num=$(sed -n '/# End sypctl/=' ./${crontab_conf} | tail -n 1)
         sudo sed -i "${begin_line_num},${end_line_num}d" ~/.${crontab_conf}
     fi
 
