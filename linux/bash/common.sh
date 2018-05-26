@@ -376,22 +376,22 @@ function fun_update_crontab_jobs() {
     timestamp=$(date +'%Y%m%d%H%M%S')
     crontab_conf="crontab-${timestamp}.conf"
 
-    crontab -l > ~/.${crontab_conf}
-    sudo cp ${crontab_conf} tmp/${crontab_conf}
+    crontab -l > ~/${crontab_conf}
+    sudo cp ~/${crontab_conf} tmp/${crontab_conf}
 
-    if [[ $(grep "# Begin sypctl" ~/.${crontab_conf} | wc -l) -gt 0 ]]; then
-        begin_line_num=$(sed -n '/# Begin sypctl/=' ./${crontab_conf} | head -n 1)
-        end_line_num=$(sed -n '/# End sypctl/=' ./${crontab_conf} | tail -n 1)
-        sudo sed -i "${begin_line_num},${end_line_num}d" ~/.${crontab_conf}
+    if [[ $(grep "# Begin sypctl" ~/${crontab_conf} | wc -l) -gt 0 ]]; then
+        begin_line_num=$(sed -n '/# Begin sypctl/=' ~/${crontab_conf} | head -n 1)
+        end_line_num=$(sed -n '/# End sypctl/=' ~/${crontab_conf} | tail -n 1)
+        sed -i "${begin_line_num},${end_line_num}d" ~/${crontab_conf}
     fi
 
     echo "" >> ~/.${crontab_conf}
-    echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
-    echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/.${crontab_conf}
-    echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
+    echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
+    echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/${crontab_conf}
+    echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
-    sudo cp ${crontab_conf} tmp/${crontab_conf}-update
-    crontab ~/.${crontab_conf}
+    sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
+    crontab ~/${crontab_conf}
     crontab -l
 }
 
