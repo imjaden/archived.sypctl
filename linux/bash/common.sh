@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.15'
+VERSION='0.0.16'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -166,7 +166,7 @@ function fun_upgrade() {
     echo '         m"    #'
     echo '        ""     "'
     echo 
-    echo " upgrade from ${old_version} => $(sypctl version) successfully!"
+    echo "upgrade from ${old_version} => $(sypctl version) successfully!"
     echo
 
     sypctl crontab
@@ -373,21 +373,23 @@ function fun_print_variable() {
 function fun_update_crontab_jobs() {
     test -d tmp || mkdir tmp
     timestamp=$(date +'%Y%m%d%H%M%S')
-    crontab_conf="tmp/.crontab-${timestamp}.conf"
+    crontab_conf="tmp/crontab-${timestamp}.conf"
 
     crontab -l > ${crontab_conf}
     cp ${crontab_conf} ${crontab_conf}.origin
 
-    if [[ $(grep "# Begin sypctl" ${crontab_conf} | wc -l) -eq 0 ]]; then
-        begin_line_num=$(sed -n '/# Begin sypctl/=' ${crontab_conf})
-        end_line_num=$(sed -n '/# End sypctl/=' ${crontab_conf})
+    if [[ $(grep "# Begin sypctl" ${crontab_conf} | wc -l) -gt 0 ]]; then
+        begin_line_num=$(sed -n '/# Begin sypctl/=' ${crontab_conf} | head -n 1)
+        end_line_num=$(sed -n '/# End sypctl/=' ${crontab_conf} | tail -n 1)
         sed -i "${begin_line_num},${end_line_num}d" ${crontab_conf}
     fi
 
+    echo "" >> ${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ${crontab_conf}
     echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ${crontab_conf}
     crontab ${crontab_conf}
+    crontab -l
 }
 
 col1_width=${custom_col1_width:-36}
