@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.18'
+VERSION='0.0.19'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -374,23 +374,23 @@ function fun_print_variable() {
 function fun_update_crontab_jobs() {
     test -d tmp || sudo mkdir tmp
     timestamp=$(date +'%Y%m%d%H%M%S')
-    crontab_conf="tmp/crontab-${timestamp}.conf"
+    crontab_conf="crontab-${timestamp}.conf"
 
-    sudo crontab -l > ${crontab_conf}
-    sudo cp ${crontab_conf} ${crontab_conf}.origin
+    crontab -l > ~/.${crontab_conf}
+    sudo cp ${crontab_conf} tmp/${crontab_conf}
 
-    if [[ $(grep "# Begin sypctl" ${crontab_conf} | wc -l) -gt 0 ]]; then
+    if [[ $(grep "# Begin sypctl" ~/.${crontab_conf} | wc -l) -gt 0 ]]; then
         begin_line_num=$(sed -n '/# Begin sypctl/=' ${crontab_conf} | head -n 1)
         end_line_num=$(sed -n '/# End sypctl/=' ${crontab_conf} | tail -n 1)
-        sudo sed -i "${begin_line_num},${end_line_num}d" ${crontab_conf}
+        sudo sed -i "${begin_line_num},${end_line_num}d" ~/.${crontab_conf}
     fi
 
-    sudo echo "" >> ${crontab_conf}
-    sudo echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ${crontab_conf}
-    sudo echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ${crontab_conf}
-    sudo echo "# End sypctl crontab jobs at: ${timestamp}" >> ${crontab_conf}
-    sudo crontab ${crontab_conf}
-    sudo crontab -l
+    sudo echo "" >> ~/.${crontab_conf}
+    sudo echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
+    sudo echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/.${crontab_conf}
+    sudo echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
+    crontab ~/.${crontab_conf}
+    crontab -l
 }
 
 col1_width=${custom_col1_width:-36}

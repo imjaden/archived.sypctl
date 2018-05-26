@@ -43,6 +43,9 @@ command -v apt-get > /dev/null && {
     done
 }
 
+sudo mkdir -p /opt/scripts/
+sudo chown -R $(whoami):$(whoami) /opt/scripts/
+
 # remove deprecated sypctl command
 # -----------------------------------
 test -d /opt/scripts/syp-saas-scripts && sudo rm -fr /opt/scripts/syp-saas-scripts
@@ -51,7 +54,6 @@ unalias sypctl > /dev/null 2>&1
 # -----------------------------------
 
 test -d /opt/scripts/sypctl || {
-    sudo mkdir -p /opt/scripts/
     cd /opt/scripts
     sudo git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
