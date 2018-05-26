@@ -385,10 +385,12 @@ function fun_update_crontab_jobs() {
         sudo sed -i "${begin_line_num},${end_line_num}d" ~/.${crontab_conf}
     fi
 
-    sudo echo "" >> ~/.${crontab_conf}
-    sudo echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
-    sudo echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/.${crontab_conf}
-    sudo echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
+    echo "" >> ~/.${crontab_conf}
+    echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
+    echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/.${crontab_conf}
+    echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/.${crontab_conf}
+
+    sudo cp ${crontab_conf} tmp/${crontab_conf}-update
     crontab ~/.${crontab_conf}
     crontab -l
 }
