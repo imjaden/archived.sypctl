@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.16'
+VERSION='0.0.17'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -169,7 +169,7 @@ function fun_upgrade() {
     echo "upgrade from ${old_version} => $(sypctl version) successfully!"
     echo
 
-    sypctl crontab
+    sypctl crontab > /dev/null 2>&1
     sypctl help
 }
 
@@ -339,26 +339,27 @@ function fun_execute_env_script() {
 
 function fun_execute_bundle_rake() {
     cd agent
+    timestamp=$(date +'%Y%m%d%H%M%S')
 
     test -f .bundle-done || {
         bundle install
-        
         if [[ $? -eq 0 ]]; then
           echo "$ bundle install --local successfully"
-          echo $(date +'%Y-%m-%d %H:%M:%S') > .bundle-done
+          echo ${timestamp} > .bundle-done
         fi
     }
 
-    test -d logs || mkdir logs && { 
-        log_count=$(ls logs/ | grep '.log' | wc -l)
-        if [[ $log_count -gt 0 ]]; then
-            archived_path=logs/archived/$(date +'%Y%m%d%H%M%S')
-            mkdir -p ${archived_path}
-            mv logs/*.log ${archived_path}/
-        fi
-    }
+    # test -d logs || mkdir logs && { 
+    #     log_count=$(ls logs/ | grep '.log' | wc -l)
+    #     if [[ $log_count -gt 0 ]]; then
+    #         archived_path=logs/archived/${timestamp}
+    #         mkdir -p ${archived_path}
+    #         mv logs/*.log ${archived_path}/
+    #     fi
+    # }
+
     echo "$ $@"
-    $@
+    $@ >> logs/task_agent-${timestamp}.log 2>&1
 }
 
 function fun_print_variable() {

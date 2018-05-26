@@ -1,5 +1,5 @@
 # encoding:utf-8
-require 'lib/utils/Utils::Device.rb'
+require 'lib/utils/device.rb'
 
 def agent_root_join(path)
   File.join(ENV["RAKE_ROOT_PATH"], path)

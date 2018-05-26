@@ -4,8 +4,9 @@
 .saasrc
 .env-files
 .install-defender
-.tutorial-conf.sh
 *.lock
+.ruby-version
+.bundle-done
 
 linux/packages
 linux/bash/sqoop-*
