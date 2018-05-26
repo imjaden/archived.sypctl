@@ -6,6 +6,7 @@ command -v lsb_release > /dev/null || {
     command -v yum > /dev/null && yum install -y redhat-lsb
     command -v apt-get > /dev/null && apt-get install -y lsb-release
 }
+lsb_release -a
 
 supported_os_platforms=(RedHatEnterpriseServer6 RedHatEnterpriseServer7 CentOS6 CentOS7 Ubuntu16)
 os_platform="UnknownOS"
@@ -24,7 +25,7 @@ command -v yum > /dev/null && {
     for package in ${packages[@]}; do
       rpm -q ${package} > /dev/null 2>&1 || {
           printf "installing ${package}..."
-          yum install -y ${package} > /dev/null 2>&1
+          sudo yum install -y ${package} > /dev/null 2>&1
           printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
       }
     done
@@ -35,8 +36,8 @@ command -v apt-get > /dev/null && {
     for package in ${packages[@]}; do
       command -v ${package} > /dev/null || {
           printf "installing ${package}..."
-          apt-get build-dep -y ${package} > /dev/null 2>&1
-          apt-get install -y ${package} > /dev/null 2>&1
+          sudo apt-get build-dep -y ${package} > /dev/null 2>&1
+          sudo apt-get install -y ${package} > /dev/null 2>&1
           printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
       }
     done
@@ -44,22 +45,22 @@ command -v apt-get > /dev/null && {
 
 # remove deprecated sypctl command
 # -----------------------------------
-test -d /opt/scripts/syp-saas-scripts && rm -fr /opt/scripts/syp-saas-scripts
+test -d /opt/scripts/syp-saas-scripts && sudo rm -fr /opt/scripts/syp-saas-scripts
 test -f ~/.bash_profile && sed -i /sypctl/d ~/.bash_profile > /dev/null 2>&1
 unalias sypctl > /dev/null 2>&1
 # -----------------------------------
 
 test -d /opt/scripts/sypctl || {
-    mkdir -p /opt/scripts/
+    sudo mkdir -p /opt/scripts/
     cd /opt/scripts
-    git clone --branch dev-0.0.1 --depth 1 git@gitlab.ibi.ren:syp-apps/sypctl.git
+    sudo git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
 
 cd /opt/scripts/sypctl
 git remote set-url origin git@gitlab.ibi.ren:syp-apps/sypctl.git
 git pull origin dev-0.0.1 > /dev/null 2>&1
 cd agent
-bundle > /dev/null 2>&1
+sudo bundle install > /dev/null 2>&1
 cd ..
 
 command -v java > /dev/null || {
@@ -111,8 +112,8 @@ fun_prompt_java_already_installed
 fun_print_table_footer
 
 command -v sypctl >/dev/null 2>&1 && sypctl help || {
-    test -L /usr/bin/sypctl && unlink /usr/bin/sypctl
-    ln -s /opt/scripts/sypctl/sypctl.sh /usr/bin/sypctl
+    test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
+    sudo ln -s /opt/scripts/sypctl/sypctl.sh /usr/bin/sypctl
 }
 
 sypctl ssh-keygen > /dev/null 2>&1
