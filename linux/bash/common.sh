@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.19'
+VERSION='0.0.20'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -357,7 +357,8 @@ function fun_execute_bundle_rake() {
     #         mv logs/*.log ${archived_path}/
     #     fi
     # }
-
+    
+    test -d logs || mkdir logs
     echo "$ $@"
     $@ >> logs/task_agent-${timestamp}.log 2>&1
 }

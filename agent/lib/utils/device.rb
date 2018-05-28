@@ -3,9 +3,12 @@ require 'json'
 require 'securerandom'
 
 module Utils
-  # development mode
   class Darwin
     class << self
+      def whoami
+        `whoami`.strip
+      end
+
       def device_uuid
         "random-#{SecureRandom.uuid}"
       end
@@ -46,6 +49,10 @@ module Utils
 
   class Linux
     class << self
+      def whoami
+        `whoami`.strip
+      end
+
       # $ blkid -s UUID
       # /dev/mapper/centos_java1-var: UUID="f3a814b5-6fe3-4ecf-a53f-799520c7f932"
       # /dev/sda2: UUID="qAaXeF-RwkI-2qX8-MbUJ-CCCd-2Ta6-3GfEM8"
@@ -87,7 +94,7 @@ module Utils
         'todo'
       end
 
-      def device_disk
+      def disk
         'todo'
       end
 
@@ -149,6 +156,12 @@ module Utils
       def klass
         platform = `uname -s`.strip
         ['Utils', platform].inject(Object) { |obj, klass| obj.const_get(klass) }
+      end
+
+      def whoami
+        klass.whoami
+      rescue => e
+        e.message
       end
 
       def uuid

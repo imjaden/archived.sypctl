@@ -39,6 +39,7 @@ def agent_device_state_info
   agent_hsh = JSON.parse(File.read(agent_json_path))
   {
     uuid: agent_hsh['uuid'],
+    whoami: Utils::Device.whoami,
     api_token: agent_hsh['api_token'],
     version: ENV['SYPCTL-VERSION'],
     memory_usage: Utils::Device.memory_usage,
@@ -67,6 +68,12 @@ def post_to_server_register
   end
 end
 
+def post_to_server_job(options)
+  url = "#{ENV['SYPCTL-API']}/api/v1/job"
+  params = {job: agent_device_state_info}.to_json
+  response = HTTParty.post(url, body: params, headers: {'Content-Type' => 'application/json'})
+end
+
 def post_to_server_submitor
   url = "#{ENV['SYPCTL-API']}/api/v1/receiver"
   params = {device: agent_device_state_info}.to_json
@@ -76,6 +83,19 @@ def post_to_server_submitor
     File.open(record_list_path, "a+:utf-8") do |file|
       agent_hsh = agent_device_state_info
       agent_hsh[:server_record_id] = hsh["id"]
+      unless hsh["jobs"].empty?
+        agent_hsh["jobs"] = hsh["jobs"].map do |job_hsh|
+          `echo "#{job_hsh['command']}" > ~/.sypctl-command`
+          `rm -f ~/.sypctl-command-output`
+          `bash ~/.sypctl-command > ~/.sypctl-command-output 2>&1`
+
+          job_hsh['state'] = 'done'
+          job_hsh['output'] =  File.exists?('~/.sypctl-command-output') ? File.read('~/.sypctl-command-output') : '无输出'
+          post_to_server_job(job_hsh)
+
+          job_hsh
+        end
+      end
       file.puts(agent_hsh.to_json)
     end
   end
