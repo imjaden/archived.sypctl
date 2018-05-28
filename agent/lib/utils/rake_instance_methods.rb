@@ -70,7 +70,7 @@ end
 
 def post_to_server_job(options)
   url = "#{ENV['SYPCTL-API']}/api/v1/job"
-  params = {job: agent_device_state_info}.to_json
+  params = {job: options}.to_json
   response = HTTParty.post(url, body: params, headers: {'Content-Type' => 'application/json'})
 end
 
@@ -84,6 +84,13 @@ def post_to_server_submitor
       agent_hsh = agent_device_state_info
       agent_hsh[:server_record_id] = hsh["id"]
       unless hsh["jobs"].empty?
+        # 执行部署脚本前，先置任务状态为进行中，
+        # 否则部署脚本中有提交操作时，会再次获取到部署任务
+        hsh["jobs"].each do |job_hsh|
+          job_hsh['state'] = 'dealing'
+          post_to_server_job(job_hsh)
+        end
+
         agent_hsh["jobs"] = hsh["jobs"].map do |job_hsh|
           `echo "#{job_hsh['command']}" > ~/.sypctl-command`
           `rm -f ~/.sypctl-command-output`

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.20'
+VERSION='0.0.21'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
