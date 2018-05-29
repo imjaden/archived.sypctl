@@ -94,12 +94,12 @@ def post_to_server_submitor
         end
 
         agent_hsh["jobs"] = hsh["jobs"].map do |job_hsh|
-          `echo "#{job_hsh['command']}" > ~/.sypctl-command`
-          `rm -f ~/.sypctl-command-output`
-          `bash ~/.sypctl-command > ~/.sypctl-command-output 2>&1`
+          `echo "#{job_hsh['command']}" > .sypctl-command`
+          `rm -f .sypctl-command-output`
+          `bash .sypctl-command > .sypctl-command-output 2>&1`
 
           job_hsh['state'] = 'done'
-          job_hsh['output'] =  `test -f ~/.sypctl-command-output && cat ~/.sypctl-command-output || echo '无输出'`
+          job_hsh['output'] = `test -f .sypctl-command-output && cat .sypctl-command-output || echo '无输出'`
           post_to_server_job(job_hsh)
 
           job_hsh
