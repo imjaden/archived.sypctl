@@ -99,7 +99,7 @@ def post_to_server_submitor
           `bash ~/.sypctl-command > ~/.sypctl-command-output 2>&1`
 
           job_hsh['state'] = 'done'
-          job_hsh['output'] =  File.exists?('~/.sypctl-command-output') ? File.read('~/.sypctl-command-output') : '无输出'
+          job_hsh['output'] =  `test -f ~/.sypctl-command-output && cat ~/.sypctl-command-output || echo '无输出'`
           post_to_server_job(job_hsh)
 
           job_hsh
