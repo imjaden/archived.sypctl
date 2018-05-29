@@ -62,7 +62,7 @@ cd /opt/scripts/sypctl
 git remote set-url origin http://gitlab.ibi.ren/syp-apps/sypctl.git
 git pull origin dev-0.0.1 > /dev/null 2>&1
 cd agent
-sudo bundle install > /dev/null 2>&1
+bundle install > /dev/null 2>&1
 cd ..
 
 command -v java > /dev/null || {

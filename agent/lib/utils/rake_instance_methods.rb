@@ -26,6 +26,8 @@ def agent_device_init_info
     password: password,
     os_type: Utils::Device.os_type,
     os_version: Utils::Device.os_version,
+    lan_ip: Utils::Device.lan_ip,
+    wan_ip: Utils::Device.wan_ip,
     memory: Utils::Device.memory,
     memory_description: Utils::Device.memory_usage_description.to_json,
     cpu: Utils::Device.cpu,

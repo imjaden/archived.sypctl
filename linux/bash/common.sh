@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.21'
+VERSION='0.0.22'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -17,14 +17,7 @@ function fun_install_lsb_release() {
     command -v lsb_release > /dev/null || {
         command -v yum > /dev/null && yum install -y redhat-lsb
         command -v apt-get > /dev/null && apt-get install -y lsb-release
-        # command -v brew > /dev/null && brew install -y lsb-release
     }
-
-    # command -v lsb_release > /dev/null || {
-    #     title "ERROR: The script is incompatible with the system!" 
-    #     cat /etc/issue
-    #     exit 1
-    # }
 }
 
 os_type="UnKnownOSType"
@@ -154,7 +147,7 @@ function fun_upgrade() {
 
     cd agent
     sudo rm -f .bundle-done
-    sudo bundle install
+    bundle install
     cd ..
     
     echo 
@@ -394,6 +387,7 @@ function fun_update_crontab_jobs() {
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
     crontab ~/${crontab_conf}
     crontab -l
+    rm -f ~/${crontab_conf}
 }
 
 col1_width=${custom_col1_width:-36}

@@ -44,6 +44,14 @@ module Utils
       def df_h
         [{"Filesystem":"/dev/mapper/centos_java1-root","Size":"50G","Used":"567M","Avail":"50G","Use%":"2%","MountedOn":"/"},{"Filesystem":"devtmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/dev"},{"Filesystem":"tmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/dev/shm"},{"Filesystem":"tmpfs","Size":"16G","Used":"25M","Avail":"16G","Use%":"1%","MountedOn":"/run"},{"Filesystem":"tmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/sys/fs/cgroup"},{"Filesystem":"/dev/mapper/centos_java1-usr","Size":"100G","Used":"3.1G","Avail":"97G","Use%":"4%","MountedOn":"/usr"},{"Filesystem":"/dev/sda1","Size":"1014M","Used":"167M","Avail":"848M","Use%":"17%","MountedOn":"/boot"},{"Filesystem":"/dev/mapper/centos_java1-tmp","Size":"10G","Used":"33M","Avail":"10G","Use%":"1%","MountedOn":"/tmp"},{"Filesystem":"/dev/mapper/centos_java1-opt","Size":"10G","Used":"67M","Avail":"10G","Use%":"1%","MountedOn":"/opt"},{"Filesystem":"/dev/mapper/centos_java1-home","Size":"100G","Used":"33M","Avail":"100G","Use%":"1%","MountedOn":"/home"},{"Filesystem":"/dev/mapper/centos_java1-data","Size":"600G","Used":"35M","Avail":"600G","Use%":"1%","MountedOn":"/data"},{"Filesystem":"/dev/mapper/centos_java1-var","Size":"100G","Used":"1.4G","Avail":"99G","Use%":"2%","MountedOn":"/var"},{"Filesystem":"tmpfs","Size":"3.2G","Used":"0","Avail":"3.2G","Use%":"0%","MountedOn":"/run/user/0"}]
       end
+
+      def lan_ip
+        'todo'
+      end
+
+      def wan_ip
+        'todo'
+      end
     end
   end
 
@@ -147,6 +155,14 @@ module Utils
           end
         end
       end
+
+      def lan_ip
+        `ifconfig`.scan(/\d+\.\d+\.\d+\.\d+/).flatten.first
+      end
+
+      def wan_ip
+        `curl http://sypctl-api.idata.mobi/api/v1/ifconfig.me`.strip
+      end
     end
   end
 
@@ -243,6 +259,18 @@ module Utils
 
       def disk_usage_description
         klass.df_h
+      rescue => e
+        e.message
+      end
+
+      def lan_ip
+        klass.lan_ip
+      rescue => e
+        e.message
+      end
+
+      def wan_ip
+        klass.wan_ip
       rescue => e
         e.message
       end
