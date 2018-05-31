@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.31'
+VERSION='0.0.32'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -437,7 +437,7 @@ function fun_agent_job_daemon() {
     for filepath in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
         bash agent/jobs/sypctl-job-${job_uuid}.sh > agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
-        sypctl bundle exec rake agent:job uuid=${job_uuid} >> jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
+        sypctl bundle exec rake agent:job uuid=${job_uuid} >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
     done
 }
 
