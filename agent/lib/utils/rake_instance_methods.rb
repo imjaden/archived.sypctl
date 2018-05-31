@@ -60,7 +60,7 @@ def post_to_server_register
   response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
 
   puts "POST #{url}\n\nparameters:"
-  puts JSON.pretty_generte(params)
+  puts JSON.pretty_generate(params)
   puts "\nresponse:"
   puts response.code
   puts response.body
@@ -84,7 +84,7 @@ def post_to_server_job(options)
   response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
 
   puts "POST #{url}\n\nparameters:"
-  puts JSON.pretty_generte(params)
+  puts JSON.pretty_generate(params)
   puts "\nresponse:"
   puts response.code
   puts response.body
@@ -96,7 +96,7 @@ def post_to_server_submitor
   response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
   
   puts "POST #{url}\n\nparameters:"
-  puts JSON.pretty_generte(params)
+  puts JSON.pretty_generate(params)
   puts "\nresponse:"
   puts response.code
   puts response.body

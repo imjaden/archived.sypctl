@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.25'
+VERSION='0.0.26'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -9,7 +9,7 @@ done < .env-files
 test -f ~/.bash_profile && source ~/.bash_profile
 cd ${current_path}
 
-function title() { printf "\n%s\n\n", "$1"; }
+function title() { printf "\n%s\n\n" "$1"; }
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
 
@@ -332,7 +332,7 @@ function fun_execute_env_script() {
 }
 
 function fun_execute_bundle_rake() {
-    echo "$ $@"
+    echo "$ $@ ..."
 
     cd agent
     test -f .bundle-done || {
@@ -360,7 +360,8 @@ function fun_execute_bundle_rake() {
     $@ >> ${logpath} 2>&1
 
     finished_date=$(date +%s)
-    echo "executed $(expr $finished_date - $executed_date)s, see log with command: cat ${log_path}"
+    echo "executed $(expr $finished_date - $executed_date)s"
+    echo "see log with command: cat ${logpath}"
 }
 
 function fun_print_variable() {
