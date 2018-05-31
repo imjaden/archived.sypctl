@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.23'
+VERSION='0.0.24'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -141,12 +141,14 @@ function fun_print_sypctl_help() {
 }
 
 function fun_upgrade() {
+    title "\$ git pull origin ${git_current_branch}"
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
-    sudo git pull origin ${git_current_branch}
+    git pull origin ${git_current_branch}
 
+    title "\$ cd agent && bundle install"
     cd agent
-    sudo rm -f .bundle-done
+    rm -f .bundle-done
     bundle install
     cd ..
     
@@ -159,8 +161,7 @@ function fun_upgrade() {
     echo '         m"    #'
     echo '        ""     "'
     echo 
-    echo "upgrade from ${old_version} => $(sypctl version) successfully!"
-    echo
+    title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
     sypctl crontab > /dev/null 2>&1
     sypctl help

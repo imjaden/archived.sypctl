@@ -19,7 +19,7 @@ def password
 end
 
 def agent_device_init_info
-  @device ||= {
+  {
     uuid: Utils::Device.uuid,
     hostname: Utils::Device.hostname,
     username: 'sypagent',
@@ -55,13 +55,20 @@ end
 
 def post_to_server_register
   url = "#{ENV['SYPCTL-API']}/api/v1/register"
-  params = {device: agent_device_init_info}.to_json
-  response = HTTParty.post(url, body: params, headers: {'Content-Type' => 'application/json'})
+  params = {device: agent_device_init_info}
+  response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
+
+  puts "POST #{url}\n\nparameters:"
+  puts JSON.pretty_generte(params)
+  puts "\nresponse:"
+  puts response.code
+  puts response.body
+
   if response.code == 201
     hsh = JSON.parse(response.body)
     if hsh['api_token'] && hsh['api_token'].length == 32
       File.open(agent_json_path, "w:utf-8") do |file| 
-        agent_hsh = agent_device_init_info
+        agent_hsh = params[:device]
         agent_hsh[:api_token] = hsh['api_token']
         agent_hsh[:synced] = true
         file.puts(agent_hsh.to_json)
@@ -72,14 +79,27 @@ end
 
 def post_to_server_job(options)
   url = "#{ENV['SYPCTL-API']}/api/v1/job"
-  params = {job: options}.to_json
-  response = HTTParty.post(url, body: params, headers: {'Content-Type' => 'application/json'})
+  params = {job: options}
+  response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
+
+  puts "POST #{url}\n\nparameters:"
+  puts JSON.pretty_generte(params)
+  puts "\nresponse:"
+  puts response.code
+  puts response.body
 end
 
 def post_to_server_submitor
   url = "#{ENV['SYPCTL-API']}/api/v1/receiver"
-  params = {device: agent_device_state_info}.to_json
-  response = HTTParty.post(url, body: params, headers: {'Content-Type' => 'application/json'})
+  params = {device: agent_device_state_info}
+  response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
+  
+  puts "POST #{url}\n\nparameters:"
+  puts JSON.pretty_generte(params)
+  puts "\nresponse:"
+  puts response.code
+  puts response.body
+  
   if response.code == 201
     hsh = JSON.parse(response.body)
     File.open(record_list_path, "a+:utf-8") do |file|

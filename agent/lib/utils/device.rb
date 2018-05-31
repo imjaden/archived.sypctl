@@ -14,15 +14,15 @@ module Utils
       end
 
       def memory
-        'darwin'
+        -1
       end
 
       def cpu
-        'darwin'
+        -1
       end
 
       def disk
-        'darwin'
+        -1
       end
 
       def hostname
@@ -46,11 +46,11 @@ module Utils
       end
 
       def lan_ip
-        'todo'
+        '0.0.0.0'
       end
 
       def wan_ip
-        'todo'
+        '0.0.0.0'
       end
     end
   end
@@ -99,11 +99,15 @@ module Utils
       end
 
       def cpu
-        'todo'
+        `cat /proc/cpuinfo| grep "processor"| wc -l`
       end
 
       def disk
-        'todo'
+        df_lines = `df`.split(/\n/).reject(&:empty?).map { |line| line.scan(/\b\d+\b/).flatten }
+        blocks = df_lines.each_with_object(0) do |arr, sum|
+          sum += arr[0].to_f if arr.length == 4
+        end
+        blocks * 1024
       end
 
       def hostname
@@ -201,7 +205,7 @@ module Utils
       end
 
       def disk
-        klass.disk
+        klass.disk.number_to_human_size(true)
       rescue => e
         e.message
       end
