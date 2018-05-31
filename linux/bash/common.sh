@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.29'
+VERSION='0.0.30'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -149,6 +149,7 @@ function fun_upgrade() {
 
     title "\$ cd agent && bundle install"
     cd agent
+    mkdir -p {db,logs,tmp,jobs}
     rm -f .bundle-done
     rm -f db/agent.json
     bundle install
@@ -367,7 +368,7 @@ function fun_execute_bundle_rake() {
     finished_date=$(date +%s)
     echo "executed $(expr $finished_date - $executed_date) seconds"
     echo "see log with command:"
-    echo "\$ cat ${logpath}"
+    echo "\$ cat $(pwd)/${logpath}"
 }
 
 function fun_print_variable() {
@@ -394,6 +395,7 @@ function fun_update_crontab_jobs() {
 
     echo "" >> ~/.${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
+    echo "*/1 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
     echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
@@ -429,6 +431,15 @@ function fun_init_agent() {
             fun_print_init_agent_help
         ;;
     esac
+}
+
+function fun_agent_job_daemon() {
+    test -d agent/jobs || mkdir -p agent/jobs
+    for filename in $(ls agent/jobs/*.todo); do
+        job_uuid=$(cat agent/jobs/$filename)
+        bash jobs/sypctl-job-${job_uuid}.sh > jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
+        sypctl bundle exec rake agent:job uuid=${job_uuid} >> jobs/sypctl-job-${job_uuid}.sh
+    done
 }
 
 col1_width=${custom_col1_width:-36}

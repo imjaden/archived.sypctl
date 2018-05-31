@@ -13,16 +13,15 @@ namespace :agent do
   end
 
   desc 'agent submit job execute status'
-  tas job: :environment do
+  task job: :environment do
     if ENV['uuid'].to_s.empty?
-      puts "请提供 Job UUID 作为参数"
+      puts "Error: 请提供 Job UUID 作为参数"
       exit
     end
 
     job_json_path = agent_root_join("tmp/sypctl-job-#{ENV['uuid']}.json")
     job_command_path = agent_root_join("tmp/sypctl-job-#{ENV['uuid']}.sh")
-    job_output_path = agent_root_join("tmp/sypctl-job-#{ENV['uuid']}-output")
-
+    job_output_path = agent_root_join("tmp/sypctl-job-#{ENV['uuid']}.sh-output")
 
     job_hsh = JSON.parse(IO.read(job_json_path))
     job_hsh['state'] = 'done'

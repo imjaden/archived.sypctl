@@ -18,6 +18,8 @@ agent/device-uuid
 agent/password
 agent/config/id_rsa_pub.list
 agent/logs/
+agent/tmp/
+agent/jobs/
 agent/db/agent.json
 agent/db/records-*
 
