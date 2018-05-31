@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.24'
+VERSION='0.0.25'
 
 current_path=$(pwd)
 test -f .env-files && while read filepath; do
@@ -332,9 +332,9 @@ function fun_execute_env_script() {
 }
 
 function fun_execute_bundle_rake() {
-    cd agent
-    timestamp=$(date +'%Y%m%d%H%M%S')
+    echo "$ $@"
 
+    cd agent
     test -f .bundle-done || {
         bundle install
         if [[ $? -eq 0 ]]; then
@@ -353,8 +353,14 @@ function fun_execute_bundle_rake() {
     # }
     
     test -d logs || mkdir logs
-    echo "$ $@"
-    $@ >> logs/task_agent-${timestamp}.log 2>&1
+    timestamp=$(date +'%Y%m%d%H%M%S')
+    logpath=logs/task_agent-${timestamp}.log
+    executed_date=$(date +%s)
+
+    $@ >> ${logpath} 2>&1
+
+    finished_date=$(date +%s)
+    echo "executed $(expr $finished_date - $executed_date)s, see log with command: cat ${log_path}"
 }
 
 function fun_print_variable() {

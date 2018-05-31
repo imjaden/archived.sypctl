@@ -1,4 +1,5 @@
 # encoding:utf-8
+require 'json'
 require 'lib/utils/device.rb'
 
 def agent_root_join(path)
@@ -99,7 +100,7 @@ def post_to_server_submitor
   puts "\nresponse:"
   puts response.code
   puts response.body
-  
+
   if response.code == 201
     hsh = JSON.parse(response.body)
     File.open(record_list_path, "a+:utf-8") do |file|
