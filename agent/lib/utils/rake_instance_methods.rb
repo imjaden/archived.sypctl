@@ -60,9 +60,9 @@ def post_to_server_register
   params = {device: agent_device_init_info}
 
   init_uuid_path = agent_root_join("init-uuid")
-  params[:uuid] = File.read(init_uuid_path) if File.exists?(init_uuid_path)
+  params[:uuid] = File.read(init_uuid_path).strip if File.exists?(init_uuid_path)
   human_name_path = agent_root_join("human-name")
-  params[:device][:human_name] = File.read(human_name_path) if File.exists?(human_name_path)
+  params[:device][:human_name] = File.read(human_name_path).strip if File.exists?(human_name_path)
   
   response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
 

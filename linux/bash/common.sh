@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.33'
+VERSION='0.0.34'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -395,8 +395,8 @@ function fun_update_crontab_jobs() {
 
     echo "" >> ~/.${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
-    echo "*/1 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
     echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/${crontab_conf}
+    echo "*/1 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
@@ -407,7 +407,7 @@ function fun_update_crontab_jobs() {
 
 function fun_print_init_agent_help() {
     echo "Usage: sypctl agent:init key value"
-    ehco
+    echo
     echo "sypctl agent:init help"
     echo "sypctl agent:init uuid       <服务器端分配的 UUID>"
     echo "sypctl agent:init human_name <该主机的业务名称>"
@@ -419,10 +419,16 @@ function fun_print_init_agent_help() {
 function fun_init_agent() {
     case "$1" in
         uuid)
-            test -n "$2" && echo "$2" > agent/init-uuid || sypctl agent:init help
+            test -n "$2" && {
+                echo "$2" > agent/init-uuid
+                rm -f agent/db/agent.json
+            } || sypctl agent:init help
         ;;
         human_name)
-            test -n "$2" && echo "$2" > agent/human-name || sypctl agent:init help
+            test -n "$2" && {
+                echo "$2" > agent/human-name
+                rm -f agent/db/agent.json
+            } || sypctl agent:init help
         ;;
         help)
             fun_print_init_agent_help
@@ -436,9 +442,10 @@ function fun_init_agent() {
 function fun_agent_job_daemon() {
     for filepath in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
+        mv ${filepath} ${filepath}-running
         bash agent/jobs/sypctl-job-${job_uuid}.sh > agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
         sypctl bundle exec rake agent:job uuid=${job_uuid} >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
-        rm -f $filepath
+        rm -f ${filepath}-running
     done
 }
 
