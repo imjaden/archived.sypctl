@@ -124,18 +124,21 @@ def post_to_server_submitor
           post_to_server_job(job_hsh)
         end
 
-        agent_hsh["jobs"] = hsh["jobs"].map do |job_hsh|
-          `echo "#{job_hsh['command']}" > .sypctl-command`
+        hsh["jobs"].each do |job_hsh|
+          job_json_path = agent_root_join("tmp/sypctl-job-#{job_hsh['uuid']}.json")
+          job_command_path = agent_root_join("tmp/sypctl-job-#{job_hsh['uuid']}.sh")
+          job_output_path = agent_root_join("tmp/sypctl-job-#{job_hsh['uuid']}-output")
+          File.open(job_json_path, "w:utf-8") { |f| f.puts(job_hsh.to_json) }
+
+          `echo "#{job_hsh['command']}" > tmp/sypctl-job-#{job_hsh['uuid']}.sh`
+          `echo "sypctl bundle exec agent:job uuid=#{job_hsh['uuid']}" >> tmp/sypctl-job-#{job_hsh['uuid']}.sh`
           `command -v dos2unix > /dev/null 2>&1 || sudo yum install -y dos2unix`
-          `dos2unix .sypctl-command`
-          `rm -f .sypctl-command-output`
-          `bash .sypctl-command > .sypctl-command-output 2>&1`
+          `dos2unix tmp/sypctl-job-#{job_hsh['uuid']}.sh`
+          `nohup bash tmp/sypctl-job-#{job_hsh['uuid']}.sh > tmp/sypctl-job-#{job_hsh['uuid']}-output 2>&1 &`
 
-          job_hsh['state'] = 'done'
-          job_hsh['output'] = `test -f .sypctl-command-output && cat .sypctl-command-output || echo '无输出'`
-          post_to_server_job(job_hsh)
-
-          job_hsh
+          # job_hsh['state'] = 'done'
+          # job_hsh['output'] = `test -f .sypctl-command-output && cat .sypctl-command-output || echo '无输出'`
+          # post_to_server_job(job_hsh)
         end
       end
       file.puts(agent_hsh.to_json)
