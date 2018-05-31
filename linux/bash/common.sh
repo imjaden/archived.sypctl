@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.30'
+VERSION='0.0.31'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -434,11 +434,10 @@ function fun_init_agent() {
 }
 
 function fun_agent_job_daemon() {
-    test -d agent/jobs || mkdir -p agent/jobs
-    for filename in $(ls agent/jobs/*.todo); do
-        job_uuid=$(cat agent/jobs/$filename)
-        bash jobs/sypctl-job-${job_uuid}.sh > jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
-        sypctl bundle exec rake agent:job uuid=${job_uuid} >> jobs/sypctl-job-${job_uuid}.sh
+    for filepath in $(ls agent/jobs/*.todo); do
+        job_uuid=$(cat $filepath)
+        bash agent/jobs/sypctl-job-${job_uuid}.sh > agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
+        sypctl bundle exec rake agent:job uuid=${job_uuid} >> jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
     done
 }
 

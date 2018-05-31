@@ -74,7 +74,7 @@ case "$1" in
         fun_init_agent "$2" "$3"
     ;;
     agent:job:daemon)
-        
+        fun_agent_job_daemon
     ;;
     *)
         fun_print_sypctl_help
