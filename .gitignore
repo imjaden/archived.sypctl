@@ -12,8 +12,10 @@
 linux/packages
 linux/bash/sqoop-*
 
-agent/.device-uuid
-agent/.password
+agent/human-name
+agent/init-uuid
+agent/device-uuid
+agent/password
 agent/config/id_rsa_pub.list
 agent/logs/
 agent/db/agent.json

@@ -70,6 +70,9 @@ case "$1" in
     variable)
         fun_print_variable "$2"
     ;;
+    agent:init)
+        fun_init_agent "$2" "$3"
+    ;;
     *)
         fun_print_sypctl_help
     ;;

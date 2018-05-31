@@ -1,5 +1,6 @@
 # encoding:utf-8
 require 'json'
+require 'fileutils'
 require 'lib/utils/device.rb'
 
 def agent_root_join(path)
@@ -12,7 +13,7 @@ def agent_json_path; agent_root_join("db/agent.json"); end
 def record_list_path; agent_root_join("db/records-#{Time.now.strftime('%y%m%d')}.list"); end
 
 def password
-  password_tmp_path = agent_root_join(".password")
+  password_tmp_path = agent_root_join("password")
   unless File.exists?(password_tmp_path)
     File.open(password_tmp_path, "w:utf-8") { |file| file.puts((0..9).to_a.sample(6).join) }
   end
@@ -57,6 +58,12 @@ end
 def post_to_server_register
   url = "#{ENV['SYPCTL-API']}/api/v1/register"
   params = {device: agent_device_init_info}
+
+  init_uuid_path = agent_root_join("init-uuid")
+  params[:uuid] = File.read(init_uuid_path) if File.exists?(init_uuid_path)
+  human_name_path = agent_root_join("human-name")
+  params[:device][:human_name] = File.read(human_name_path) if File.exists?(human_name_path)
+  
   response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
 
   puts "POST #{url}\n\nparameters:"
@@ -74,6 +81,9 @@ def post_to_server_register
         agent_hsh[:synced] = true
         file.puts(agent_hsh.to_json)
       end
+
+      FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
+      FileUtils.rm_f(human_name_path) if File.exists?(human_name_path)
     end
   end
 end

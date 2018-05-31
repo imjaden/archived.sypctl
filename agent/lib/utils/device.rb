@@ -197,7 +197,7 @@ module Utils
       end
 
       def uuid
-        uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, ".device-uuid")
+        uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, "device-uuid")
         unless File.exists?(uuid_tmp_path)
           File.open(uuid_tmp_path, "w:utf-8") { |file| file.puts(klass.device_uuid) }
         end

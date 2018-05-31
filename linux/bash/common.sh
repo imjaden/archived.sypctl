@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.26'
+VERSION='0.0.27'
 
 current_path=$(pwd)
+timestamp=$(date +'%Y%m%d%H%M%S')
 test -f .env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"
 done < .env-files
@@ -149,7 +150,12 @@ function fun_upgrade() {
     title "\$ cd agent && bundle install"
     cd agent
     rm -f .bundle-done
+    rm -f db/agent.json
     bundle install
+    if [[ $? -eq 0 ]]; then
+      echo "$ bundle install --local successfully"
+      echo ${timestamp} > .bundle-done
+    fi
     cd ..
     
     echo 
@@ -353,7 +359,6 @@ function fun_execute_bundle_rake() {
     # }
     
     test -d logs || mkdir logs
-    timestamp=$(date +'%Y%m%d%H%M%S')
     logpath=logs/task_agent-${timestamp}.log
     executed_date=$(date +%s)
 
@@ -376,7 +381,6 @@ function fun_print_variable() {
 
 function fun_update_crontab_jobs() {
     test -d tmp || sudo mkdir tmp
-    timestamp=$(date +'%Y%m%d%H%M%S')
     crontab_conf="crontab-${timestamp}.conf"
 
     crontab -l > ~/${crontab_conf}
@@ -397,6 +401,34 @@ function fun_update_crontab_jobs() {
     crontab ~/${crontab_conf}
     crontab -l
     rm -f ~/${crontab_conf}
+}
+
+function fun_print_init_agent_help() {
+    echo "Usage: sypctl agent:init key value"
+    ehco
+    echo "sypctl agent:init help"
+    echo "sypctl agent:init uuid       <服务器端分配的 UUID>"
+    echo "sypctl agent:init human_name <该主机的业务名称>"
+    echo 
+    echo "Current version is $VERSION"
+    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+}
+
+function fun_init_agent() {
+    case "$1" in
+        uuid)
+            test -n "$2" && echo "$2" > agent/init-uuid || sypctl agent:init help
+        ;;
+        human_name)
+            test -n "$2" && echo "$2" > agent/human-name || sypctl agent:init help
+        ;;
+        help)
+            fun_print_init_agent_help
+        ;;
+        *)
+            fun_print_init_agent_help
+        ;;
+    esac
 }
 
 col1_width=${custom_col1_width:-36}
