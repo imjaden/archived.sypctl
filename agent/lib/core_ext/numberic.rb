@@ -2,7 +2,7 @@
 class Numeric
   def number_to_human_size(shortly = false)
     result = _to_human_size(self.to_i)
-    result = result.first if shortly
+    result = result.first(2) if shortly
     result.join.strip
   end
 

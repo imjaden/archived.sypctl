@@ -360,8 +360,9 @@ function fun_execute_bundle_rake() {
     $@ >> ${logpath} 2>&1
 
     finished_date=$(date +%s)
-    echo "executed $(expr $finished_date - $executed_date)s"
-    echo "see log with command: cat ${logpath}"
+    echo "executed $(expr $finished_date - $executed_date) seconds"
+    echo "see log with command:"
+    echo "\$ cat ${logpath}"
 }
 
 function fun_print_variable() {

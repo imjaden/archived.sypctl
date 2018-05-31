@@ -102,11 +102,23 @@ module Utils
         `cat /proc/cpuinfo| grep "processor"| wc -l`
       end
 
+      # $ df
+      # Filesystem               1K-blocks      Used  Available Use% Mounted on
+      # /dev/mapper/centos-root   52403200    436280   51966920   1% /
+      # devtmpfs                  16377812         0   16377812   0% /dev
+      # tmpfs                     16389648        20   16389628   1% /dev/shm
+      # tmpfs                     16389648     50252   16339396   1% /run
+      # tmpfs                     16389648         0   16389648   0% /sys/fs/cgroup
+      # /dev/mapper/centos-usr   104806400   8346252   96460148   8% /usr
+      # /dev/mapper/centos-tmp    10475520    361836   10113684   4% /tmp
+      # /dev/mapper/centos-home  104806400     33496  104772904   1% /home
+      # /dev/mapper/centos-data 2146435072 145504524 2000930548   7% /data
+      # /dev/mapper/centos-opt    10475520    979456    9496064  10% /opt
+      # /dev/sda1                  1038336    213300     825036  21% /boot
+      # /dev/mapper/centos-var   104806400   8522604   96283796   9% /var
+      # tmpfs                      3277932         0    3277932   0% /run/user/0
       def disk
-        df_lines = `df`.split(/\n/).reject(&:empty?).map { |line| line.scan(/\b\d+\b/).flatten }
-        blocks = df_lines.each_with_object(0) do |arr, sum|
-          sum += arr[0].to_f if arr.length == 4
-        end
+        blocks = `df`.split(/\n/).reject(&:empty?).map { |line| line.scan(/\b\d+\b/).flatten[0].to_f }.inject(:+)
         blocks * 1024
       end
 
