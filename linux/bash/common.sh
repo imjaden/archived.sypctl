@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.27'
+VERSION='0.0.28'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -142,9 +142,9 @@ function fun_print_sypctl_help() {
 }
 
 function fun_upgrade() {
-    title "\$ git pull origin ${git_current_branch}"
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
+    title "\$ git pull origin ${git_current_branch}"
     git pull origin ${git_current_branch}
 
     title "\$ cd agent && bundle install"

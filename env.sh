@@ -21,7 +21,7 @@ else
 fi
 
 command -v yum > /dev/null && {
-    packages=(git vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
+    packages=(git dos2unix vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
       rpm -q ${package} > /dev/null 2>&1 || {
           printf "installing ${package}..."

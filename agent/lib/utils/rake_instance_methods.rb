@@ -126,6 +126,8 @@ def post_to_server_submitor
 
         agent_hsh["jobs"] = hsh["jobs"].map do |job_hsh|
           `echo "#{job_hsh['command']}" > .sypctl-command`
+          `command -v dos2unix > /dev/null 2>&1 || sudo yum install -y dos2unix`
+          `dos2unix .sypctl-command`
           `rm -f .sypctl-command-output`
           `bash .sypctl-command > .sypctl-command-output 2>&1`
 
