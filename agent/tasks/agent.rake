@@ -38,4 +38,11 @@ namespace :agent do
   task log: :environment do
     print_agent_log
   end
+
+  desc 'print device uuid'
+  task device_uuid: :environment do 
+    platform = `uname -s`.strip
+    klass = ['Utils', platform].inject(Object) { |obj, klass| obj.const_get(klass) }
+    puts klass.device_uuid
+  end
 end
