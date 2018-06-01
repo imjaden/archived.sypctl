@@ -3,8 +3,8 @@
 test -f ~/.bash_profile && source ~/.bash_profile
 
 command -v lsb_release > /dev/null || {
-    command -v yum > /dev/null && yum install -y redhat-lsb
-    command -v apt-get > /dev/null && apt-get install -y lsb-release
+    command -v yum > /dev/null && sudo yum install -y redhat-lsb
+    command -v apt-get > /dev/null && sudo apt-get install -y lsb-release
 }
 lsb_release -a
 
@@ -58,7 +58,7 @@ test -d /opt/scripts/sypctl || {
 
 if [[ "$(whoami)" != "root" ]]; then
     current_user=$(whoami)
-    sudo chown -R $(current_user):$(current_user) /opt/scripts/sypctl
+    sudo chown -R ${current_user}:${current_user} /opt/scripts/sypctl
 fi
 
 cd /opt/scripts/sypctl

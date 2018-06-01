@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.43'
+VERSION='0.0.44'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -172,7 +172,7 @@ function fun_upgrade() {
 
     if [[ "$(whoami)" != "root" ]]; then
         current_user=$(whoami)
-        sudo chown -R $(current_user):$(current_user) /opt/scripts/sypctl
+        sudo chown -R ${current_user}:${current_user} /opt/scripts/sypctl
     fi
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
