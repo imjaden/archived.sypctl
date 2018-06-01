@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.38'
+VERSION='0.0.39'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -400,6 +400,21 @@ function fun_execute_bundle_rake() {
     echo "executed $(expr $finished_date - $executed_date) seconds"
     echo "see log with command:"
     echo "\$ cat $(pwd)/${logpath}"
+}
+
+function fun_execute_bundle_rake_without_logger() {
+    echo "$ $@ ..."
+
+    cd agent
+    test -f .bundle-done || {
+        bundle install
+        if [[ $? -eq 0 ]]; then
+          echo "$ bundle install --local successfully"
+          echo ${timestamp} > .bundle-done
+        fi
+    }
+
+    $@
 }
 
 function fun_print_variable() {
