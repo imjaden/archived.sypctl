@@ -20,6 +20,24 @@ def password
   File.read(password_tmp_path).strip
 end
 
+def print_agent_info
+  if File.exists?(agent_json_path)
+    puts JSON.pretty_generate(JSON.parse(agent_json_path))
+  else
+    puts "该主机未注册，请执行命令 \`sypctl agent:task guard\`"
+  end
+end
+
+def print_agent_log
+  if File.exists?(record_list_path)
+    IO.readlines(record_list_path).each do |line|
+      puts JSON.pretty_generate(JSON.parse(line))
+    end
+  else
+    puts "无日志"
+  end
+end
+
 def agent_device_init_info
   {
     uuid: Utils::Device.uuid,

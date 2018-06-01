@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.36'
+VERSION='0.0.38'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -118,10 +118,17 @@ function fun_user_expect_to_install_package_guides() {
 function fun_print_sypctl_help() {
     echo "Usage: sypctl <command> [<args>]"
     echo 
+    echo "代理操作（可选）："
     echo "sypctl agent:init help"
-    echo "sypctl agent:init uuid       <服务器端分配的 UUID>"
-    echo "sypctl agent:init human_name <该主机的业务名称>"
+    echo "sypctl agent:init uuid <服务器端分配的 UUID>"
+    echo "sypctl agent:init human_name <业务名称>"
     echo
+    echo "sypctl agent:task guard     代理守护者，注册、提交功能"
+    echo "sypctl agent:task info      查看注册信息"
+    echo "sypctl agent:task log       查看提交日志"
+    echo "sypctl agent:job:daemon     服务器端任务的监护者"
+    echo
+    echo "常规操作："
     echo "sypctl help         sypctl 支持的命令参数列表，及已部署服务的信息"
     echo "sypctl deploy       部署服务引导，并安装部署输入 \`y\` 确认的服务"
     echo "sypctl deployed     查看已部署服务"
@@ -145,6 +152,18 @@ function fun_print_sypctl_help() {
     echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
 }
 
+function fun_print_logo() {
+    echo 
+    echo '                               m    ""#'
+    echo '  mmm   m   m  mmmm    mmm   mm#mm    #'
+    echo ' #   "  "m m"  #" "#  #"  "    #      #'
+    echo '  """m   #m#   #   #  #        #      #'
+    echo ' "mmm"   "#    ##m#"  "#mm"    "mm    "mm'
+    echo '         m"    #'
+    echo '        ""     "'
+    echo 
+}
+
 function fun_upgrade() {
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
@@ -156,15 +175,7 @@ function fun_upgrade() {
     fi
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
-        echo 
-        echo '                               m    ""#'
-        echo '  mmm   m   m  mmmm    mmm   mm#mm    #'
-        echo ' #   "  "m m"  #" "#  #"  "    #      #'
-        echo '  """m   #m#   #   #  #        #      #'
-        echo ' "mmm"   "#    ##m#"  "#mm"    "mm    "mm'
-        echo '         m"    #'
-        echo '        ""     "'
-        echo 
+        fun_print_logo
         title "current version ${old_version} already is latest version!"
 
         exit
@@ -182,15 +193,7 @@ function fun_upgrade() {
     fi
     cd ..
     
-    echo 
-    echo '                               m    ""#'
-    echo '  mmm   m   m  mmmm    mmm   mm#mm    #'
-    echo ' #   "  "m m"  #" "#  #"  "    #      #'
-    echo '  """m   #m#   #   #  #        #      #'
-    echo ' "mmm"   "#    ##m#"  "#mm"    "mm    "mm'
-    echo '         m"    #'
-    echo '        ""     "'
-    echo 
+    fun_print_logo
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
     sypctl crontab > /dev/null 2>&1
@@ -423,7 +426,7 @@ function fun_update_crontab_jobs() {
 
     echo "" >> ~/.${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
-    echo "*/5 * * * * sypctl bundle exec rake agent:submitor" >> ~/${crontab_conf}
+    echo "*/5 * * * * sypctl agent:task guard" >> ~/${crontab_conf}
     echo "*/1 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
@@ -434,11 +437,16 @@ function fun_update_crontab_jobs() {
 }
 
 function fun_print_init_agent_help() {
-    echo "Usage: sypctl agent:init key value"
-    echo
+    echo "Usage: sypctl <command> [<args>]"
+    echo 
     echo "sypctl agent:init help"
-    echo "sypctl agent:init uuid       <服务器端分配的 UUID>"
-    echo "sypctl agent:init human_name <该主机的业务名称>"
+    echo "sypctl agent:init uuid <服务器端分配的 UUID>"
+    echo "sypctl agent:init human_name <业务名称>"
+    echo
+    echo "sypctl agent:task guard     代理守护者，注册、提交功能"
+    echo "sypctl agent:task info      查看注册信息"
+    echo "sypctl agent:task log       查看提交日志"
+    echo "sypctl agent:job:daemon     服务器端任务的监护者"
     echo 
     echo "Current version is $VERSION"
     echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"

@@ -73,6 +73,9 @@ case "$1" in
     agent:init)
         fun_init_agent "$2" "$3"
     ;;
+    agent:task)
+        fun_execute_bundle_rake bundle exec rake agent:$2
+    ;;
     agent:job:daemon)
         fun_agent_job_daemon
     ;;

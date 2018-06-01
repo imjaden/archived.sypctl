@@ -3,8 +3,8 @@ require 'json'
 require 'securerandom'
 
 namespace :agent do
-  desc "agent submit self info every 1 minutes"
-  task submitor: :environment do
+  desc "submit self info to server every 5 minutes"
+  task guard: :environment do
     post_to_server_register unless File.exists?(agent_json_path)
     agent_json_hash = JSON.parse(IO.read(agent_json_path))
     post_to_server_register unless agent_json_hash["synced"]
@@ -27,5 +27,15 @@ namespace :agent do
     job_hsh['state'] = 'done'
     job_hsh['output'] = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
     post_to_server_job(job_hsh)
+  end
+
+  desc 'print aget regisiter info'
+  task info: :environment do
+    print_agent_info
+  end
+
+  desc 'print agent submitor log'
+  task log: :environment do
+    print_agent_log
   end
 end
