@@ -21,14 +21,16 @@ def password
 end
 
 def print_agent_info
+  puts agent_json_path
   if File.exists?(agent_json_path)
-    puts JSON.pretty_generate(JSON.parse(agent_json_path))
+    puts JSON.pretty_generate(JSON.parse(File.read(agent_json_path)))
   else
     puts "该主机未注册，请执行命令 \`sypctl agent:task guard\`"
   end
 end
 
 def print_agent_log
+  puts record_list_path
   if File.exists?(record_list_path)
     IO.readlines(record_list_path).each do |line|
       puts JSON.pretty_generate(JSON.parse(line))

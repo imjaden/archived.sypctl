@@ -57,7 +57,8 @@ test -d /opt/scripts/sypctl || {
 }
 
 if [[ "$(whoami)" != "root" ]]; then
-    sudo chown -R $(whoami):$(whoami) /opt/scripts/sypctl
+    current_user=$(whoami)
+    sudo chown -R $(current_user):$(current_user) /opt/scripts/sypctl
 fi
 
 cd /opt/scripts/sypctl

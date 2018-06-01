@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.39'
+VERSION='0.0.40'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -171,7 +171,8 @@ function fun_upgrade() {
     git pull origin ${git_current_branch}
 
     if [[ "$(whoami)" != "root" ]]; then
-        sudo chown -R $(whoami):$(whoami) /opt/scripts/sypctl
+        current_user=$(whoami)
+        sudo chown -R $(current_user):$(current_user) /opt/scripts/sypctl
     fi
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
