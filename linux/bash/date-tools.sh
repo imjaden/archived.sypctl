@@ -23,7 +23,7 @@
 
 # 限制 100 毫秒
 executed_date=$(date +%s)
-sinfo=$(curl -sS http://localhost:4567/api/v1/linux.date)
+sinfo=$(curl -sS http://sypctl-api.idata.mobi/api/v1/linux.date)
 finished_date=$(date +%s)
 
 if [[ ${#sinfo} -ne 23 ]]; then

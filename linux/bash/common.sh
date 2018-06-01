@@ -350,14 +350,18 @@ function fun_execute_bundle_rake() {
         fi
     }
 
-    # test -d logs || mkdir logs && { 
-    #     log_count=$(ls logs/ | grep '.log' | wc -l)
-    #     if [[ $log_count -gt 0 ]]; then
-    #         archived_path=logs/archived/${timestamp}
-    #         mkdir -p ${archived_path}
-    #         mv logs/*.log ${archived_path}/
-    #     fi
-    # }
+    [[ `uname -s` = "Darwin" ]] && {
+        test -d logs || mkdir logs && { 
+            log_count=$(ls logs/ | grep '.log' | wc -l)
+            if [[ $log_count -gt 0 ]]; then
+                archived_path=logs/archived/${timestamp}
+                mkdir -p ${archived_path}
+                mv logs/*.log ${archived_path}/
+            fi
+        }
+        $@
+        exit
+    }
     
     test -d logs || mkdir logs
     logpath=logs/task_agent-${timestamp}.log
