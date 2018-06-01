@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.34'
+VERSION='0.0.35'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')

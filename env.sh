@@ -119,7 +119,8 @@ command -v sypctl >/dev/null 2>&1 && sypctl help || {
     sudo ln -s /opt/scripts/sypctl/sypctl.sh /usr/bin/sypctl
 }
 
-sypctl ssh-keygen > /dev/null 2>&1
-sypctl bundle exec rake agent:submitor
 sypctl crontab
+sypctl ssh-keygen
+sypctl linux:date:check
+sypctl bundle exec rake agent:submitor
 sypctl help

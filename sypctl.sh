@@ -76,6 +76,9 @@ case "$1" in
     agent:job:daemon)
         fun_agent_job_daemon
     ;;
+    linux:date:check)
+        bash linux/bash/date-tools.sh
+    ;;
     *)
         fun_print_sypctl_help
     ;;
