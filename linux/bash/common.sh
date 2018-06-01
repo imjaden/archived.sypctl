@@ -171,6 +171,7 @@ function fun_upgrade() {
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
     sypctl crontab > /dev/null 2>&1
+    sypctl linux:date:check > /dev/null 2>&1
     sypctl help
 }
 

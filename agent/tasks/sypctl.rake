@@ -19,7 +19,7 @@ namespace :sypctl do
 
             commands = []
             commands << "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
-            commands << "sypctl linux:date:check"
+            # commands << "sypctl linux:date:check"
             execute!(ssh, commands, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"
           end
