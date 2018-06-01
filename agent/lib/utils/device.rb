@@ -10,7 +10,7 @@ module Utils
       end
 
       def device_uuid
-        "random-#{SecureRandom.uuid}"
+        "random-#{SecureRandom.uuid}@#{hostname}"
       end
 
       def memory
@@ -73,7 +73,7 @@ module Utils
       # /dev/mapper/centos_java1-opt: UUID="8f7236ea-97ef-4aa9-886f-9e1a50a030a1"
       # /dev/mapper/centos_java1-home: UUID="bae67bdc-1ff5-477f-ba08-11f02d2a00d2"
       def device_uuid
-        _device_uuid(`blkid -s UUID`)
+        "#{_device_uuid(`blkid -s UUID`)}@#{hostname}"
       end
 
       def _device_uuid(blkid_lines)
