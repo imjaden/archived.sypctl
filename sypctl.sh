@@ -77,7 +77,14 @@ case "$1" in
         fun_agent_job_daemon
     ;;
     linux:date:check)
-        bash linux/bash/date-tools.sh
+        state=1
+        trynum=1
+        while [[ ${state} -gt 0 && ${trynum} -lt 4 ]]; do
+            [[ ${trynum} -gt 1 ]] && echo "第 ${trynum} 次尝试校正系统时区"
+            bash linux/bash/date-tools.sh
+            state=$?
+            trynum=$(expr ${trynum} + 1)
+        done
     ;;
     *)
         fun_print_sypctl_help

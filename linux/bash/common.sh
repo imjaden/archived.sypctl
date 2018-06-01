@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.35'
+VERSION='0.0.36'
 
 current_path=$(pwd)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -118,6 +118,10 @@ function fun_user_expect_to_install_package_guides() {
 function fun_print_sypctl_help() {
     echo "Usage: sypctl <command> [<args>]"
     echo 
+    echo "sypctl agent:init help"
+    echo "sypctl agent:init uuid       <服务器端分配的 UUID>"
+    echo "sypctl agent:init human_name <该主机的业务名称>"
+    echo
     echo "sypctl help         sypctl 支持的命令参数列表，及已部署服务的信息"
     echo "sypctl deploy       部署服务引导，并安装部署输入 \`y\` 确认的服务"
     echo "sypctl deployed     查看已部署服务"
@@ -146,6 +150,25 @@ function fun_upgrade() {
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     title "\$ git pull origin ${git_current_branch}"
     git pull origin ${git_current_branch}
+
+    if [[ "$(whoami)" != "root" ]]; then
+        sudo chown -R $(whoami):$(whoami) /opt/scripts/sypctl
+    fi
+
+    if [[ "${old_version}" = "$(sypctl version)" ]]; then
+        echo 
+        echo '                               m    ""#'
+        echo '  mmm   m   m  mmmm    mmm   mm#mm    #'
+        echo ' #   "  "m m"  #" "#  #"  "    #      #'
+        echo '  """m   #m#   #   #  #        #      #'
+        echo ' "mmm"   "#    ##m#"  "#mm"    "mm    "mm'
+        echo '         m"    #'
+        echo '        ""     "'
+        echo 
+        title "current version ${old_version} already is latest version!"
+
+        exit
+    fi
 
     title "\$ cd agent && bundle install"
     cd agent

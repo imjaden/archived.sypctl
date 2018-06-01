@@ -23,17 +23,18 @@
 
 # 限制 100 毫秒
 executed_date=$(date +%s)
-sinfo=$(curl -sS http://sypctl-api.idata.mobi/api/v1/linux.date)
+sinfo=$(curl -sS http://sypctl-api.ibi.ren/api/v1/linux.date)
 finished_date=$(date +%s)
 
 if [[ ${#sinfo} -ne 23 ]]; then
   echo "格式错误，期望的数据格式 \`+0800 06/01/18 10:33:16\` 长度为 23；而 API 获取到的数据为: \`${sinfo}\`"
-  exit
+  exit 1
 fi
 
-if [[ $finished_date -gt $executed_date ]]; then
-    echo "获取超时，耗时 $(expr $finished_date - $executed_date)s，请优化网络后重试"
-    exit
+interval=$(expr ${finished_date} - ${executed_date})
+if [[ ${interval} -gt 0 ]]; then
+    echo "获取超时，耗时 ${interval}s，请优化网络后重试"
+    exit 1
 fi
 
 # 修改参考标准时区、日期、时间

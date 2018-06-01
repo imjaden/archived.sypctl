@@ -43,9 +43,6 @@ command -v apt-get > /dev/null && {
     done
 }
 
-sudo mkdir -p /opt/scripts/
-sudo chown -R $(whoami):$(whoami) /opt/scripts/
-
 # remove deprecated sypctl command
 # -----------------------------------
 test -d /opt/scripts/syp-saas-scripts && sudo rm -fr /opt/scripts/syp-saas-scripts
@@ -53,10 +50,15 @@ test -f ~/.bash_profile && sed -i /sypctl/d ~/.bash_profile > /dev/null 2>&1
 unalias sypctl > /dev/null 2>&1
 # -----------------------------------
 
+sudo mkdir -p /opt/scripts/
 test -d /opt/scripts/sypctl || {
     cd /opt/scripts
     sudo git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
+
+if [[ "$(whoami)" != "root" ]]; then
+    sudo chown -R $(whoami):$(whoami) /opt/scripts/sypctl
+fi
 
 cd /opt/scripts/sypctl
 git remote set-url origin http://gitlab.ibi.ren/syp-apps/sypctl.git
