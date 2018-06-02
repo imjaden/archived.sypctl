@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.45'
+VERSION='0.0.46'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -499,7 +499,7 @@ function fun_update_rc_local() {
         echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
         echo "sudo -u ${current_user} sypctl crontab" >> ${rc_local_filepath}
         echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
-    } else {
+    } || {
         title "cannot found rc.local in below path:"
         echo "/etc/rc.local"
         echo "/etc/rc.d/rc.local"
