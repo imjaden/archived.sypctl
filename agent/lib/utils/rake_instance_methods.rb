@@ -80,7 +80,10 @@ def post_to_server_register
   params = {device: agent_device_init_info}
 
   init_uuid_path = agent_root_join("init-uuid")
-  params[:uuid] = File.read(init_uuid_path).strip if File.exists?(init_uuid_path)
+  if File.exists?(init_uuid_path)
+    init_uuid = File.read(init_uuid_path).strip 
+    params[:uuid] = init_uuid if init_uuid.length >= 36
+  end
   human_name_path = agent_root_join("human-name")
   params[:device][:human_name] = File.read(human_name_path).strip if File.exists?(human_name_path)
   
@@ -94,16 +97,10 @@ def post_to_server_register
 
   if response.code == 201
     hsh = JSON.parse(response.body)
-    if hsh['api_token'] && hsh['api_token'].length == 32
-      File.open(agent_json_path, "w:utf-8") do |file| 
-        agent_hsh = params[:device]
-        agent_hsh[:api_token] = hsh['api_token']
-        agent_hsh[:synced] = true
-        file.puts(agent_hsh.to_json)
-      end
-
-      FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
-      FileUtils.rm_f(human_name_path) if File.exists?(human_name_path)
+    hsh[:synced] = true
+    File.open(agent_json_path, "w:utf-8") { |file| file.puts(hsh.to_json) }
+    FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
+    FileUtils.rm_f(human_name_path) if File.exists?(human_name_path)
     end
   end
 end

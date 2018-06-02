@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.47'
+VERSION='0.0.48'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -175,6 +175,10 @@ function fun_upgrade() {
         sudo chown -R ${current_user}:${current_user} /opt/scripts/sypctl
     fi
 
+    sypctl crontab > /dev/null 2>&1
+    sypctl rc.local > /dev/null 2>&1
+    sypctl linux:date:check > /dev/null 2>&1
+    
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
         title "current version ${old_version} already is latest version!"
@@ -198,9 +202,6 @@ function fun_upgrade() {
     fun_print_logo
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
-    sypctl crontab > /dev/null 2>&1
-    sypctl rc.local > /dev/null 2>&1
-    sypctl linux:date:check > /dev/null 2>&1
     sypctl help
 }
 
