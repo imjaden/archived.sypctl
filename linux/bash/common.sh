@@ -453,7 +453,7 @@ function fun_print_crontab_and_rclocal() {
             title "\$ ${command_text}"
             ${command_text}
         fi
-    } else {
+    } || {
         title "cannot found rc.local in below path:"
         echo "/etc/rc.local"
         echo "/etc/rc.d/rc.local"
