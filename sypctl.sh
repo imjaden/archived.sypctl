@@ -41,6 +41,9 @@ case "$1" in
     crontab) # sypctl crontab jobs
         fun_update_crontab_jobs
     ;;
+    rc.local)
+        fun_update_rc_local
+    ;;
     yum:kill)
         ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9
     ;;
@@ -75,6 +78,7 @@ case "$1" in
     ;;
     agent:task)
         fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
+        [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
     ;;
     agent:job:daemon)
         fun_agent_job_daemon

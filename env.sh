@@ -125,5 +125,4 @@ command -v sypctl >/dev/null 2>&1 && sypctl help || {
 sypctl crontab
 sypctl ssh-keygen
 sypctl linux:date:check
-sypctl bundle exec rake agent:submitor
 sypctl help

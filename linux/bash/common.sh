@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.44'
+VERSION='0.0.45'
 
 current_path=$(pwd)
+current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
 test -f .env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"
@@ -171,7 +172,6 @@ function fun_upgrade() {
     git pull origin ${git_current_branch}
 
     if [[ "$(whoami)" != "root" ]]; then
-        current_user=$(whoami)
         sudo chown -R ${current_user}:${current_user} /opt/scripts/sypctl
     fi
 
@@ -185,8 +185,9 @@ function fun_upgrade() {
     title "\$ cd agent && bundle install"
     cd agent
     mkdir -p {db,logs,tmp,jobs}
+    test -f device-uuid && mv device-uuid init-uuid # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；即支持 device uuid 更新
+    rm -f db/agent.json # 升级后注意注册
     rm -f .bundle-done
-    rm -f db/agent.json
     bundle install
     if [[ $? -eq 0 ]]; then
       echo "$ bundle install --local successfully"
@@ -198,6 +199,7 @@ function fun_upgrade() {
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
     sypctl crontab > /dev/null 2>&1
+    sypctl rc.local > /dev/null 2>&1
     sypctl linux:date:check > /dev/null 2>&1
     sypctl help
 }
@@ -427,6 +429,37 @@ function fun_print_variable() {
     eval "echo \${$variable}"
 }
 
+function fun_print_crontab_and_rclocal() {
+    crontab_conf="crontab-${timestamp}.conf"
+    crontab -l > ~/${crontab_conf}
+    if [[ $(grep "# Begin sypctl" ~/${crontab_conf} | wc -l) -gt 0 ]]; then
+        begin_line_num=$(sed -n '/# Begin sypctl/=' ~/${crontab_conf} | head -n 1)
+        end_line_num=$(sed -n '/# End sypctl/=' ~/${crontab_conf} | tail -n 1)
+        pos=$(expr $end_line_num - $begin_line_num + 1)
+        command_text="crontab -l | head -n ${end_line_num} | tail -n ${pos}"
+        title "\$ ${command_text}"
+        ${command_text}
+    fi
+    rm -f ~/${crontab_conf}
+
+    rc_local_filepath=/etc/rc.local
+    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
+    test -f ${rc_local_filepath} && {
+        if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
+            begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
+            end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
+            pos=$(expr $end_line_num - $begin_line_num + 1)
+            command_text="cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}"
+            title "\$ ${command_text}"
+            ${command_text}
+        fi
+    } else {
+        title "cannot found rc.local in below path:"
+        echo "/etc/rc.local"
+        echo "/etc/rc.d/rc.local"
+    }
+}
+
 function fun_update_crontab_jobs() {
     test -d tmp || sudo mkdir tmp
     crontab_conf="crontab-${timestamp}.conf"
@@ -450,6 +483,27 @@ function fun_update_crontab_jobs() {
     crontab ~/${crontab_conf}
     crontab -l
     rm -f ~/${crontab_conf}
+}
+
+function fun_update_rc_local() {
+    rc_local_filepath=/etc/rc.local
+    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
+    test -f ${rc_local_filepath} && {
+        if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
+            begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
+            end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
+            sed -i "${begin_line_num},${end_line_num}d" ${rc_local_filepath}
+        fi
+
+        echo "" >> ${rc_local_filepath}
+        echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
+        echo "sudo -u ${current_user} sypctl crontab" >> ${rc_local_filepath}
+        echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
+    } else {
+        title "cannot found rc.local in below path:"
+        echo "/etc/rc.local"
+        echo "/etc/rc.d/rc.local"
+    }
 }
 
 function fun_print_init_agent_help() {
