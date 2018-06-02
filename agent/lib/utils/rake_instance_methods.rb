@@ -101,7 +101,6 @@ def post_to_server_register
     File.open(agent_json_path, "w:utf-8") { |file| file.puts(hsh.to_json) }
     FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
     FileUtils.rm_f(human_name_path) if File.exists?(human_name_path)
-    end
   end
 end
 

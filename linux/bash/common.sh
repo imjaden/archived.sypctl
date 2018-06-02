@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.48'
+VERSION='0.0.49'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -178,7 +178,7 @@ function fun_upgrade() {
     sypctl crontab > /dev/null 2>&1
     sypctl rc.local > /dev/null 2>&1
     sypctl linux:date:check > /dev/null 2>&1
-    
+
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
         title "current version ${old_version} already is latest version!"
