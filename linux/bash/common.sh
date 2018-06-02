@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.46'
+VERSION='0.0.47'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -436,9 +436,8 @@ function fun_print_crontab_and_rclocal() {
         begin_line_num=$(sed -n '/# Begin sypctl/=' ~/${crontab_conf} | head -n 1)
         end_line_num=$(sed -n '/# End sypctl/=' ~/${crontab_conf} | tail -n 1)
         pos=$(expr $end_line_num - $begin_line_num + 1)
-        command_text="crontab -l | head -n ${end_line_num} | tail -n ${pos}"
-        title "\$ ${command_text}"
-        ${command_text}
+        title "\$ crontab -l | head -n ${end_line_num} | tail -n ${pos}"
+        crontab -l | head -n ${end_line_num} | tail -n ${pos}
     fi
     rm -f ~/${crontab_conf}
 
@@ -449,9 +448,8 @@ function fun_print_crontab_and_rclocal() {
             begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
             end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
             pos=$(expr $end_line_num - $begin_line_num + 1)
-            command_text="cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}"
-            title "\$ ${command_text}"
-            ${command_text}
+            title "\$ cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}"
+            cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}
         fi
     } || {
         title "cannot found rc.local in below path:"
