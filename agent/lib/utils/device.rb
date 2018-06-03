@@ -96,7 +96,7 @@ module Utils
       end
 
       def memory
-        free_m['total']
+        free_m['total'].to_i * 1024 * 1024
       end
 
       def cpu
@@ -206,7 +206,7 @@ module Utils
       end
 
       def memory
-        klass.memory
+        klass.memory.number_to_human_size(true)
       rescue => e
         e.message
       end

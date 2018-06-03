@@ -18,8 +18,7 @@ namespace :sypctl do
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
 
             commands = []
-            commands << "test -f /opt/scripts/sypctl/agent/device-uuid && mv /opt/scripts/sypctl/agent/device-uuid /opt/scripts/sypctl/agent/init-uuid"
-            commands << "rm -f /opt/scripts/sypctl/agent/db/agent.json"
+            commands << "sypctl upgrade"
             commands << "sypctl agent:task guard"
             execute!(ssh, commands, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"

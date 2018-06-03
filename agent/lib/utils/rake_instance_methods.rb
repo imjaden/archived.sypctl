@@ -3,7 +3,6 @@ require 'json'
 require 'fileutils'
 require 'lib/utils/device.rb'
 
-
 def httparty_post_headers
   @headers ||= {'Content-Type' => 'application/json', 'User-Agent' => "sypctl #{ENV['SYPCTL-VERSION']};#{ENV['RUBY-VERSION']}"}
 end
