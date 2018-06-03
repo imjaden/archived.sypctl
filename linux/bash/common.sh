@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.50'
+VERSION='0.0.51'
 
 current_path=$(pwd)
 current_user=$(whoami)

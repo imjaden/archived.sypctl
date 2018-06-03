@@ -3,6 +3,11 @@ require 'json'
 require 'fileutils'
 require 'lib/utils/device.rb'
 
+
+def httparty_post_headers
+  @headers ||= {'Content-Type' => 'application/json', 'User-Agent' => "sypctl #{ENV['SYPCTL-VERSION']};#{ENV['RUBY-VERSION']}"}
+end
+
 def agent_root_join(path)
   File.join(ENV["RAKE_ROOT_PATH"], path)
 end
@@ -87,7 +92,7 @@ def post_to_server_register
   human_name_path = agent_root_join("human-name")
   params[:device][:human_name] = File.read(human_name_path).strip if File.exists?(human_name_path)
   
-  response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
+  response = HTTParty.post(url, body: params.to_json, headers:httparty_post_headers)
 
   puts "POST #{url}\n\nparameters:"
   puts JSON.pretty_generate(params)
@@ -107,7 +112,7 @@ end
 def post_to_server_job(options)
   url = "#{ENV['SYPCTL-API']}/api/v1/job"
   params = {job: options}
-  response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
+  response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
 
   puts "POST #{url}\n\nparameters:"
   puts JSON.pretty_generate(params)
@@ -119,7 +124,7 @@ end
 def post_to_server_submitor
   url = "#{ENV['SYPCTL-API']}/api/v1/receiver"
   params = {device: agent_device_state_info}
-  response = HTTParty.post(url, body: params.to_json, headers: {'Content-Type' => 'application/json'})
+  response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
   
   puts "POST #{url}\n\nparameters:"
   puts JSON.pretty_generate(params)

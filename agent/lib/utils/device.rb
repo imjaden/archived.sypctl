@@ -90,7 +90,8 @@ module Utils
         device_hsh = device_list.first unless device_hsh
 
         "#{device_hsh[:device]}-#{device_hsh[:uuid]}".gsub("/", "_")
-      rescue
+      rescue => e
+        puts e.message
         "random-#{SecureRandom.uuid}"
       end
 
