@@ -23,44 +23,26 @@
 # 无参数时以服务器时间为标准，
 # 传 IP 参数时，以此服务器时间为标题
 
-sinfo=""
+remote_api=http://sypctl-api.ibi.ren/api/v1/linux.date
+test -n "$1" && remote_api="$1"
+
+echo ${remote_api}
+
+executed_date=$(date +%s)
 
 test -n "$1" && {
-    sinfo=$(ssh "$1" "date +'%z %m/%d/%y %H:%M:%S'")
-    echo "$1"
+    remote_timestamp=$(ssh ${remote_api} "date +%s")
 } || {
-    echo "http://sypctl-api.ibi.ren/api/v1/linux.date"
-    function get_sypctl_server_date() {
-        executed_date=$(date +%s)
-        sinfo=$(curl -sS http://sypctl-api.ibi.ren/api/v1/linux.date)
-        finished_date=$(date +%s)
-
-        if [[ ${#sinfo} -ne 23 ]]; then
-          echo "格式错误，期望的数据格式 \`+0800 06/01/18 10:33:16\` 长度为 23；而 API 获取到的数据为: \`${sinfo}\`"
-          return 1
-        fi
-
-        interval=$(expr ${finished_date} - ${executed_date})
-        if [[ ${interval} -gt 0 ]]; then
-            echo "获取超时，耗时 ${interval}s，请优化网络后重试" # 必须同一秒内完成获取服务器时间操作，否则失效
-            return 1
-        fi
-        return 0
-    }
-
-    try_times=1
-    try_times_limit=4
-    local_date_state=1
-    while [[ ${local_date_state} -gt 0 && ${try_times} -lt ${try_times_limit} ]]; do
-        [[ ${try_times} -gt 1 ]] && echo "第 ${trynum} 次尝试校正系统时区"
-
-        get_sypctl_server_date
-        
-        local_date_state=$?
-        try_times=$(expr ${try_times} + 1)
-    done
+    remote_timestamp=$(curl -sS ${remote_api})
 }
 
+finished_date=$(date +%s)
+
+interval=$(expr ${finished_date} - ${executed_date})
+echo "追加误差 ${interval} 秒"
+
+remote_timestamp=$(expr ${remote_timestamp} + ${interval})
+sinfo=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
 
 # 修改参考标准时区、日期、时间
 infos=(${sinfo})

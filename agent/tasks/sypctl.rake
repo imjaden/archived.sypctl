@@ -18,7 +18,10 @@ namespace :sypctl do
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
 
             commands = []
-            commands << "sypctl linux:date:check"
+            commands << "echo \"#{config['inner_ip']} $(date +'%z %m/%d/%y %H:%M:%S')\""
+            commands << "time ssh 192.168.30.110 \"date +'%z %m/%d/%y %H:%M:%S'\""
+            # commands << "sypctl upgrade"
+            # commands << "sypctl linux:date:check 192.168.30.110"
             execute!(ssh, commands, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"
           end
