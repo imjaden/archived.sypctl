@@ -5,8 +5,7 @@
 #  Linux Date Tool
 #
 ########################################
-
-#!/bin/bash
+#
 # 功能：
 #     自动校正系统时区、日期、时间
 # 校正方式一:
@@ -21,21 +20,47 @@
 #     默认使用校正方式一,方式二被注释;
 #     若使用校正方式二，需把校正方式一代码注释
 
-# 限制 100 毫秒
-executed_date=$(date +%s)
-sinfo=$(curl -sS http://sypctl-api.ibi.ren/api/v1/linux.date)
-finished_date=$(date +%s)
+# 无参数时以服务器时间为标准，
+# 传 IP 参数时，以此服务器时间为标题
 
-if [[ ${#sinfo} -ne 23 ]]; then
-  echo "格式错误，期望的数据格式 \`+0800 06/01/18 10:33:16\` 长度为 23；而 API 获取到的数据为: \`${sinfo}\`"
-  exit 1
-fi
+sinfo=""
 
-interval=$(expr ${finished_date} - ${executed_date})
-if [[ ${interval} -gt 0 ]]; then
-    echo "获取超时，耗时 ${interval}s，请优化网络后重试"
-    exit 1
-fi
+test -n "$1" && {
+    sinfo=$(ssh "$1" "date +'%z %m/%d/%y %H:%M:%S'")
+    echo "$1"
+} || {
+    echo "http://sypctl-api.ibi.ren/api/v1/linux.date"
+    function get_sypctl_server_date() {
+        executed_date=$(date +%s)
+        sinfo=$(curl -sS http://sypctl-api.ibi.ren/api/v1/linux.date)
+        finished_date=$(date +%s)
+
+        if [[ ${#sinfo} -ne 23 ]]; then
+          echo "格式错误，期望的数据格式 \`+0800 06/01/18 10:33:16\` 长度为 23；而 API 获取到的数据为: \`${sinfo}\`"
+          return 1
+        fi
+
+        interval=$(expr ${finished_date} - ${executed_date})
+        if [[ ${interval} -gt 0 ]]; then
+            echo "获取超时，耗时 ${interval}s，请优化网络后重试" # 必须同一秒内完成获取服务器时间操作，否则失效
+            return 1
+        fi
+        return 0
+    }
+
+    try_times=1
+    try_times_limit=4
+    local_date_state=1
+    while [[ ${local_date_state} -gt 0 && ${try_times} -lt ${try_times_limit} ]]; do
+        [[ ${try_times} -gt 1 ]] && echo "第 ${trynum} 次尝试校正系统时区"
+
+        get_sypctl_server_date
+        
+        local_date_state=$?
+        try_times=$(expr ${try_times} + 1)
+    done
+}
+
 
 # 修改参考标准时区、日期、时间
 infos=(${sinfo})
@@ -52,8 +77,7 @@ loltime=/etc/localtime
 
 echo "****************************"
 echo "校正时区"
-if [ ${zstr} = ${szstr} ];
-then
+if [ ${zstr} = ${szstr} ]; then
     echo "本地与校正主机相同时区:${szstr}"
 else
     echo "时区错误:本地时区[${zstr}],校正主机时区[${szstr}]"
@@ -72,8 +96,7 @@ fi
 
 echo "****************************"
 echo "校正日期"
-if [ ${dstr} = ${sdstr} ];
-then
+if [ ${dstr} = ${sdstr} ]; then
     echo "本地与校正主机相同日期:${sdstr}"
 else
     echo "修改日期${dstr}=>${sdstr}"
@@ -85,8 +108,7 @@ echo "****************************"
 echo "校正时间"
 hm=$(echo ${tstr} | cut -c 1-5)
 shm=$(echo ${ststr} | cut -c 1-5)
-if [ ${hm} = ${shm} ];
-then
+if [ ${hm} = ${shm} ]; then
     echo "本地与校正主机相同时分:"
     echo "本地:${tstr} 校正主机:${ststr}"
 else
