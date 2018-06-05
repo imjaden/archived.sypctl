@@ -69,7 +69,7 @@ loltime=/etc/localtime
 
 echo "****************************"
 echo "校正时区"
-if [[] ${local_zstr} = ${remote_zstr} ]]; then
+if [[ ${local_zstr} = ${remote_zstr} ]]; then
     echo "本地与校正主机相同时区: ${remote_zstr}"
 else
     echo "时区错误:本地时区[${local_zstr}], 校正主机时区[${remote_zstr}]"
