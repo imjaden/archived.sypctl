@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-
+#
+########################################
+#  
+#  ShengYiPlus Controller
+#
+########################################
+#
 current_path="$(pwd)"
 test -n "$SYPCTL_HOME" && cd $SYPCTL_HOME || {
     test -d /usr/local/src/sypctl && cd /usr/local/src/sypctl
@@ -14,7 +20,7 @@ case "$1" in
     home)
         fun_print_logo
         echo " Version: ${VERSION}"
-        echo "HomePath: $(test -n '${SYPCTL_HOME}' && echo ${SYPCTL_HOME} || echo /usr/local/src/sypctl)"
+        echo "HomePath: $(test -n "${SYPCTL_HOME}" && echo ${SYPCTL_HOME} || echo /usr/local/src/sypctl)"
     ;;
     git:pull|gp|upgrade|update)
         fun_upgrade

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.62'
+VERSION='0.0.63'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -173,6 +173,7 @@ function fun_upgrade() {
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     title "\$ git pull origin ${git_current_branch}"
+    git reset --hard HEAD
     git pull origin ${git_current_branch}
 
     if [[ "$(whoami)" != "root" ]]; then
@@ -186,8 +187,7 @@ function fun_upgrade() {
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
         title "current version ${old_version} already is latest version!"
-
-        exit
+        exit 0
     fi
 
     title "\$ cd agent && bundle install"
@@ -480,6 +480,7 @@ function fun_update_crontab_jobs() {
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
     echo "*/5 * * * * sypctl agent:task guard" >> ~/${crontab_conf}
     echo "*/1 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
+    echo "0 0 * * * sypctl upgrade" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
