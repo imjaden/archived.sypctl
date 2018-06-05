@@ -153,7 +153,7 @@ function fun_view_linux_date() {
     finished_date=$(date +%s)
 
     interval=$(expr ${finished_date} - ${executed_date})
-    echo "获取标准时间耗时 ${interval} 秒，校正时追加该误差"
+    echo "获取标准时间耗时 ${interval} 秒，对比时追加该误差"
 
     remote_timestamp=$(expr ${remote_timestamp} + ${interval})
     remote_datestr=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
