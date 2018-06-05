@@ -11,6 +11,11 @@ case "$1" in
     version)
         echo "${VERSION}"
     ;;
+    home)
+        fun_print_logo
+        echo " Version: ${VERSION}"
+        echo "HomePath: $(test -n '${SYPCTL_HOME}' && echo ${SYPCTL_HOME} || echo /usr/local/src/sypctl)"
+    ;;
     git:pull|gp|upgrade|update)
         fun_upgrade
     ;;

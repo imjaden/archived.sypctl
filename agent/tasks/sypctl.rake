@@ -18,9 +18,9 @@ namespace :sypctl do
             # add_id_rsa_pub_to_authorized_keys(ssh, config)
 
             commands = []
-            # commands << "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
-            commands << "sypctl version"
-            commands << "echo \"Time.now.strftime('%y-%m-%d %H:%M:%S')\" && sypctl linux:date view"
+            commands << "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
+            commands << "sypctl home"
+            # commands << "echo \"Time.now.strftime('%y-%m-%d %H:%M:%S')\" && sypctl linux:date view"
             # commands << "echo \"#{config['inner_ip']} $(date +'%z %m/%d/%y %H:%M:%S')\""
             # commands << "time ssh 192.168.30.110 \"date +'%z %m/%d/%y %H:%M:%S'\""
             execute!(ssh, commands, config)
