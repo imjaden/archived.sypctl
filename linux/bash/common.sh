@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.58'
+VERSION='0.0.60'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -15,20 +15,24 @@ function title() { printf "\n%s\n\n" "$1"; }
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
 
-function fun_install_lsb_release() {
-    command -v lsb_release > /dev/null || {
-        command -v yum > /dev/null && yum install -y redhat-lsb
-        command -v apt-get > /dev/null && apt-get install -y lsb-release
+function fun_install() {
+    command -v yum > /dev/null && {
+        title "\$ sudo yum install -y $1"
+        sudo yum install -y "$1"
     }
+    command -v apt-get > /dev/null && {
+        title "\$ sudo apt-get install -y $1"
+        sudo apt-get install -y "$1"
+    } 
 }
+
+command -v lsb_release > /dev/null || fun_install redhat-lsb
 
 os_type="UnKnownOSType"
 os_version="UnKnownOSVersion"
 os_platform="UnknownOS"
 supported_os_platforms=(RedHatEnterpriseServer6 RedHatEnterpriseServer7 CentOS6 CentOS7 Ubuntu16)
 function fun_basic_check_operate_system() {
-    fun_install_lsb_release
-
     os_type=$(lsb_release -i | awk '{ print $3 }')
     os_version=$(lsb_release -r | awk '{ print $2 }' | awk -F . '{print $1 }')
     if [[ "${supported_os_platforms[@]}" =~ "${os_type}${os_version}" ]]; then
@@ -172,12 +176,12 @@ function fun_upgrade() {
     git pull origin ${git_current_branch}
 
     if [[ "$(whoami)" != "root" ]]; then
-        sudo chown -R ${current_user}:${current_user} /opt/scripts/sypctl
+        sudo chown -R ${current_user}:${current_user} /usr/local/src/sypctl
     fi
 
     sypctl crontab > /dev/null 2>&1
     sypctl rc.local > /dev/null 2>&1
-    sypctl linux:date:check > /dev/null 2>&1
+    sypctl linux:date check > /dev/null 2>&1
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo

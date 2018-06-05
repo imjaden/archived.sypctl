@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
 
 test -f ~/.bash_profile && source ~/.bash_profile
+function title() { printf "\n%s\n\n" "$1"; }
 
-command -v lsb_release > /dev/null || {
-    command -v yum > /dev/null && sudo yum install -y redhat-lsb
-    command -v apt-get > /dev/null && sudo apt-get install -y lsb-release
+title "安装基础依赖的软件..."
+function fun_install() {
+    command -v yum > /dev/null && {
+        title "\$ sudo yum install -y $1"
+        sudo yum install -y "$1"
+    }
+    command -v apt-get > /dev/null && {
+        title "\$ sudo apt-get install -y $1"
+        sudo apt-get install -y "$1"
+    } 
 }
+
+command -v lsb_release > /dev/null || fun_install redhat-lsb
 lsb_release -a
 
 supported_os_platforms=(RedHatEnterpriseServer6 RedHatEnterpriseServer7 CentOS6 CentOS7 Ubuntu16)
@@ -21,7 +31,7 @@ else
 fi
 
 command -v yum > /dev/null && {
-    packages=(git dos2unix vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
+    packages=(git rdate dos2unix vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
       rpm -q ${package} > /dev/null 2>&1 || {
           printf "installing ${package}..."
@@ -32,7 +42,7 @@ command -v yum > /dev/null && {
 }
 
 command -v apt-get > /dev/null && {
-    packages=(git git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
+    packages=(git rdate git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
     for package in ${packages[@]}; do
       command -v ${package} > /dev/null || {
           printf "installing ${package}..."
@@ -43,36 +53,43 @@ command -v apt-get > /dev/null && {
     done
 }
 
+title "移除旧版本的 sypctl..."
 # remove deprecated sypctl command
 # -----------------------------------
 test -d /opt/scripts/syp-saas-scripts && sudo rm -fr /opt/scripts/syp-saas-scripts
+test -d /opt/scripts/sypctl && sudo rm -fr /opt/scripts/sypctl
 test -f ~/.bash_profile && sed -i /sypctl/d ~/.bash_profile > /dev/null 2>&1
 unalias sypctl > /dev/null 2>&1
 # -----------------------------------
 
-sudo mkdir -p /opt/scripts/
-test -d /opt/scripts/sypctl || {
-    cd /opt/scripts
+title "安装/更新 sypctl..."
+sudo mkdir -p /usr/local/src
+test -d /usr/local/src/sypctl || {
+    cd /usr/local/src
     sudo git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
 
 if [[ "$(whoami)" != "root" ]]; then
     current_user=$(whoami)
-    sudo chown -R ${current_user}:${current_user} /opt/scripts/sypctl
+    sudo chown -R ${current_user}:${current_user} /usr/local/src/sypctl
 fi
 
-cd /opt/scripts/sypctl
+cd /usr/local/src/sypctl
 git remote set-url origin http://gitlab.ibi.ren/syp-apps/sypctl.git
 git pull origin dev-0.0.1 > /dev/null 2>&1
+
+test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
+sudo ln -s /usr/local/src/sypctl/sypctl.sh /usr/bin/sypctl
+
 cd agent
 mkdir -p {db,logs,tmp,jobs}
 bundle install > /dev/null 2>&1
 cd ..
 
-command -v java > /dev/null || {
-  bash linux/bash/jdk-tools.sh install
-}
+title "检查/安装 JDK..."
+command -v java > /dev/null || bash linux/bash/jdk-tools.sh install
 
+title "检查/安装 Rbenv/Ruby..."
 function fun_rbenv_install_ruby() {
     rbenv install --skip-existing 2.3.0 
     rbenv rehash
@@ -104,6 +121,7 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
     fun_rbenv_install_ruby
 }
 
+title "已安装软件清单..."
 custom_col1_width=22
 custom_col2_width=32
 source linux/bash/common.sh
@@ -117,13 +135,9 @@ done
 fun_prompt_java_already_installed
 fun_print_table_footer
 
-command -v sypctl >/dev/null 2>&1 && sypctl help || {
-    test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
-    sudo ln -s /opt/scripts/sypctl/sypctl.sh /usr/bin/sypctl
-}
-
+title "sypctl 约束配置..."
 sypctl crontab
 sypctl rc.local
 sypctl ssh-keygen
-sypctl linux:date:check
+sypctl linux:date check
 sypctl help

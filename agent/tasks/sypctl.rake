@@ -19,9 +19,9 @@ namespace :sypctl do
 
             commands = []
             # commands << "sypctl upgrade"
-            # commands << "sypctl linux:date:check 192.168.30.110"
-            commands << "echo \"#{config['inner_ip']} $(date +'%z %m/%d/%y %H:%M:%S')\""
-            commands << "time ssh 192.168.30.110 \"date +'%z %m/%d/%y %H:%M:%S'\""
+            commands << "sypctl linux:date view 192.168.30.110"
+            # commands << "echo \"#{config['inner_ip']} $(date +'%z %m/%d/%y %H:%M:%S')\""
+            # commands << "time ssh 192.168.30.110 \"date +'%z %m/%d/%y %H:%M:%S'\""
             execute!(ssh, commands, config)
             puts "#{Time.now.strftime('%y-%m-%d %H:%M:%S')} - #{device_id} done, duration #{(Time.now - start_time).round(3)}s"
           end

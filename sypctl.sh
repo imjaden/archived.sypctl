@@ -2,7 +2,7 @@
 
 current_path="$(pwd)"
 test -n "$SYPCTL_HOME" && cd $SYPCTL_HOME || {
-    test -d /opt/scripts/sypctl && cd /opt/scripts/sypctl
+    test -d /usr/local/src/sypctl && cd /usr/local/src/sypctl
 }
 
 source linux/bash/common.sh
@@ -84,7 +84,7 @@ case "$1" in
         fun_agent_job_daemon
     ;;
     linux:date)
-        bash linux/bash/date-tools.sh "$2" "$3"
+        bash linux/bash/date-tools.sh "$2"
     ;;
     *)
         fun_print_sypctl_help
