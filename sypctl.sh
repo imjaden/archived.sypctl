@@ -83,8 +83,8 @@ case "$1" in
     agent:job:daemon)
         fun_agent_job_daemon
     ;;
-    linux:date:check)
-        bash linux/bash/date-tools.sh $2
+    linux:date)
+        bash linux/bash/date-tools.sh "$2" "$3"
     ;;
     *)
         fun_print_sypctl_help
