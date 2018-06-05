@@ -56,10 +56,10 @@ command -v apt-get > /dev/null && {
 title "移除旧版本的 sypctl..."
 # remove deprecated sypctl command
 # -----------------------------------
-test -d /opt/scripts/syp-saas-scripts && sudo rm -fr /opt/scripts/syp-saas-scripts
-test -d /opt/scripts/sypctl && sudo rm -fr /opt/scripts/sypctl
 test -f ~/.bash_profile && sed -i /sypctl/d ~/.bash_profile > /dev/null 2>&1
 unalias sypctl > /dev/null 2>&1
+# test -d /opt/scripts/syp-saas-scripts && sudo rm -fr /opt/scripts/syp-saas-scripts
+# test -d /opt/scripts/sypctl && sudo rm -fr /opt/scripts/sypctl
 # -----------------------------------
 
 title "安装/更新 sypctl..."
