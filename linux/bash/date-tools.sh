@@ -30,17 +30,20 @@
 # $ bash date-tools.sh 127.0.0.1
 # ```
 
+
+global_executed_date=$(date +%s)
+
 remote_api=http://sypctl-api.ibi.ren/api/v1/linux.date
 test -n "$1" && remote_api="$1"
 
-echo "校正主要${remote_api}"
+echo "校正标准：${remote_api}"
 
 executed_date=$(date +%s)
 test -n "$1" && remote_timestamp=$(ssh ${remote_api} "date +%s") || remote_timestamp=$(curl -sS ${remote_api})
 finished_date=$(date +%s)
 
 interval=$(expr ${finished_date} - ${executed_date})
-echo "追加误差 ${interval} 秒"
+echo "获取标准时间耗时 ${interval} 秒，校正时追加该误差"
 
 remote_timestamp=$(expr ${remote_timestamp} + ${interval})
 remote_datestr=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
@@ -101,6 +104,12 @@ if [[ ${local_hm} = ${remote_hm} ]]; then
     echo "本地: ${local_tstr} 校正主机:${remote_tstr}"
 else
     echo "修改时间 ${local_tstr} => ${remote_tstr}"
-    /bin/date -s ${ststr}
+    /bin/date -s ${remote_tstr}
     /sbin/clock -w
 fi
+
+echo "****************************"
+global_finished_date=$(date +%s)
+global_interval=$(expr ${global_finished_date} - ${global_executed_date})
+global_executed=$(expr ${global_interval} - ${interval})
+echo "整个校正过程耗时 ${global_interval}s, 获取标准时间耗时 ${interval}s, 纯脚本运行耗时 ${global_executed}s"
