@@ -16,13 +16,24 @@ if [[ "${os_type}" != "CentOS" && "${os_type}" != "RedHatEnterpriseServer" ]]; t
     exit 1
 fi
 
+command -v tsql > /dev/null 2>&1 && {
+    tsql -C
+
+    command -v gem > /dev/null 2>&1 || {
+        gem install tiny_tds
+        gem list tiny_tds
+    }
+    echo "MSSQL 开发环境已部署！"
+    exit 0
+}
+
 test -f /etc/yum.repos.d/mssql-server-2017.repo || {
     curl https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo | sudo tee /etc/yum.repos.d/mssql-server-2017.repo
 }
 
 command -v mssql-server > /dev/null 2>&1 || {
     sudo yum update
-    sudo yum install mssql-server
+    sudo yum install -y mssql-server
     sudo /opt/mssql/bin/mssql-conf setup
 }
 
@@ -48,11 +59,8 @@ command -v tsql > /dev/null 2>&1 && tsql -C || {
 
 command -v gem > /dev/null 2>&1 || {
     gem install tiny_tds
+    gem list tiny_tds
 }
 
 tiny_tds_example=$(pwd)/linux/config/tiny_tds.rb
 test -f ${tiny_tds_example} && cat ${tiny_tds_example}
-
-
-
-
