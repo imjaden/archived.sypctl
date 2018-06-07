@@ -29,7 +29,7 @@ command -v tsql > /dev/null 2>&1 && {
     tsql -C
     fun_install_gem_tiny_tds_or_not
 
-    echo "MSSQL 开发环境已部署！"
+    title "MSSQL 开发环境已部署！"
     exit 0
 }
 

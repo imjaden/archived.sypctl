@@ -12,6 +12,10 @@
 linux/packages
 linux/bash/sqoop-*
 
+etl/db
+etl/logs
+etl/tmp
+
 agent/human-name
 agent/init-uuid
 agent/device-uuid

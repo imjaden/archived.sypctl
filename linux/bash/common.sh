@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.64'
+VERSION='0.0.65'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -146,7 +146,10 @@ function fun_print_sypctl_help() {
     echo "sypctl restart      重启已部署的服务进程"
     echo "sypctl stop         关闭已部署的服务进程"
     echo
-    echo "sypctl toolkit <脚本名称> [参数]"
+    echo "sypctl toolkit <SYPCTL 脚本名称> [参数]"
+
+    echo "sypctl etl:import <数据表连接配置档>"
+    echo "sypctl etl:status"
     echo 
     echo "sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下："
     echo "                      - 生意+ shengyiplus"
@@ -560,6 +563,45 @@ function fun_agent_job_daemon() {
         sypctl bundle exec rake agent:job uuid=${job_uuid} >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
         rm -f ${filepath}-running
     done
+}
+
+function fun_print_toolkit_list() {
+    echo "Error: 请输入 sypctl 系统脚本名称！"
+    echo
+    echo "Usage: sypctl tookit <脚本名称> [参数]"
+    echo
+    echo "脚本列表："
+    for tookit in $(ls linux/bash/*-tools.sh); do
+        tookit=${tookit##*/}
+        tookit=${tookit%-*}
+    echo "- ${tookit}"
+    done
+}
+
+function fun_toolkit_caller() {
+    test -z "$2" && {
+        fun_print_toolkit_list
+        exit
+    }
+
+    toolkit=linux/bash/$2-tools.sh
+    test -f ${toolkit} && {
+        bash linux/bash/$2-tools.sh "$3" "$4" "$5" "$6"
+    } || {
+        echo "toolkit: $2 不存在，退出！"
+        fun_print_toolkit_list
+        exit 1
+    }
+}
+
+function fun_etl_caller() {
+    mkdir -p etl/{db,logs,tmp}
+    ruby etl/sqoop/msserver-import.rb "$2"
+}
+
+function fun_etl_status() {
+    mkdir -p etl/{db,logs,tmp}
+    ruby etl/sqoop/msserver-status.rb
 }
 
 col1_width=${custom_col1_width:-36}
