@@ -47,6 +47,7 @@ def execute_bash_script(script, database, table)
   File.open(script_path, "w+:utf-8") do |file|
     file.puts(script)
   end
+  result = 'successfully'
   begin
     Timeout::timeout(0.5*60*60) do
       File.open("etl/logs/#{database}-#{table}.log", "w:utf-8") { |file| file.puts(script) }
@@ -57,9 +58,9 @@ def execute_bash_script(script, database, table)
       `bash #{script_path} >> etl/logs/#{database}-#{table}.log 2>&1`
     end
   rescue => e
-
+    result = e.message
   end
-  logger(start_time, database, table, script)
+  logger(start_time, database, table, script, result)
 end
 
 def import_total_table_script(database_hash, table_name)
