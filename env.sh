@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+########################################
+#  
+#  SYPCTL Environment Script
+#
+########################################
 
 test -f ~/.bash_profile && source ~/.bash_profile
 function title() { printf "\n%s\n\n" "$1"; }
@@ -141,3 +147,4 @@ sypctl rc.local
 sypctl ssh-keygen
 sypctl linux:date check
 sypctl help
+sypctl home

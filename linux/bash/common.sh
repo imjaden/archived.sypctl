@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.63'
+VERSION='0.0.64'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -145,6 +145,8 @@ function fun_print_sypctl_help() {
     echo "sypctl status       已部署的服务进程状态"
     echo "sypctl restart      重启已部署的服务进程"
     echo "sypctl stop         关闭已部署的服务进程"
+    echo
+    echo "sypctl toolkit <脚本名称> [参数]"
     echo 
     echo "sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下："
     echo "                      - 生意+ shengyiplus"
@@ -481,6 +483,7 @@ function fun_update_crontab_jobs() {
     echo "*/5 * * * * sypctl agent:task guard" >> ~/${crontab_conf}
     echo "*/1 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
     echo "0 0 * * * sypctl upgrade" >> ~/${crontab_conf}
+    echo "0 0 * * * sypctl memory:free" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated

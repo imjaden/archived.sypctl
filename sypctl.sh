@@ -97,6 +97,29 @@ case "$1" in
     linux:date)
         bash linux/bash/date-tools.sh "$2"
     ;;
+    toolkit)
+        test -z "$2" && {
+            echo "Error: 请输入 sypctl 系统脚本名称！"
+            echo
+            echo "Usage: sypctl tookit <脚本名称> [参数]"
+            echo
+            echo "脚本列表："
+            for tookit in $(ls linux/bash/*-tools.sh); do
+                tookit=${tookit##*/}
+                tookit=${tookit%-*}
+            echo "- ${tookit}"
+            done
+            exit
+        }
+
+        toolkit=linux/bash/$2-tools.sh
+        test -f ${toolkit} && {
+            bash linux/bash/$2-tools.sh "$3" "$4"
+        } || {
+            echo "toolkit: ${tookit} 不存在，退出！"
+            exit 1
+        }
+    ;;
     *)
         fun_print_sypctl_help
     ;;
