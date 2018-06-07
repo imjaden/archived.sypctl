@@ -502,13 +502,13 @@ function fun_update_rc_local() {
         if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
             begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
             end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
-            sed -i "${begin_line_num},${end_line_num}d" ${rc_local_filepath}
+            sudo sed -i "${begin_line_num},${end_line_num}d" ${rc_local_filepath}
         fi
 
-        echo "" >> ${rc_local_filepath}
-        echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
-        echo "sudo -u ${current_user} sypctl crontab" >> ${rc_local_filepath}
-        echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
+        sudo echo "" >> ${rc_local_filepath}
+        sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
+        sudo echo "sudo -u ${current_user} sypctl crontab" >> ${rc_local_filepath}
+        sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
     } || {
         title "cannot found rc.local in below path:"
         echo "/etc/rc.local"
