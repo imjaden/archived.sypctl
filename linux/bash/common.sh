@@ -498,7 +498,10 @@ function fun_update_crontab_jobs() {
 function fun_update_rc_local() {
     rc_local_filepath=/etc/rc.local
     test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
+
     test -f ${rc_local_filepath} && {
+        sudo chmod go+w ${rc_local_filepath}
+        
         if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
             begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
             end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
