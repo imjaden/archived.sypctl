@@ -16,16 +16,6 @@ data = JSON.parse(File.read(path))
 puts "共产生 #{data.length} 条日志: #{Dir.pwd}/#{path}"
 
 puts "=" * 20
-pidpath = 'etl/tmp/msserver.pid'
-if File.exists?(pidpath)
-  pid = File.read(pidpath).strip
-  puts "sqoop 导数进程正在运行(#{pid}):"
-  `ps aux | grep pid`
-else
-  puts "未监测到 sqoop 导数进程！"
-end
-
-puts "=" * 20
 script_path = "etl/tmp/running.sh"
 if File.exists?(script_path)
   puts "最近运行的脚本:"
@@ -43,4 +33,16 @@ if File.exists?(logger_path)
   puts "$ tail -f #{Dir.pwd}/#{running_log}"
 else
   puts "未监测到运行脚本的日志！"
+end
+
+puts "=" * 20
+pidpath = 'etl/tmp/msserver.pid'
+if File.exists?(pidpath)
+  pid = File.read(pidpath).strip
+  puts "sqoop 导数进程正在运行(#{pid}):"
+  puts `ps aux | grep #{pid} | grep -v grep`
+  exit 0
+else
+  puts "未监测到 sqoop 导数进程！"
+  exit 1
 end
