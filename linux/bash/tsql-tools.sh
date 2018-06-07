@@ -16,13 +16,19 @@ if [[ "${os_type}" != "CentOS" && "${os_type}" != "RedHatEnterpriseServer" ]]; t
     exit 1
 fi
 
-command -v tsql > /dev/null 2>&1 && {
-    tsql -C
+function fun_install_gem_tiny_tds_or_not() {
+    command -v gem > /dev/null 2>&1 && {
+        install_state=$(gem list --local tiny_tds | grep tiny_tds | wc -l)
+        [[ ${install_state} -eq 0 ]] && gem install tiny_tds
 
-    command -v gem > /dev/null 2>&1 || {
-        gem install tiny_tds
         gem list tiny_tds
     }
+}
+
+command -v tsql > /dev/null 2>&1 && {
+    tsql -C
+    fun_install_gem_tiny_tds_or_not
+
     echo "MSSQL 开发环境已部署！"
     exit 0
 }
@@ -57,10 +63,7 @@ command -v tsql > /dev/null 2>&1 && tsql -C || {
     cd ..
 }
 
-command -v gem > /dev/null 2>&1 || {
-    gem install tiny_tds
-    gem list tiny_tds
-}
+fun_install_gem_tiny_tds_or_not
 
 tiny_tds_example=$(pwd)/linux/config/tiny_tds.rb
 test -f ${tiny_tds_example} && cat ${tiny_tds_example}
