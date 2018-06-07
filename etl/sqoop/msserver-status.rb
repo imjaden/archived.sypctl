@@ -38,8 +38,9 @@ end
 puts "=" * 20
 logger_path = "etl/tmp/running.log"
 if File.exists?(logger_path)
+  running_log = File.read(logger_path).strip
   puts "正在运行脚本的日志:"
-  puts "$ tail -f #{Dir.pwd}/etl/tmp/running.log"
+  puts "$ tail -f #{Dir.pwd}/#{running_log}"
 else
   puts "未监测到运行脚本的日志！"
 end
