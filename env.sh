@@ -87,11 +87,6 @@ git pull origin dev-0.0.1 > /dev/null 2>&1
 test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
 sudo ln -s /usr/local/src/sypctl/sypctl.sh /usr/bin/sypctl
 
-cd agent
-mkdir -p {db,logs,tmp,jobs}
-bundle install > /dev/null 2>&1
-cd ..
-
 title "检查/安装 JDK..."
 command -v java > /dev/null || bash linux/bash/jdk-tools.sh install
 
@@ -126,6 +121,11 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
 command -v ruby >/dev/null 2>&1 && ruby -v || { 
     fun_rbenv_install_ruby
 }
+
+cd agent
+mkdir -p {db,logs,tmp,jobs}
+bundle install > /dev/null 2>&1
+cd ..
 
 title "已安装软件清单..."
 custom_col1_width=22
