@@ -600,11 +600,13 @@ function fun_toolkit_caller() {
 function fun_etl_caller() {
     mkdir -p etl/{db,logs,tmp}
     ruby etl/sqoop/msserver-import.rb "$2"
+    exit $?
 }
 
 function fun_etl_status() {
     mkdir -p etl/{db,logs,tmp}
     ruby etl/sqoop/msserver-status.rb
+    exit $?
 }
 
 col1_width=${custom_col1_width:-36}
