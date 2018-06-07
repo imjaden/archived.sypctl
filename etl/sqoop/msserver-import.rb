@@ -11,6 +11,7 @@ end
 config_path = ARGV[0]
 config_data = JSON.parse(File.read(config_path))
 
+puts Dir.pwd
 `echo #{Process.pid} > etl/tmp/msserver.pid`
 databases = config_data['databases'].uniq
 tables = config_data['tables'].uniq
@@ -92,14 +93,16 @@ end
 
 def import_total_database(databases, tables)
   databases.each do |database_hash|
-    script = <<-EOF
+    unless import_status(database_hash['database'], "-")
+      script = <<-EOF
 # --------------------------------------
 # database: #{database_hash['database']}
 # start_time: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}
 # --------------------------------------
 hive -e "create database if not exists #{database_hash['database']}"
-    EOF
-    execute_bash_script(script, database_hash['database'], '-')
+      EOF
+      execute_bash_script(script, database_hash['database'], '-')
+    end
 
     tables.each do |table_name|
       next if import_status(database_hash['database'], table_name)

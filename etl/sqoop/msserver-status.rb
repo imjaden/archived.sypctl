@@ -40,7 +40,7 @@ pidpath = 'etl/tmp/msserver.pid'
 
 if File.exists?(pidpath)
   pid = File.read(pidpath).strip
-  `ps -ax | awk '{print $1}' | grep -e "^${pid}$" > /dev/null 2>&1 || rm -f etl/tmp/msserver.pid`
+  `ps -ax | awk '{print $1}' | grep -e "^#{pid}$" > /dev/null 2>&1 || rm -f etl/tmp/msserver.pid`
 end
 
 if File.exists?(pidpath)
