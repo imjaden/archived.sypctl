@@ -48,9 +48,13 @@ def execute_bash_script(script, database, table)
     file.puts(script)
   end
   begin
-    Timeout::timeout(1.5*60*60) do
+    Timeout::timeout(0.5*60*60) do
+      File.open("etl/logs/#{database}-#{table}.log", "w:utf-8") { |file| file.puts(script) }
       `echo etl/logs/#{database}-#{table}.log > etl/tmp/running.log`
-      `bash #{script_path} > etl/logs/#{database}-#{table}.log 2>&1`
+      `echo "" >> etl/logs/#{database}-#{table}.log 2>&1`
+      `echo "# output below:" >> etl/logs/#{database}-#{table}.log 2>&1`
+      `echo "" >> etl/logs/#{database}-#{table}.log 2>&1`
+      `bash #{script_path} >> etl/logs/#{database}-#{table}.log 2>&1`
     end
   rescue => e
 
@@ -74,8 +78,8 @@ hadoop fs -test -e ${temp_target_dir}
 sqoop import "-Dorg.apache.sqoop.splitter.allow_text_splitter=true" \\
     --driver com.microsoft.jdbc.sqlserver.SQLServerDriver \\
     --connect "#{database_hash['connect']}" \\
-    --username "${database_hash['username']}" \\
-    --password "${database_hash['password']}" \\
+    --username "#{database_hash['username']}" \\
+    --password "#{database_hash['password']}" \\
     --table=#{table_name} \\
     --target-dir ${temp_target_dir} \\
     --fields-terminated-by "," \\
