@@ -617,6 +617,11 @@ function fun_etl_status() {
     exit $?
 }
 
+function fun_etl_tiny_tds() {
+    ruby etl/sqoop/msserver-tiny_tds.rb "$2" "$3"
+    exit $?
+}
+
 col1_width=${custom_col1_width:-36}
 col2_width=${custom_col2_width:-42}
 header_col1_width=$[$col1_width+$col2_width-1]

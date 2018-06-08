@@ -106,6 +106,9 @@ case "$1" in
     etl:status)
         fun_etl_status $@
     ;;
+    etl:tiny_tds)
+        fun_etl_tiny_tds $@
+    ;;
     *)
         fun_print_sypctl_help
     ;;
