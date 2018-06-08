@@ -10,9 +10,9 @@ end
 
 config_path = ARGV[0]
 config_data = JSON.parse(File.read(config_path))
-
-@import_type = ARGV[1] || 'normal'
-puts "#{Time.now} - 导数模式: #{@import_type == 'normal' ? '普通模式' : '清理超时模式'}"
+@import_mode = ARGV[1] || 'normal'
+@import_mode_human = (@import_mode == 'normal' ? '普通模式' : '清理超时模式')
+puts "#{Time.now} - 导数模式: #{@import_mode_human}"
 
 `echo #{Process.pid} > etl/tmp/msserver.pid`
 databases = config_data['databases'].uniq
@@ -41,7 +41,7 @@ def import_status(database, table)
   File.open(path, "w:utf-8") { |file| file.puts({}.to_json) } unless File.exists?(path)
   
   data = JSON.parse(File.read(path))
-  if @import_type == 'expired'
+  if @import_mode == 'expired'
     return !data["#{database}.#{table}:result"].to_s.include?("expired")
   end
 
@@ -102,6 +102,7 @@ def import_total_table_script(database_hash, table_hash, timeout)
 # start_time: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}
 # timeout_limit: #{timeout}h
 # row_count: #{table_hash['row_count']} (仅供参考)
+# import_mode: @import_mode_human
 # --------------------------------------
 hive -e "drop table if exists #{database_name}.#{table_name}"
 

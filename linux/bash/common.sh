@@ -342,7 +342,11 @@ function fun_operator_service_process() {
 
 function fun_free_memory() {  
     free -m
-    title "$ echo 1 > /proc/sys/vm/drop_caches"
+
+    echo
+    echo "$ sync (x3 times)"
+    echo "$ echo 1 > /proc/sys/vm/drop_caches"
+    echo
 
     sudo sync
     sudo sync
@@ -602,7 +606,7 @@ function fun_toolkit_caller() {
 
 function fun_etl_caller() {
     mkdir -p etl/{db,logs,tmp}
-    ruby etl/sqoop/msserver-import.rb "$2"
+    ruby etl/sqoop/msserver-import.rb "$2" "$3"
     exit $?
 }
 
