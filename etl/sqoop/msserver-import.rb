@@ -102,7 +102,7 @@ def import_total_table_script(database_hash, table_hash, timeout)
 # start_time: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}
 # timeout_limit: #{timeout}h
 # row_count: #{table_hash['row_count']} (仅供参考)
-# import_mode: @import_mode_human
+# import_mode: #{@import_mode_human}
 # --------------------------------------
 hive -e "drop table if exists #{database_name}.#{table_name}"
 

@@ -182,6 +182,7 @@ function fun_upgrade() {
     git pull origin ${git_current_branch}
 
     if [[ "$(whoami)" != "root" ]]; then
+        sudo chmod -R go+w /usr/local/src/sypctl/
         sudo chown -R ${current_user}:${current_user} /usr/local/src/sypctl
     fi
 
