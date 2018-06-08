@@ -11,7 +11,9 @@ end
 config_path = ARGV[0]
 config_data = JSON.parse(File.read(config_path))
 
-puts Dir.pwd
+@import_type = ARGV[1] || 'normal'
+puts "#{Time.now} - 导数模式: #{@import_type == 'normal' ? '普通模式' : '清理超时模式'}"
+
 `echo #{Process.pid} > etl/tmp/msserver.pid`
 databases = config_data['databases'].uniq
 tables = config_data['tables'].uniq
@@ -39,41 +41,71 @@ def import_status(database, table)
   File.open(path, "w:utf-8") { |file| file.puts({}.to_json) } unless File.exists?(path)
   
   data = JSON.parse(File.read(path))
-  data["#{database}.#{table}"]
+  if @import_type == 'expired'
+    return !data["#{database}.#{table}:result"].to_s.include?("expired")
+  end
+
+  return data["#{database}.#{table}:result"]
 end
 
-def execute_bash_script(script, database, table)
+def execute_bash_script(database_hash, table_hash)
   start_time = Time.now
-  script_path = "etl/tmp/running.sh"
-  File.open(script_path, "w+:utf-8") do |file|
-    file.puts(script)
+
+  database_name = database_hash['database']
+  table_name = table_hash['table_name'] || '-'
+  timeout = table_hash['timeout'] || 0.5
+
+  if table_name == '-'
+    script = import_create_database_or_not(database_hash, table_name, timeout)
+  else
+    script = import_total_table_script(database_hash, table_hash, timeout)
   end
+
+  script_path = "etl/tmp/running.sh"
+  File.open(script_path, "w+:utf-8") { |file| file.puts(script) }
+
   result = 'successfully'
   begin
-    Timeout::timeout(0.5*60*60) do
-      File.open("etl/logs/#{database}-#{table}.log", "w:utf-8") { |file| file.puts(script) }
-      `echo etl/logs/#{database}-#{table}.log > etl/tmp/running.log`
-      `echo "" >> etl/logs/#{database}-#{table}.log 2>&1`
-      `echo "# output below:" >> etl/logs/#{database}-#{table}.log 2>&1`
-      `echo "" >> etl/logs/#{database}-#{table}.log 2>&1`
-      `bash #{script_path} >> etl/logs/#{database}-#{table}.log 2>&1`
+    Timeout::timeout(timeout*60*60) do
+      File.open("etl/logs/#{database_name}-#{table_name}.log", "w:utf-8") { |file| file.puts(script) }
+      `echo etl/logs/#{database_name}-#{table_name}.log > etl/tmp/running.log`
+      `echo "" >> etl/logs/#{database_name}-#{table_name}.log 2>&1`
+      `echo "# output below:" >> etl/logs/#{database_name}-#{table_name}.log 2>&1`
+      `echo "" >> etl/logs/#{database_name}-#{table_name}.log 2>&1`
+      `bash #{script_path} >> etl/logs/#{database_name}-#{table_name}.log 2>&1`
     end
   rescue => e
-    result = e.message
+    result = "#{e.message}(timeout limit: #{timeout}h)"
   end
-  logger(start_time, database, table, script, result)
+  logger(start_time, database_name, table_name, script, result)
 end
 
-def import_total_table_script(database_hash, table_name)
+def import_create_database_or_not(database_hash, table_name, timeout)
   script = <<-EOF
 # --------------------------------------
 # database: #{database_hash['database']}
-# table: #{table_name}
 # start_time: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}
+# timeout_limit: #{timeout}
 # --------------------------------------
-hive -e "drop table if exists #{database_hash['database']}.#{table_name}"
+hive -e "create database if not exists #{database_hash['database']}"
+  EOF
+end
 
-temp_target_dir=/user/hadoop/sqoop_import_#{database_hash['database']}_#{table_name}
+def import_total_table_script(database_hash, table_hash, timeout)
+  database_name = database_hash['database']
+  table_name = table_hash['table_name']
+
+  script = <<-EOF
+# --------------------------------------
+# database_name: #{database_name}
+# table_name: #{table_name}
+# start_time: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}
+# timeout_limit: #{timeout}h
+# row_count: #{table_hash['row_count']} (仅供参考)
+# --------------------------------------
+hive -e "drop table if exists #{database_name}.#{table_name}"
+
+temp_target_dir=/user/hadoop/sqoop_import_#{database_name}_#{table_name}
 hadoop fs -test -e ${temp_target_dir}
 [[ $? -eq 0 ]] && hadoop fs -rm -r ${temp_target_dir}
 
@@ -87,28 +119,18 @@ sqoop import "-Dorg.apache.sqoop.splitter.allow_text_splitter=true" \\
     --fields-terminated-by "," \\
     --hive-import \\
     --create-hive-table \\
-    --hive-table #{database_hash['database']}.#{table_name}
+    --hive-table #{database_name}.#{table_name}
   EOF
 end
 
 def import_total_database(databases, tables)
   databases.each do |database_hash|
-    unless import_status(database_hash['database'], "-")
-      script = <<-EOF
-# --------------------------------------
-# database: #{database_hash['database']}
-# start_time: #{Time.now.strftime('%y-%m-%d %H:%M:%S')}
-# --------------------------------------
-hive -e "create database if not exists #{database_hash['database']}"
-      EOF
-      execute_bash_script(script, database_hash['database'], '-')
-    end
+    execute_bash_script(database_hash, {}) unless import_status(database_hash['database'], "-")
 
-    tables.each do |table_name|
-      next if import_status(database_hash['database'], table_name)
+    tables.each do |table_hash|
+      next if import_status(database_hash['database'], table_hash['table_name'])
 
-      script = import_total_table_script(database_hash, table_name)
-      execute_bash_script(script, database_hash['database'], table_name)
+      execute_bash_script(database_hash, table_hash)
     end
   end
 end

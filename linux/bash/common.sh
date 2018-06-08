@@ -342,10 +342,13 @@ function fun_operator_service_process() {
 
 function fun_free_memory() {  
     free -m
-    echo
-    echo "$ echo 1 > /proc/sys/vm/drop_caches"
-    echo
-    echo 1 > /proc/sys/vm/drop_caches
+    title "$ echo 1 > /proc/sys/vm/drop_caches"
+
+    sudo sync
+    sudo sync
+    sudo sync
+    sudo echo 1 > /proc/sys/vm/drop_caches
+    
     free -m
 }
 
