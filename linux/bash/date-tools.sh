@@ -35,6 +35,7 @@ case "$1" in
         echo "timestamp: ${timestamp}"
         echo "human: $(date -d @${timestamp} '+%y-%m-%d %H:%M:%S')"
         echo "interval: $(expr $now - $timestamp)s"
+    ;;
     *)
         echo "bash $0 view|check"
     ;;  
