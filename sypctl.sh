@@ -25,6 +25,9 @@ case "$1" in
     git:pull|gp|upgrade|update)
         fun_upgrade
     ;;
+    clean)
+        fun_clean
+    ;;
     deploy)
         fun_deploy_service_guides
     ;;

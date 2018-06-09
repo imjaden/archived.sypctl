@@ -215,6 +215,28 @@ function fun_upgrade() {
     sypctl help
 }
 
+function fun_clean() {
+    crontab_conf="crontab-${timestamp}.conf"
+    crontab -l > ~/${crontab_conf}
+    if [[ $(grep "# Begin sypctl" ~/${crontab_conf} | wc -l) -gt 0 ]]; then
+        begin_line_num=$(sed -n '/# Begin sypctl/=' ~/${crontab_conf} | head -n 1)
+        end_line_num=$(sed -n '/# End sypctl/=' ~/${crontab_conf} | tail -n 1)
+        sed -i "${begin_line_num},${end_line_num}d" ~/${crontab_conf}
+    fi
+    crontab ~/${crontab_conf}
+    rm -f ~/${crontab_conf}
+
+    rc_local_filepath=/etc/rc.local
+    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
+    test -f ${rc_local_filepath} && {
+        if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
+            begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
+            end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
+            sudo sed -i "${begin_line_num},${end_line_num}d" ${rc_local_filepath}
+        fi
+    }
+}
+
 function fun_generate_sshkey_when_not_exist() {
     test -d ~/.ssh || ssh-keygen  -t rsa -P '' -f ~/.ssh/id_rsa
     test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
