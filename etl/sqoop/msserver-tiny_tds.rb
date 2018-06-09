@@ -22,6 +22,8 @@ config_data["databases"].each do |database|
   sql_string = "use #{database['database']};\n#{sql_content}"
   ruby_script = <<-EOF
 # encoding: utf-8
+# 数据源：#{database['host']}:#{database['port']}@#{database['database']}
+# 脚本：#{script_path}
 require 'json'
 require 'tiny_tds'
 
@@ -36,7 +38,7 @@ rescue => e
 end
   EOF
 
-  script_path = "#{Dir.pwd}/tmp/#{database['host']}.rb"
+  script_path = "#{Dir.pwd}/tmp/#{database['database']}-#{database['host']}-#{database['port']}.rb"
   File.open(script_path, "w:utf-8") do |file|
     file.puts(ruby_script)
   end
