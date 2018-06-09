@@ -19,6 +19,7 @@ sql_path = ARGV[1]
 sql_content = File.read(sql_path)
 
 config_data["databases"].each do |database|
+  script_path = "#{Dir.pwd}/tmp/#{database['database']}-#{database['host']}-#{database['port']}.rb"
   sql_string = "use #{database['database']};\n#{sql_content}"
   ruby_script = <<-EOF
 # encoding: utf-8
@@ -38,7 +39,6 @@ rescue => e
 end
   EOF
 
-  script_path = "#{Dir.pwd}/tmp/#{database['database']}-#{database['host']}-#{database['port']}.rb"
   File.open(script_path, "w:utf-8") do |file|
     file.puts(ruby_script)
   end
@@ -50,4 +50,5 @@ end
   puts sql_string
   puts "*" * 20
   puts `ruby #{script_path}`
+  puts
 end
