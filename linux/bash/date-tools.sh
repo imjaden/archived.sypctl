@@ -34,7 +34,13 @@ case "$1" in
         now=$(date +%s)
         echo "timestamp: ${timestamp}"
         echo "human: $(date -d @${timestamp} '+%y-%m-%d %H:%M:%S')"
-        echo "interval: $(expr $now - $timestamp)s"
+        interval=$(expr $now - $timestamp)
+        echo "interval: ${interval}s"
+        hours=$(expr $interval / 3600)
+        interval=$(expr $interval % 3600)
+        minutes=$(expr $interval / 60)
+        interval=$(expr $interval % 60)
+        echo "human: ${hours}h ${minutes}m ${interval}s"
     ;;
     *)
         echo "bash $0 view|check"
