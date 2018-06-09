@@ -235,6 +235,8 @@ function fun_clean() {
             sudo sed -i "${begin_line_num},${end_line_num}d" ${rc_local_filepath}
         fi
     }
+
+    fun_print_crontab_and_rclocal
 }
 
 function fun_generate_sshkey_when_not_exist() {
@@ -470,6 +472,7 @@ function fun_print_variable() {
 }
 
 function fun_print_crontab_and_rclocal() {
+    title "crontab configuration:"
     crontab_conf="crontab-${timestamp}.conf"
     crontab -l > ~/${crontab_conf}
     if [[ $(grep "# Begin sypctl" ~/${crontab_conf} | wc -l) -gt 0 ]]; then
@@ -481,6 +484,7 @@ function fun_print_crontab_and_rclocal() {
     fi
     rm -f ~/${crontab_conf}
 
+    title "rc.local configuration:"
     rc_local_filepath=/etc/rc.local
     test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
     test -f ${rc_local_filepath} && {
