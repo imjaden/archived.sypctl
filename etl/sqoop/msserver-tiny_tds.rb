@@ -15,19 +15,20 @@ end
 
 config_path = ARGV[0]
 config_data = JSON.parse(File.read(config_path))
-sql_path = ARGV[0]
+sql_path = ARGV[1]
 sql_content = File.read(sql_path)
 
 config_data["databases"].each do |database|
-  sql_string = "use #{database['database']}; #{sql_content}"
+  sql_string = "use #{database['database']};\n#{sql_content}"
   ruby_script = <<-EOF
 # encoding: utf-8
+require 'json'
 require 'tiny_tds'
 
 begin
   @client = TinyTds::Client.new(username: "#{database['username']}", password: "#{database['password']}", host: "#{database['host']}", port: "#{database['port']}")
   @client.execute("#{sql_string}").each do |row| 
-    puts row
+    puts JSON.pretty_generate(row)
   end
   @client.close
 rescue => e
@@ -35,16 +36,16 @@ rescue => e
 end
   EOF
 
-  script_path = "tmp/#{database['host']}.rb"
+  script_path = "#{Dir.pwd}/tmp/#{database['host']}.rb"
   File.open(script_path, "w:utf-8") do |file|
     file.puts(ruby_script)
   end
 
   puts "*" * 20
-  puts "#{database['host']}:#{database['port']}@#{database['database']}"
+  puts "数据源：#{database['host']}:#{database['port']}@#{database['database']}"
+  puts "脚本：#{script_path}"
+  puts "SQL:"
   puts sql_string
   puts "*" * 20
-
-  ruby script_path
+  puts `ruby #{script_path}`
 end
-
