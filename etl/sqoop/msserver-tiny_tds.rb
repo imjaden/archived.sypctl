@@ -27,12 +27,23 @@ config_data["databases"].each do |database|
 # 脚本：#{script_path}
 require 'json'
 require 'tiny_tds'
+require 'terminal-table'
 
 begin
-  @client = TinyTds::Client.new(username: "#{database['username']}", password: "#{database['password']}", host: "#{database['host']}", port: "#{database['port']}")
-  @client.execute("#{sql_string}").each do |row| 
-    puts JSON.pretty_generate(row)
+  @client = TinyTds::Client.new(username: "#{database['username']}", password: "#{database['password']}", host: "#{database['host']}", port: "#{database['port']}, timeout: 10000")
+  result = @client.execute("#{sql_string}").to_a
+
+  if result.length > 0
+    headers = result[0].keys
+    datas = result.map do |hsh|
+      headers.map { |key| hsh[key] }
+    end
+    table = Terminal::Table.new(headings: headers, rows: datas)
+    puts table
+  else
+    puts "查询无结果"
   end
+
   @client.close
 rescue => e
   puts e.message
@@ -49,6 +60,8 @@ end
   puts "SQL:"
   puts sql_string
   puts "*" * 20
+  start_time = Time.now
   puts `ruby #{script_path}`
+  puts "执行时间：#{(Time.now - start_time)}s"
   puts
 end
