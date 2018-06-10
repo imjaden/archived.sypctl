@@ -30,7 +30,7 @@ require 'tiny_tds'
 require 'terminal-table'
 
 begin
-  @client = TinyTds::Client.new(username: "#{database['username']}", password: "#{database['password']}", host: "#{database['host']}", port: "#{database['port']}, timeout: 10000")
+  @client = TinyTds::Client.new(username: "#{database['username']}", password: "#{database['password']}", host: "#{database['host']}", port: #{database['port']}, timeout: 10000)
   result = @client.execute("#{sql_string}").to_a
 
   if result.length > 0

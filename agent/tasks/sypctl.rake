@@ -20,7 +20,10 @@ namespace :sypctl do
 
               commands = []
               # commands << "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
+              # commands << "sypctl upgrade"
+              # commands << "sypctl clean"
               commands << "tree /usr/local/src/syp-etl"
+              commands << "sypctl toolkit date interval $(cat /usr/local/src/syp-etl/running.timestamp)"
               # commands << "echo \"Time.now.strftime('%y-%m-%d %H:%M:%S')\" && sypctl linux:date view"
               # commands << "echo \"#{config['inner_ip']} $(date +'%z %m/%d/%y %H:%M:%S')\""
               # commands << "time ssh 192.168.30.110 \"date +'%z %m/%d/%y %H:%M:%S'\""
