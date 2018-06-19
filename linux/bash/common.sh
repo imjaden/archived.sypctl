@@ -164,14 +164,12 @@ function fun_print_sypctl_help() {
 
 function fun_print_logo() {
     echo 
-    echo '                               m    ""#'
-    echo '  mmm   m   m  mmmm    mmm   mm#mm    #'
-    echo ' #   "  "m m"  #" "#  #"  "    #      #'
-    echo '  """m   #m#   #   #  #        #      #'
-    echo ' "mmm"   "#    ##m#"  "#mm"    "mm    "mm'
-    echo '         m"    #'
-    echo '        ""     "'
-    echo 
+    echo '  mmmm m     m mmmmm    mmm mmmmmmm m'
+    echo ' #"   " "m m"  #   "# m"   "   #    #'
+    echo ' "#mmm   "#"   #mmm#" #        #    #'
+    echo '     "#   #    #      #        #    #'
+    echo ' "mmm#"   #    #       "mmm"   #    #mmmmm'
+    echo
 }
 
 function fun_upgrade() {

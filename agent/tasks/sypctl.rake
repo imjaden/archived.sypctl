@@ -23,6 +23,7 @@ namespace :sypctl do
               # commands << "sypctl upgrade"
               # commands << "sypctl clean"
               commands << "tree /usr/local/src/syp-etl"
+              commands << "ls /usr/local/src/syp-etl/*.todo"
               commands << "sypctl toolkit date interval $(cat /usr/local/src/syp-etl/running.timestamp)"
               # commands << "echo \"Time.now.strftime('%y-%m-%d %H:%M:%S')\" && sypctl linux:date view"
               # commands << "echo \"#{config['inner_ip']} $(date +'%z %m/%d/%y %H:%M:%S')\""
