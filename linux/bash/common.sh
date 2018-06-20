@@ -258,13 +258,12 @@ function fun_deploy_service_guides() {
         printf "$two_cols_table_format" ".env-files" "Deployed Successfully"
     }
 
-    mkdir -p /usr/local/src/www
+    test -d /data || mkdir -p /data
     check_install_defenders_include "SaaSImage" && {
-        fun_deploy_file_folder /usr/local/src/www/saas_images
+        fun_deploy_file_folder /data/saas_images
     }
 
     check_install_defenders_include "SaaSBackup" && {
-        test -d /data || mkdir -p /data
         fun_deploy_file_folder /data/saas_backups
     }
 
