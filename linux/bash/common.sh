@@ -258,12 +258,14 @@ function fun_deploy_service_guides() {
         printf "$two_cols_table_format" ".env-files" "Deployed Successfully"
     }
 
+    mkdir -p /usr/local/src/www
     check_install_defenders_include "SaaSImage" && {
-        fun_deploy_file_folder ~/www/saas_images
+        fun_deploy_file_folder /usr/local/src/www/saas_images
     }
 
     check_install_defenders_include "SaaSBackup" && {
-        fun_deploy_file_folder ~/www/saas_backups
+        test -d /data || mkdir -p /data
+        fun_deploy_file_folder /data/saas_backups
     }
 
     check_install_defenders_include "Report" && {
@@ -279,7 +281,7 @@ function fun_deploy_service_guides() {
         test -f /usr/local/src/report/index.html || {
             cp syp-saas-tutorial.html /usr/local/src/report/index.html
         }
-        mv syp-saas-tutorial.html ~/www/syp-saas-tutorial.html
+        mv syp-saas-tutorial.html /usr/local/src/www/syp-saas-tutorial.html
     }
 
     # check_install_defenders_include "ZipRaR" && {
