@@ -280,6 +280,7 @@ function fun_deploy_service_guides() {
         test -f /usr/local/src/report/index.html || {
             cp syp-saas-tutorial.html /usr/local/src/report/index.html
         }
+        mkdir -p /usr/local/src/www/
         mv syp-saas-tutorial.html /usr/local/src/www/syp-saas-tutorial.html
     }
 
