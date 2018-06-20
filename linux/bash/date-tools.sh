@@ -128,7 +128,7 @@ function fun_check_linux_date() {
     local_hm=$(echo ${local_tstr} | cut -c 1-5)
     remote_hm=$(echo ${remote_tstr} | cut -c 1-5)
     if [[ "${local_tstr}" = "${remote_tstr}" ]]; then
-        echo "本地与标准时分相同: 本地时间 ${local_tstr}, 标准时间:${remote_tstr}"
+        echo "本地与标准时分秒相同: ${local_tstr}"
     else
         fun_executed_date=$(date +%s)
         echo "修正时间 ${local_tstr} => ${remote_tstr}"
