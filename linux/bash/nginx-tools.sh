@@ -24,6 +24,64 @@ case "$1" in
         }
 
         yum install -y readline-devel gcc-c++ nginx
+        case "${os_platform}" in
+            CentOS6)
+                sudo rpm -ivh http://nginx.org/packages/centos/6/noarch/RPMS/nginx-release-centos-6-0.el6.ngx.noarch.rpm
+                sudo yum -y install nginx
+            ;;
+            CentOS7)
+                sudo rpm -Uvh http://nginx.org/packages/rhel/7/x86_64/RPMS/nginx-1.12.2-1.el7_4.ngx.x86_64.rpm
+            ;;
+            Ubuntu16)    
+                nginx_package=linux/packages/nginx-1.11.3.tar.gz
+                nginx_install_path=/usr/local/src
+                nginx_version=nginx-1.11.3
+
+                if [[ -d ${nginx_install_path}/${nginx_version} ]]; then
+                    rm -fr ${nginx_install_path}/${nginx_version} 
+                    printf "$two_cols_table_format" "nginx package" "Removed Useless Package"
+                fi
+
+                if [[ ! -f ${nginx_package} ]]; then
+                    printf "$two_cols_table_format" "nginx package" "Not Found"
+                    printf "$two_cols_table_format" "nginx package" "Downloading..."
+
+                    mkdir -p linux/packages
+                    package_name="$(basename $nginx_package)"
+                    if [[ -f linux/packages/${package_name} ]]; then
+                      tar jtvf packages/${package_name} > /dev/null 2>&1
+                      if [[ $? -gt 0 ]]; then
+                          rm -f linux/packages/${package_name}
+                      fi
+                    fi
+
+                    if [[ ! -f linux/packages/${package_name} ]]; then
+                        wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                        printf "$two_cols_table_format" "nginx package" "Downloaded"
+                    fi
+                fi
+
+                tar -xzvf ${nginx_package} -C ${nginx_install_path}
+
+                mv ${nginx_install_path}/${nginx_version} ${nginx_install_path}/nginx
+                cd ${nginx_install_path}/nginx
+                sudo ./configure --prefix=/usr/local/nginx --sbin-path=/usr/sbin/nginx --with-http_stub_status_module --with-http_ssl_module
+                sudo make
+                sudo make install
+                sudo cp /usr/local/nginx/sbin/nginx /usr/bin/
+                cd -
+                
+                test ! -f /etc/nginx/nginx.conf || {
+                    mkdir -p /etc/nginx/
+                    cp ${nginx_install_path}/nginx/nginx.conf /etc/nginx/
+                }
+            ;;
+            *)
+                echo "Nginx 安装工具暂不支持该系统：${os_platform}"
+            ;;
+        esac
+
+        nginx -V
     ;;
     start|startup)
         bash $0 check
