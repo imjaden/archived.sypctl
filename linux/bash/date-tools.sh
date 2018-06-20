@@ -86,11 +86,11 @@ function fun_check_linux_date() {
 
     echo "****************************"
     echo "校正时区"
-    if [[ ${local_zstr} = ${remote_zstr} ]]; then
-        echo "本地与校正主机相同时区: ${remote_zstr}"
+    if [[ "${local_zstr}" = "${remote_zstr}" ]]; then
+        echo "本地与标准时区相同: ${remote_zstr}"
     else
         fun_executed_date=$(date +%s)
-        echo "时区错误:本地时区[${local_zstr}], 校正主机时区[${remote_zstr}]"
+        echo "修正日期 ${local_zstr} => ${remote_zstr}"
 
         if [[ -e ${shanghai} ]] && [[ -e ${loltime} ]]; then
             /bin/mv ${loltime} ${loltime}.bak
@@ -109,11 +109,11 @@ function fun_check_linux_date() {
 
     echo "****************************"
     echo "校正日期"
-    if [[ ${local_dstr} = ${remote_dstr} ]]; then
-        echo "本地与校正主机相同日期: ${remote_dstr}"
+    if [[ "${local_dstr}" = "${remote_dstr}" ]]; then
+        echo "本地与标准日期相同: ${remote_dstr}"
     else
         fun_executed_date=$(date +%s)
-        echo "修改日期${local_dstr} => ${remote_dstr}"
+        echo "修正日期 ${local_dstr} => ${remote_dstr}"
 
         /bin/date -s ${remote_dstr}
         /sbin/clock -w > /dev/null 2>&1
@@ -126,13 +126,12 @@ function fun_check_linux_date() {
     echo "****************************"
     echo "校正时间"
     local_hm=$(echo ${local_tstr} | cut -c 1-5)
-    remote_hm=$(echo ${remote_ststr} | cut -c 1-5)
-    if [[ ${local_hm} = ${remote_hm} ]]; then
-        echo "本地与校正主机相同时分:"
-        echo "本地: ${local_tstr} 校正主机:${remote_tstr}"
+    remote_hm=$(echo ${remote_tstr} | cut -c 1-5)
+    if [[ "${local_tstr}" = "${remote_tstr}" ]]; then
+        echo "本地与标准时分相同: 本地时间 ${local_tstr}, 标准时间:${remote_tstr}"
     else
         fun_executed_date=$(date +%s)
-        echo "修改时间 ${local_tstr} => ${remote_tstr}"
+        echo "修正时间 ${local_tstr} => ${remote_tstr}"
 
         /bin/date -s ${remote_tstr}
         /sbin/clock -w > /dev/null 2>&1
