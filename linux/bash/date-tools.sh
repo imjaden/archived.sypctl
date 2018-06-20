@@ -22,7 +22,7 @@ source linux/bash/common.sh
 #
 # 参数说明：
 #
-# @remote_api   可选项，校正时间的标准服务 IP;# 无参数时以服务器时间为标准
+# @remote_api 可选项，校正时间的标准服务 IP;# 无参数时以服务器时间为标准
 #
 # 完整示例：
 #
@@ -60,12 +60,16 @@ function fun_check_linux_date() {
 
     remote_timestamp=$(expr ${remote_timestamp} + ${interval})
     remote_datestr=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
-
+    
     if [[ ${#remote_datestr} -ne 23 ]]; then
         echo "Error: 远程服务器的格式化日期长度 != 23, 请修正！"
         echo "       期望的日期格式: $(date +'%z %m/%d/%y %H:%M:%S')"
         exit 1
     fi
+
+    echo "****************************"
+    echo "本地时间：$(date +'%z %m/%d/%y %H:%M:%S')"
+    echo "标准时间：${remote_datestr}"
 
     # 修改参考标准时区、日期、时间
     remote_dateinfos=(${remote_datestr})

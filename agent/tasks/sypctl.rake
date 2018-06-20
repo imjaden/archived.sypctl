@@ -21,7 +21,7 @@ namespace :sypctl do
               commands = []
               # commands << "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
               commands << "sypctl upgrade"
-              commands << "sypctl linux:date check hadoop1"
+              commands << "sypctl linux:date check"
               # commands << "tree /usr/local/src/syp-etl"
               # commands << "ls /usr/local/src/syp-etl/*.todo"
               # commands << "sypctl toolkit date interval $(cat /usr/local/src/syp-etl/running.timestamp)"
