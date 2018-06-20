@@ -8,113 +8,162 @@
 
 source linux/bash/common.sh
 
+#
 # 功能：
 #     自动校正系统时区、日期、时间
+#
 # 校正方式一:
 #     通过ssh取得远程主机时区、日期、时间为参照校正本机时区、日期、时间
 #     此方式需要设置shost=登陆用户名@参照主机ip
 #
 # 校正方式二:
 #     手工设置要修改参考的标准信息
-#     此方式需要设置sinfo="+0800 09/28/13 16:25:30"
+#     此方式需要设置remote_datestr="+0800 09/28/13 16:25:30"
 #
-# 说明:
-#     默认使用校正方式一,方式二被注释;
-#     若使用校正方式二，需把校正方式一代码注释
+# 参数说明：
+#
+# @remote_api   可选项，校正时间的标准服务 IP;# 无参数时以服务器时间为标准
+#
+# 完整示例：
+#
+# ```
+# # 场景一
+# $ bash date-tools.sh check
+# # 场景二，以局域网服务器为标准
+# $ bash date-tools.sh check 127.0.0.1
+#
+#
+# # 场景一
+# $ bash date-tools.sh view
+# # 场景二，以局域网服务器为标准
+# $ bash date-tools.sh view 127.0.0.1
+# ```
+function fun_check_linux_date() {
+    global_executed_date=$(date +%s)
 
-# 无参数时以服务器时间为标准，
-# 传 IP 参数时，以此服务器时间为标题
-function fun_sypctl_date_checker() {
-    sinfo=""
-    test -n "$1" && {
-        sinfo=$(ssh "$1" "date +'%z %m/%d/%y %H:%M:%S'")
-        echo "$1"
-    } || {
-        echo "http://sypctl-api.ibi.ren/api/v1/linux.date"
-        function get_sypctl_server_date() {
-            executed_date=$(date +%s)
-            sinfo=$(curl -sS http://sypctl-api.ibi.ren/api/v1/linux.date)
-            finished_date=$(date +%s)
+    remote_api=http://sypctl-api.ibi.ren/api/v1/linux.date
+    test -n "$1" && remote_api="$1"
 
-            if [[ ${#sinfo} -ne 23 ]]; then
-              echo "格式错误，期望的数据格式 \`+0800 06/01/18 10:33:16\` 长度为 23；而 API 获取到的数据为: \`${sinfo}\`"
-              return 1
-            fi
+    echo "校正标准：${remote_api}"
 
-            interval=$(expr ${finished_date} - ${executed_date})
-            if [[ ${interval} -gt 0 ]]; then
-                echo "获取超时，耗时 ${interval}s，请优化网络后重试" # 必须同一秒内完成获取服务器时间操作，否则失效
-                return 1
-            fi
-            return 0
-        }
+    executed_date=$(date +%s)
+    test -n "$1" && remote_timestamp=$(ssh ${remote_api} "date +%s") || remote_timestamp=$(curl -sS ${remote_api})
+    finished_date=$(date +%s)
 
-        try_times=1
-        try_times_limit=4
-        local_date_state=1
-        while [[ ${local_date_state} -gt 0 && ${try_times} -lt ${try_times_limit} ]]; do
-            [[ ${try_times} -gt 1 ]] && echo "第 ${trynum} 次尝试校正系统时区"
+    interval=$(expr ${finished_date} - ${executed_date})
+    echo "获取标准时间耗时 ${interval} 秒，校正时追加该误差"
 
-            get_sypctl_server_date
-            
-            local_date_state=$?
-            try_times=$(expr ${try_times} + 1)
-        done
-    }
+    remote_timestamp=$(expr ${remote_timestamp} + ${interval})
+    remote_datestr=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
+
+    if [[ ${#remote_datestr} -ne 23 ]]; then
+        echo "Error: 远程服务器的格式化日期长度 != 23, 请修正！"
+        echo "       期望的日期格式: $(date +'%z %m/%d/%y %H:%M:%S')"
+        exit 1
+    fi
 
     # 修改参考标准时区、日期、时间
-    infos=(${sinfo})
-    szstr=${infos[0]}
-    sdstr=${infos[1]}
-    ststr=${infos[2]}
+    remote_dateinfos=(${remote_datestr})
+    remote_zstr=${remote_dateinfos[0]}
+    remote_dstr=${remote_dateinfos[1]}
+    remote_tstr=${remote_dateinfos[2]}
 
     # 本地时区、日期、时间
-    zstr=$(date +%z)
-    dstr=$(date +%m/%d/%y)
-    tstr=$(date +%H:%M:%S)
+    local_zstr=$(date +%z)
+    local_dstr=$(date +%m/%d/%y)
+    local_tstr=$(date +%H:%M:%S)
     shanghai=/usr/share/zoneinfo/Asia/Shanghai
     loltime=/etc/localtime
 
     echo "****************************"
     echo "校正时区"
-    if [[ ${zstr} = ${szstr} ]]; then
-        echo "本地与校正主机相同时区:${szstr}"
+    if [[ ${local_zstr} = ${remote_zstr} ]]; then
+        echo "本地与校正主机相同时区: ${remote_zstr}"
     else
-        echo "时区错误:本地时区[${zstr}],校正主机时区[${szstr}]"
+        fun_executed_date=$(date +%s)
+        echo "时区错误:本地时区[${local_zstr}], 校正主机时区[${remote_zstr}]"
 
-        if [[ -e ${shanghai} && -e ${loltime} ]]; then
+        if [[ -e ${shanghai} ]] && [[ -e ${loltime} ]]; then
             /bin/mv ${loltime} ${loltime}.bak
-            echo "备份${loltime}=>${loltime}.bak"
+            echo "备份${loltime} => ${loltime}.bak"
             /bin/cp ${shanghai} ${loltime}
-            echo "覆盖${shanghai}=>${loltime}"
+            echo "覆盖${shanghai} => ${loltime}"
         else
             [[ -e ${shanghai} ]] || echo "${shanghai} 不存在！"
-            [[ -e ${loltime} ]]  || echo "${loltime} 不存在！"
+            [[ -e ${loltime} ]] || echo "${loltime} 不存在！"
         fi
+
+        fun_finished_date=$(date +%s)
+        fun_interval=$(expr ${fun_finished_date} - ${fun_executed_date})
+        echo "运行耗时 ${interval} 秒"
     fi
 
     echo "****************************"
     echo "校正日期"
-    if [[ ${dstr} = ${sdstr} ]]; then
-        echo "本地与校正主机相同日期:${sdstr}"
+    if [[ ${local_dstr} = ${remote_dstr} ]]; then
+        echo "本地与校正主机相同日期: ${remote_dstr}"
     else
-        echo "修改日期${dstr}=>${sdstr}"
-        /bin/date -s ${sdstr}
-        /sbin/clock -w
+        fun_executed_date=$(date +%s)
+        echo "修改日期${local_dstr} => ${remote_dstr}"
+
+        /bin/date -s ${remote_dstr}
+        /sbin/clock -w > /dev/null 2>&1
+
+        fun_finished_date=$(date +%s)
+        fun_interval=$(expr ${fun_finished_date} - ${fun_executed_date})
+        echo "运行耗时 ${interval} 秒"
     fi
 
     echo "****************************"
     echo "校正时间"
-    hm=$(echo ${tstr} | cut -c 1-5)
-    shm=$(echo ${ststr} | cut -c 1-5)
-    if [ ${hm} = ${shm} ]; then
+    local_hm=$(echo ${local_tstr} | cut -c 1-5)
+    remote_hm=$(echo ${remote_ststr} | cut -c 1-5)
+    if [[ ${local_hm} = ${remote_hm} ]]; then
         echo "本地与校正主机相同时分:"
-        echo "本地:${tstr} 校正主机:${ststr}"
+        echo "本地: ${local_tstr} 校正主机:${remote_tstr}"
     else
-        echo "修改时间${tstr}=>${ststr}"
-        /bin/date -s ${ststr}
-        /sbin/clock -w
+        fun_executed_date=$(date +%s)
+        echo "修改时间 ${local_tstr} => ${remote_tstr}"
+
+        /bin/date -s ${remote_tstr}
+        /sbin/clock -w > /dev/null 2>&1
+
+        fun_finished_date=$(date +%s)
+        fun_interval=$(expr ${fun_finished_date} - ${fun_executed_date})
+        echo "运行耗时 ${interval} 秒"
     fi
+
+    echo "****************************"
+    echo "耗时报告"
+    global_finished_date=$(date +%s)
+    global_interval=$(expr ${global_finished_date} - ${global_executed_date})
+    global_executed=$(expr ${global_interval} - ${interval})
+    echo "整个校正过程耗时 ${global_interval}s, 获取标准时间耗时 ${interval}s, 纯脚本运行耗时 ${global_executed}s"
+}
+
+function fun_view_linux_date() {
+    remote_api=http://sypctl-api.ibi.ren/api/v1/linux.date
+    test -n "$1" && remote_api="$1"
+
+    echo "对比标准：${remote_api}"
+
+    echo "****************************"
+    echo "对比报告"
+    executed_date=$(date +%s)
+    current_timestamp=$(date +%s)
+    test -n "$1" && remote_timestamp=$(ssh ${remote_api} "date +%s") || remote_timestamp=$(curl -sS ${remote_api})
+    finished_date=$(date +%s)
+
+    interval=$(expr ${finished_date} - ${executed_date})
+    echo "获取标准时间耗时 ${interval} 秒，对比时追加该误差"
+
+    remote_timestamp=$(expr ${remote_timestamp} + ${interval})
+    remote_datestr=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
+    current_datestr=$(date -d @${current_timestamp} +'%z %m/%d/%y %H:%M:%S')
+   
+    echo "本地时间：${current_datestr}"
+    echo "标准时间：${remote_datestr}"
+    echo "误差（秒）：$(expr ${remote_timestamp} - ${current_timestamp})s"
 }
 
 case "$1" in
@@ -132,11 +181,11 @@ case "$1" in
 
             hwclock -w
         else
-            fun_sypctl_date_checker "$2"
+            fun_check_linux_date "$2"
         fi
     ;;
     view)
-        date +'%z %m/%d/%y %H:%M:%S'
+        fun_view_linux_date "$2"
     ;;
     interval)
         test -z "$2" && {
