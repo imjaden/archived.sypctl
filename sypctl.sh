@@ -98,7 +98,7 @@ case "$1" in
         fun_agent_job_daemon
     ;;
     linux:date)
-        bash linux/bash/date-tools.sh "$2"
+        bash linux/bash/date-tools.sh "$2" "$3"
     ;;
     toolkit)
         fun_toolkit_caller $@
