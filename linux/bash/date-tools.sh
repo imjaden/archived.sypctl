@@ -44,6 +44,11 @@ function fun_check_linux_date() {
     remote_api=http://sypctl-api.ibi.ren/api/v1/linux.date
     test -n "$1" && remote_api="$1"
 
+    if [[ "${remote_api}" = "$(hostname)" ]]; then
+        echo "校正的服务器为本机，不作操作！"
+        return 1
+    fi
+
     echo "校正标准：${remote_api}"
 
     executed_date=$(date +%s)
