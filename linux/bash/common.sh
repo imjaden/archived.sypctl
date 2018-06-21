@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.66'
+VERSION='0.0.67'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -581,6 +581,8 @@ function fun_init_agent() {
             test -n "$2" && {
                 echo "$2" > agent/human-name
                 rm -f agent/db/agent.json
+                sypctl agent:task guard
+                sypctl agent:task info
             } || sypctl agent:init help
         ;;
         help)

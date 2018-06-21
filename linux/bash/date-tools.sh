@@ -59,7 +59,11 @@ function fun_check_linux_date() {
     echo "获取标准时间耗时 ${interval} 秒，校正时追加该误差"
 
     remote_timestamp=$(expr ${remote_timestamp} + ${interval})
-    remote_datestr=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
+    if [[ "$(uname -s)" = "Darwin" ]]; then
+        remote_datestr=$(date -r${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
+    else
+        remote_datestr=$(date -d @${remote_timestamp} +'%z %m/%d/%y %H:%M:%S')
+    fi
     
     if [[ ${#remote_datestr} -ne 23 ]]; then
         echo "Error: 远程服务器的格式化日期长度 != 23, 请修正！"
@@ -125,10 +129,11 @@ function fun_check_linux_date() {
 
     echo "****************************"
     echo "校正时间"
-    local_hm=$(echo ${local_tstr} | cut -c 1-5)
-    remote_hm=$(echo ${remote_tstr} | cut -c 1-5)
-    if [[ "${local_tstr}" = "${remote_tstr}" ]]; then
-        echo "本地与标准时分秒相同: ${local_tstr}"
+    local_tint=$(echo ${local_tstr} | tr -d ":")
+    remote_tint=$(echo ${remote_tstr} | tr -d ":")
+    tint_interval=$(expr ${local_tint} - ${remote_tint})
+    if [[ ${tint_interval} -gt -3 && ${tint_interval} -lt 3 ]]; then
+        echo "本地与标准时分秒相同(误差${tint_interval}秒): ${local_tstr}"
     else
         fun_executed_date=$(date +%s)
         echo "修正时间 ${local_tstr} => ${remote_tstr}"
