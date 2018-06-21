@@ -14,7 +14,7 @@ app_root_path="$(pwd)"
 export LANG=zh_CN.UTF-8
 while read filepath; do
     test -f "${filepath}" && source "${filepath}"
-done < .env-files
+done < env-files
 cd ${app_root_path}
 
 app_default_port=$(cat app-port)
@@ -24,8 +24,7 @@ app_env=${3:-'production'}
 unicorn_config_file=config/unicorn.rb
 unicorn_pid_file=tmp/pids/unicorn.pid
 
-bundle_command=$(rbenv which bundle)
-sidekiq_command=$(rbenv which sidekiq)
+bundle_command=$(rbenv which bundle)\
 gem_command=$(rbenv which gem)
 
 cd "${app_root_path}" || exit 1
