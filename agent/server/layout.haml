@@ -1,0 +1,42 @@
+-# coding: UTF-8
+!!! Strict
+%html
+  %head
+    %title SYPCTL Local Server
+    %meta{'http-equiv' => 'content-type', content: 'text/html', charset: 'UTF-8'}/
+    %meta{'http-equiv' => 'X-UA-Compatible', content: 'IE=edge'}/
+    %meta{name: 'viewport', content: 'width=device-width, initial-scale=1'}/
+    %meta{name: 'renderer', content:'webkit'}/
+    %meta{name: 'keywords', content: "sypctl,sypctl-server"}/
+    %meta{name: 'description', content: "shengyiplus controll"}/
+    %link{href: "http://p93zhu9fx.bkt.clouddn.com/favicon-syp.png", rel: 'shortcut icon'}/
+    %link{rel: "stylesheet", href: 'http://p93zhu9fx.bkt.clouddn.com/bootstrap.min.css'}
+    %link{rel: "stylesheet", href: 'http://p93zhu9fx.bkt.clouddn.com/nprogress.css'}
+    %script{type: "text/javascript", src: 'http://p93zhu9fx.bkt.clouddn.com/jquery.min.js'}
+    %script{type: "text/javascript", src: 'http://p93zhu9fx.bkt.clouddn.com/bootstrap.min.js'}
+    :css
+      .footer {
+        font-size: 14px;
+        line-height: 20px;
+        color: #808080;
+        font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
+        bottom: 0px;
+        top: expression(document.body.clientHeight-this.style.pixelHeight+document.body.scrollTop); 
+      }
+      .center {
+        width: 100%;
+        margin: 0 auto;
+        text-align: center;
+        float: left; 
+      }
+  %body{style: 'background:#f0f0f0;'}
+    .container#main
+      .row
+        .col-sm-12
+          = yield
+
+    .container#footer
+      .row.center
+        .footer &copy; sypctl.ibi.ren
+
+    %script{type: "text/javascript", src: 'http://p93zhu9fx.bkt.clouddn.com/nprogress.js'}

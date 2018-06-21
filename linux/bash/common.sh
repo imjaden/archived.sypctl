@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.67'
+VERSION='0.0.68'
 
 current_path=$(pwd)
 current_user=$(whoami)
@@ -196,7 +196,7 @@ function fun_upgrade() {
 
     title "\$ cd agent && bundle install"
     cd agent
-    mkdir -p {db,logs,tmp,jobs}
+    mkdir -p {db,logs,tmp,jobs,monitor}
     test -f device-uuid && mv device-uuid init-uuid # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；即支持 device uuid 更新
     rm -f db/agent.json # 升级后注意注册
     rm -f .bundle-done
@@ -459,6 +459,10 @@ function fun_execute_bundle_rake_without_logger() {
         fi
     }
 
+    test -f local-sypctl-server && {
+        bash tool.sh process:defender
+    }
+
     $@
 }
 
@@ -648,6 +652,18 @@ function fun_etl_status() {
 function fun_etl_tiny_tds() {
     ruby etl/sqoop/msserver-tiny_tds.rb "$2" "$3"
     exit $?
+}
+
+function fun_agent_server_daemon() {
+    cd agent
+    test -f ~/.bash_profile && {
+        readlink -f ~/.bash_profile > env-files
+    }
+
+    test -f env-files || touch env-files
+    test -f app-port || echo 8086 > app-port
+
+    bash tool.sh process:defender
 }
 
 col1_width=${custom_col1_width:-36}

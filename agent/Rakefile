@@ -2,7 +2,7 @@
 require 'rubygems'
 
 ENV['RUBY-VERSION'] = `ruby -v`.strip
-ENV["SYPCTL-VERSION"] = "0.0.67"
+ENV["SYPCTL-VERSION"] = "0.0.68"
 ENV["SYPCTL-API"] = "http://sypctl-api.ibi.ren"
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
 

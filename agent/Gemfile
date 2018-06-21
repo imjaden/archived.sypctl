@@ -9,8 +9,19 @@ end
 gem 'rake', '~> 12.3.0'
 gem 'httparty', '~> 0.13.7'
 
-return if `uname -s`.strip != 'Darwin'
+if File.exists?("local-sypctl-server")
+  gem 'sinatra', '~> 2.0.0'
+  gem 'sinatra-contrib', '~> 2.0.0'
+  gem 'sinatra-flash', '~> 0.3.0'
+  gem 'sinatra-logger', '~> 0.3.2'
+  gem 'unicorn', '~> 5.0.1'
+  gem 'unicorn-worker-killer', '~> 0.4.4'
+  gem 'json', '~> 1.8.3'
+  gem 'haml', '~> 4.0.7'
+end
 
-gem 'net-ssh', '~>4.2.0'
-gem 'net-scp', '~>1.2.1'
+if `uname -s`.strip == 'Darwin'
+  gem 'net-ssh', '~>4.2.0'
+  gem 'net-scp', '~>1.2.1'
+end
 

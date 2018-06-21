@@ -16,10 +16,13 @@ etl/db
 etl/logs
 etl/tmp
 
+agent/env-files
 agent/human-name
 agent/init-uuid
 agent/device-uuid
 agent/password
+agent/local-sypctl-server
+agent/app-port
 agent/config/id_rsa_pub.list
 agent/config/deploy_tasks.sh
 agent/logs/
@@ -27,5 +30,6 @@ agent/tmp/
 agent/jobs/
 agent/db/agent.json
 agent/db/records-*
+agent/monitor/
 
 tmp/

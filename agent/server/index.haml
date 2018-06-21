@@ -1,0 +1,30 @@
+.row
+  %ol.breadcrumb
+    %li SYPCTL
+    %li= ENV['PLATFORM_OS']
+    %li= ENV['HOSTNAME']
+    %li
+      = ENV['APP_RUNNER']
+      @
+      = Time.now.strftime("%y-%m-%d %H:%M:%S")
+
+  - @file_paths.each do |file_path|
+    - config = JSON.parse(IO.read(file_path))
+    %table.table.table-condensed.table-bordered
+      %caption= "#{File.basename(file_path, ".json")}@#{File.mtime(file_path)}"
+      %thead
+        %tr
+          - (config["headings"] || []).each do |head|
+            %th= head
+      %tbody
+        - (config["rows"] || [[]]).each_with_index do |rows, row_index|
+          %tr
+            - rows.each do |row|
+              %td{style: "max-width:100px;word-break:break-all;"}= row
+
+  :javascript
+    function toggleShow(ctl, id) {
+      $(id + "-short").toggleClass("hidden");
+      $(id + "-all").toggleClass("hidden");
+      $(ctl).html($(id + "-short").hasClass("hidden") ? "隐藏" : "显示")
+    }
