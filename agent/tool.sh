@@ -24,7 +24,7 @@ app_env=${3:-'production'}
 unicorn_config_file=config/unicorn.rb
 unicorn_pid_file=tmp/pids/unicorn.pid
 
-bundle_command=$(rbenv which bundle)\
+bundle_command=$(rbenv which bundle)
 gem_command=$(rbenv which gem)
 
 cd "${app_root_path}" || exit 1
@@ -38,7 +38,7 @@ case "$1" in
         fi
     ;;
     start)
-        mkdir -p {monitor,logs,tmp/pids}
+        mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
         $bundle_command exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D
         if [[ $? -eq 0 ]]; then
             echo "start unicorn successfully"
@@ -48,7 +48,7 @@ case "$1" in
     ;;
     stop)
         test -f ${unicorn_pid_file} && {
-            cat ${unicorn_pid_file} | kill -9
+            cat ${unicorn_pid_file} | xargs kill -9
             rm -f ${unicorn_pid_file}
         }
     ;;

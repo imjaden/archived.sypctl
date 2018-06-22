@@ -38,16 +38,22 @@ class ApplicationController < Sinatra::Base
   end
 
   error do
-    haml :'shared/error', views: ENV['VIEW_PATH']
+    haml :'error', views: ENV['VIEW_PATH']
   end
 
   get '/', '/monitor' do
-    @file_paths = Dir.glob(app_root_join("monitor/*.json"))
+    @file_paths = Dir.glob(app_root_join("monitor/index/*.json"))
     @file_paths = @file_paths.sort_by { |path| File.mtime(path) }.reverse
 
     timestamps = @file_paths.map { |path| File.mtime(path) }
 
     haml :index, layout: settings.layout
+  end
+
+  get '/page', '/monitor/page' do
+    @page_path = app_root_join("monitor/pages/#{params[:page]}")
+
+    haml :page, layout: settings.layout
   end
 
   protected

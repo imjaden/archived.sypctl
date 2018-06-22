@@ -124,7 +124,7 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
 }
 
 cd agent
-mkdir -p {db,logs,tmp,jobs,monitor}
+mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
 bundle install > /dev/null 2>&1
 cd ..
 

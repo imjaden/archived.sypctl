@@ -189,25 +189,27 @@ function fun_upgrade() {
     sypctl rc.local > /dev/null 2>&1
     sypctl linux:date check > /dev/null 2>&1
 
-    if [[ "${old_version}" = "$(sypctl version)" ]]; then
-        fun_print_logo
-        title "current version ${old_version} already is latest version!"
-        exit 0
-    fi
-
     title "\$ cd agent && bundle install"
     cd agent
-    mkdir -p {db,logs,tmp,jobs,monitor/{index,pages}}
-    test -f device-uuid && mv device-uuid init-uuid # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；即支持 device uuid 更新
-    rm -f db/agent.json # 升级后重新注册
+    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
     rm -f .bundle-done
     bundle install
     if [[ $? -eq 0 ]]; then
       echo "$ bundle install --local successfully"
       echo ${timestamp} > .bundle-done
     fi
+    test -f local-sypctl-server && bash tool.sh restart
     cd ..
-    
+
+    if [[ "${old_version}" = "$(sypctl version)" ]]; then
+        fun_print_logo
+        title "current version ${old_version} already is latest version!"
+        exit 0
+    fi
+
+    test -f device-uuid && mv device-uuid init-uuid # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；即支持 device uuid 更新
+    rm -f db/agent.json # 升级后重新注册
+
     fun_print_logo
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
