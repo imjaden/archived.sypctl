@@ -38,7 +38,7 @@ case "$1" in
         fi
     ;;
     start)
-        mkdir -p {logs,tmp/pids}
+        mkdir -p {monitor,logs,tmp/pids}
         $bundle_command exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D
         if [[ $? -eq 0 ]]; then
             echo "start unicorn successfully"

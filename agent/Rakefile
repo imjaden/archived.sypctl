@@ -1,13 +1,12 @@
 #!/usr/bin/env rake
 require 'rubygems'
 
-ENV['RUBY-VERSION'] = `ruby -v`.strip
 ENV["SYPCTL-VERSION"] = "0.0.68"
+ENV['RUBY-VERSION'] = `ruby -v`.strip
 ENV["SYPCTL-API"] = "http://sypctl-api.ibi.ren"
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
 
 $LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])
-$LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/config))
 $LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/lib/tasks))
 
 require 'lib/core_ext/string.rb'
@@ -20,17 +19,22 @@ desc 'bundle exec rake task_name RACK_ENV=development'
 task environment: 'Gemfile.lock' do
   ENV['RACK_ENV'] ||= 'production'
   ENV['RAILS_ENV'] = ENV['RACK_ENV']
-  begin
-    ENV['BUNDLE_GEMFILE'] ||= "./Gemfile"
-    require 'rake'
-    require 'bundler'
-    Bundler.setup
-  rescue => e
-    puts e.backtrace && exit
+
+  if File.exists?("local-sypctl-server")
+    require File.expand_path('../config/boot.rb', __FILE__)
+
+    Rack::Builder.parse_file File.expand_path('../config.ru', __FILE__)
+  else
+    begin
+      ENV['BUNDLE_GEMFILE'] ||= "./Gemfile"
+      require 'rake'
+      require 'bundler'
+      Bundler.setup
+    rescue => e
+      puts e.backtrace && exit
+    end
+    Bundler.require(:default, ENV['RACK_ENV'])
   end
-  Bundler.require(:default, ENV['RACK_ENV'])
 end
 
-Dir.glob('tasks/*.rake') do |filepath|
-  load filepath
-end
+Dir.glob('tasks/*.rake') { |filepath| load(filepath) }

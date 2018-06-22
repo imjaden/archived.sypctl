@@ -6,6 +6,7 @@
 #
 ########################################
 
+SYPCTL_HOME=/usr/local/src/sypctl
 test -f ~/.bash_profile && source ~/.bash_profile
 function title() { printf "\n%s\n\n" "$1"; }
 
@@ -70,22 +71,22 @@ unalias sypctl > /dev/null 2>&1
 
 title "安装/更新 sypctl..."
 sudo mkdir -p /usr/local/src
-test -d /usr/local/src/sypctl || {
+test -d ${SYPCTL_HOME} || {
     cd /usr/local/src
     sudo git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
 
 if [[ "$(whoami)" != "root" ]]; then
     current_user=$(whoami)
-    sudo chown -R ${current_user}:${current_user} /usr/local/src/sypctl
+    sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
 fi
 
-cd /usr/local/src/sypctl
+cd ${SYPCTL_HOME}
 git remote set-url origin http://gitlab.ibi.ren/syp-apps/sypctl.git
 git pull origin dev-0.0.1 > /dev/null 2>&1
 
 test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
-sudo ln -s /usr/local/src/sypctl/sypctl.sh /usr/bin/sypctl
+sudo ln -s ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
 
 title "检查/安装 JDK..."
 command -v java > /dev/null || bash linux/bash/jdk-tools.sh install

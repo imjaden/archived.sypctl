@@ -7,10 +7,8 @@
 ########################################
 #
 current_path="$(pwd)"
-test -n "$SYPCTL_HOME" && cd $SYPCTL_HOME || {
-    test -d /usr/local/src/sypctl && cd /usr/local/src/sypctl
-}
-
+test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
+cd ${SYPCTL_HOME}
 source linux/bash/common.sh
 
 case "$1" in
@@ -20,7 +18,7 @@ case "$1" in
     home)
         fun_print_logo
         echo " Version: ${VERSION}"
-        echo "HomePath: $(test -n "${SYPCTL_HOME}" && echo ${SYPCTL_HOME} || echo /usr/local/src/sypctl)"
+        echo "HomePath: ${SYPCTL_HOME}"
     ;;
     git:pull|gp|upgrade|update)
         fun_upgrade

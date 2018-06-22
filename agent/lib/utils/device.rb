@@ -1,4 +1,5 @@
 # encoding: utf-8
+# version: 0.0.8
 require 'json'
 require 'securerandom'
 
@@ -92,7 +93,7 @@ module Utils
         "#{device_hsh[:device]}-#{device_hsh[:uuid]}".gsub("/", "_")
       rescue => e
         puts e.message
-        "random-#{SecureRandom.uuid}"
+        "exception-#{SecureRandom.uuid}"
       end
 
       def memory
@@ -199,10 +200,22 @@ module Utils
 
       def uuid
         uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, "device-uuid")
-        unless File.exists?(uuid_tmp_path)
-          File.open(uuid_tmp_path, "w:utf-8") { |file| file.puts(klass.device_uuid) }
+
+        if File.exists?(uuid_tmp_path)
+          device_uuid = File.read(uuid_tmp_path).strip
+          
+          if device_uuid.empty?
+            File.remove(uuid_tmp_path)
+          else
+            return device_uuid
+          end
         end
-        File.read(uuid_tmp_path).strip
+
+        device_uuid = klass.device_uuid
+        device_uuid = "empty-#{SecureRandom.uuid}" if device_uuid.empty?
+        File.open(uuid_tmp_path, "w:utf-8") { |file| file.puts(device_uuid) }
+
+        return device_uuid
       end
 
       def memory

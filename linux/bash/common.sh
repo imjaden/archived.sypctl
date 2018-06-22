@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 VERSION='0.0.68'
-
 current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
+
+test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
 test -f .env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"
 done < .env-files
@@ -180,8 +181,8 @@ function fun_upgrade() {
     git pull origin ${git_current_branch}
 
     if [[ "$(whoami)" != "root" ]]; then
-        sudo chmod -R go+w /usr/local/src/sypctl/
-        sudo chown -R ${current_user}:${current_user} /usr/local/src/sypctl
+        sudo chmod -R go+w ${SYPCTL_HOME}
+        sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
     fi
 
     sypctl crontab > /dev/null 2>&1
@@ -196,9 +197,9 @@ function fun_upgrade() {
 
     title "\$ cd agent && bundle install"
     cd agent
-    mkdir -p {db,logs,tmp,jobs,monitor}
+    mkdir -p {db,logs,tmp,jobs,monitor/{index,pages}}
     test -f device-uuid && mv device-uuid init-uuid # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；即支持 device uuid 更新
-    rm -f db/agent.json # 升级后注意注册
+    rm -f db/agent.json # 升级后重新注册
     rm -f .bundle-done
     bundle install
     if [[ $? -eq 0 ]]; then
