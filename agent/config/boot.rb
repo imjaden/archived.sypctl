@@ -23,7 +23,8 @@ Bundler.require(:default, ENV['RACK_ENV'])
 $LOAD_PATH.unshift(root_path)
 $LOAD_PATH.unshift(%(#{root_path}/server))
 
-ENV['PLATFORM_OS']        = `uname -s`.strip.downcase
+sypctl_home = File.join(root_path, "../sypctl.sh")
+ENV['PLATFORM_OS']        = `bash #{sypctl_home} variable os_platform`.strip.downcase rescue `uname -s`
 ENV['APP_RUNNER']         = `whoami`.strip.downcase
 ENV['HOSTNAME']           = `hostname`.strip.downcase
 ENV['STARTUP']            = Time.now.to_s

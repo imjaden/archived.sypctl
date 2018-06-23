@@ -41,11 +41,19 @@ class ApplicationController < Sinatra::Base
     haml :'error', views: ENV['VIEW_PATH']
   end
 
+  get '/index' do
+    index_path = app_root_join("monitor/index/index.html")
+    if File.exists?(index_path)
+      File.read(index_path)
+    else
+      "#{ENV['PLATFORM_OS']}:#{ENV['APP_RUNNER']}@#{ENV['HOSTNAME']} sypctl agent server"
+    end
+  end
+
   get '/', '/monitor' do
     @file_paths = Dir.glob(app_root_join("monitor/index/*.json"))
     @file_paths = @file_paths.sort_by { |path| File.mtime(path) }.reverse
-
-    timestamps = @file_paths.map { |path| File.mtime(path) }
+    # timestamps = @file_paths.map { |path| File.mtime(path) }
 
     haml :index, layout: settings.layout
   end
