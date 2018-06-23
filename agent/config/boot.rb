@@ -10,7 +10,6 @@ ENV['UNICORN_PORT']  = File.exist?(unicorn_port_path) ? File.read(unicorn_port_p
 
 begin
   ENV['BUNDLE_GEMFILE'] ||= %(#{root_path}/Gemfile)
-  puts ENV['BUNDLE_GEMFILE']
   require 'rake'
   require 'bundler'
   Bundler.setup
