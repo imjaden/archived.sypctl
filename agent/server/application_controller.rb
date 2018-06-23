@@ -4,8 +4,6 @@ require 'sinatra/multi_route'
 class ApplicationController < Sinatra::Base
   register Sinatra::Reloader unless ENV['RACK_ENV'].eql?('production')
   register Sinatra::MultiRoute
-  register Sinatra::Logger
-  register Sinatra::Flash
 
   use AssetHandler
   use ExceptionHandling

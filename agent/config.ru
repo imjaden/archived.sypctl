@@ -11,7 +11,7 @@ use Unicorn::WorkerKiller::MaxRequests, 1000, 1500
 use Unicorn::WorkerKiller::Oom, (192*(1024**2)), (256*(1024**2))
 
 {
-  '/'                       => 'ApplicationController',
+  '/' => 'ApplicationController'
 }.each_pair do |path, mod|
   map(path) { run mod.constantize }
 end

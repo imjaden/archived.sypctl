@@ -23,6 +23,7 @@ agent/device-uuid
 agent/password
 agent/local-sypctl-server
 agent/app-port
+agent/app-worker-processes
 agent/config/id_rsa_pub.list
 agent/config/deploy_tasks.sh
 agent/logs/

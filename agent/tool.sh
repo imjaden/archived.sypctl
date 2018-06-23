@@ -35,24 +35,31 @@ case "$1" in
             bash $0 state
         else
             read -p "确定部署 agent server? y/n: " user_input
-            [[ "${user_input}" = 'y' ]] && echo ${timestamp} > local-sypctl-server
-         
-            read -p "请输入 agent server 服务端口号，默认 8086: " user_input
-            echo ${user_input:-8086} > app-port
+            if [[ "${user_input}" = 'y' ]]; then
+                echo ${timestamp} > local-sypctl-server
+             
+                read -p "请输入 agent server 服务端口号，默认 8086: " user_input
+                echo ${user_input:-8086} > app-port
 
-            if [[ -f ~/.bash_profile ]]; then
-                [[ $(uname -s) = "Darwin" ]] && env_path=$(greadlink -f ~/.bash_profile) || env_path=$(readlink -f ~/.bash_profile)
-                echo "${env_path}" > env-files
+                read -p "请输入 agent server 进程数量，默认 1: " user_input
+                echo ${user_input:-1} > app-worker-processes
+
+                if [[ -f ~/.bash_profile ]]; then
+                    [[ $(uname -s) = "Darwin" ]] && env_path=$(greadlink -f ~/.bash_profile) || env_path=$(readlink -f ~/.bash_profile)
+                    echo "${env_path}" > env-files
+                fi
+
+                title "$ bundle install"
+                bash $0 bundle
+
+                title "$ start agent server"
+                bash $0 process:defender
+
+                title "$ agent server state"
+                bash $0 state
+            else
+                echo "退出部署引导！"
             fi
-
-            title "$ bundle install"
-            bash $0 bundle
-
-            title "$ start agent server"
-            bash $0 process:defender
-
-            title "$ agent server state"
-            bash $0 state
         fi
     ;;
     bundle)
@@ -95,6 +102,7 @@ case "$1" in
         if [[ -f local-sypctl-server ]]; then
             echo "本地已部署 sypctl agent server"
             test -f app-port && echo "agent server port: $(cat app-port)" || echo "agent server port: no config"
+            test -f app-worker-processes && echo "worker processes: $(cat app-worker-processes)" || echo "worker processes: no config"
             
             if [[ -f ${unicorn_pid_file} ]]; then
                 pid=$(cat ${unicorn_pid_file})
