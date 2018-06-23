@@ -72,7 +72,9 @@ case "$1" in
     ;;
     start)
         mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
-        $bundle_command exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D
+        command_text="${bundle_command} exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D"
+        echo "\$ ${command_text}"
+        ${command_text}
         if [[ $? -eq 0 ]]; then
             echo "start agent server successfully"
         else
@@ -146,6 +148,7 @@ case "$1" in
                 bash $0 stop
                 rm -f local-sypctl-server
                 rm -f app-port
+                rm -f app-worker-processes
                 bash $0 bundle > /dev/null 2>&1
                 echo "移除 agent server 成功"
                 echo

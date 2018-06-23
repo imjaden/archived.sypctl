@@ -39,7 +39,7 @@ class ApplicationController < Sinatra::Base
     haml :'error', views: ENV['VIEW_PATH']
   end
 
-  get '/index' do
+  get '/index', '/info' do
     index_path = app_root_join("monitor/index/index.html")
     if File.exists?(index_path)
       File.read(index_path)
