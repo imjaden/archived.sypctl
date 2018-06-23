@@ -12,7 +12,7 @@
 #
 app_root_path="$(pwd)"
 export LANG=zh_CN.UTF-8
-while read filepath; do
+test -f env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"
 done < env-files
 cd ${app_root_path}
@@ -39,6 +39,11 @@ case "$1" in
          
             read -p "请输入 agent server 服务端口号，默认 8086: " user_input
             echo ${user_input:-8086} > app-port
+
+            if [[ -f ~/.bash_profile ]]; then
+                [[ $(uname -s) = "Darwin" ]] && env_path=$(greadlink -f ~/.bash_profile) || env_path=$(readlink -f ~/.bash_profile)
+                echo "${env_path}" > env-files
+            fi
 
             title "$ bundle install"
             bash $0 bundle
