@@ -657,6 +657,9 @@ function fun_etl_tiny_tds() {
     exit $?
 }
 
+#
+# agent server
+#
 function fun_agent_server_daemon() {
     cd agent
     test -f ~/.bash_profile && {
@@ -667,6 +670,11 @@ function fun_agent_server_daemon() {
     test -f app-port || echo 8086 > app-port
 
     bash tool.sh process:defender
+}
+function fun_agent_server() {
+    cd agent
+    bash tool.sh "$1"
+    cd ..
 }
 
 col1_width=${custom_col1_width:-36}

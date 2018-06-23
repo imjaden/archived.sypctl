@@ -96,7 +96,7 @@ case "$1" in
         fun_agent_job_daemon
     ;;
     agent:server)
-        fun_agent_server_daemon
+        fun_agent_server "$2" "$3"
     ;;
     linux:date)
         bash linux/bash/date-tools.sh "$2" "$3"
