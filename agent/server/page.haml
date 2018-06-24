@@ -9,7 +9,7 @@
       = Time.now.strftime("%y-%m-%d %H:%M:%S")
 
   - config = JSON.parse(IO.read(@page_path))
-  %table.table.table-condensed.table-bordered
+  %table.table.table-condensed.table-bordered.smart-table
     %caption= "#{File.basename(@page_path, ".json")}@#{File.mtime(@page_path)}"
     %thead
       %tr

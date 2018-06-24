@@ -10,7 +10,7 @@
 
   - @file_paths.each do |file_path|
     - config = JSON.parse(IO.read(file_path))
-    %table.table.table-condensed.table-bordered
+    %table.table.table-condensed.table-bordered.smart-table
       %caption= "#{File.basename(file_path, ".json")}@#{File.mtime(file_path)}"
       %thead
         %tr
