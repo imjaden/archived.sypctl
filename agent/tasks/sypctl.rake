@@ -4,6 +4,30 @@ require 'json'
 require 'fileutils'
 
 namespace :sypctl do
+  task clean_empty_rows: :environment do
+    unless File.exists?(ENV['filepath'].to_s)
+      puts "Error: 要清理多余空行的文件路径"
+      exit
+    end
+
+    filepath = ENV['filepath']
+    content = File.read(filepath)
+    while content.include?("\n\n\n")
+      content.gsub!("\n\n\n", "\n\n")
+    end
+
+    if content != File.read(filepath)
+      filepath_bak = "#{filepath}.#{Time.now.strftime('%y%m%d%H%M%S')}"
+      `cp #{filepath} #{filepath_bak}`
+      File.open(filepath, "w:utf-8") { |file| file.puts(content) }
+
+      puts "已修改文档: #{filepath}"
+      puts "备份文档路径: #{filepath_bak}"
+    else
+      puts "#{filepath} 文档中无多余空行"
+    end
+  end
+
   desc "deploy sypctl env"
   task deploy: :environment do
     task_list = IO.readlines('config/deploy_tasks.sh').map(&:strip).delete_if { |line| line.empty? or line.start_with?("#") }
