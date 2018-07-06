@@ -23,16 +23,17 @@ case "$1" in
             exit 1
         }
 
-        yum install -y readline-devel gcc-c++ nginx
         case "${os_platform}" in
             CentOS6)
+                sudo yum install -y readline-devel gcc-c++
                 sudo rpm -ivh http://nginx.org/packages/centos/6/noarch/RPMS/nginx-release-centos-6-0.el6.ngx.noarch.rpm
                 sudo yum -y install nginx
             ;;
             CentOS7)
+                sudo yum install -y readline-devel gcc-c++ openssl-devel
                 sudo rpm -Uvh http://nginx.org/packages/rhel/7/x86_64/RPMS/nginx-1.12.2-1.el7_4.ngx.x86_64.rpm
             ;;
-            Ubuntu16)    
+            Ubuntu16)  
                 nginx_package=linux/packages/nginx-1.11.3.tar.gz
                 nginx_install_path=/usr/local/src
                 nginx_version=nginx-1.11.3

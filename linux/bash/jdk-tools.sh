@@ -11,8 +11,30 @@ source linux/bash/common.sh
 case "$1" in
     check)
         command -v java >/dev/null 2>&1 && fun_prompt_java_already_installed || echo "warning: java command not found"
+        command -v java >/dev/null 2>&1 && fun_prompt_javac_already_installed || echo "warning: javac command not found"
     ;;
-    install|deploy)
+    javac:install)
+        command -v javac >/dev/null 2>&1 && {
+            fun_prompt_javac_already_installed
+            exit 1
+        }
+
+        case "${os_platform}" in
+            CentOS6)
+                sudo yum install -y java-devel
+            ;;
+            CentOS7)
+                sudo yum install -y java-devel
+            ;;
+            Ubuntu16)
+                echo "not support this system($os_platform)"
+            ;;
+            *)
+                echo "unknown system($os_platform)"
+            ;;
+        esac
+    ;;
+    jdk:install|deploy)
         command -v java >/dev/null 2>&1 && {
             fun_prompt_java_already_installed
             exit 1
@@ -78,12 +100,8 @@ case "$1" in
         echo "warning: unkown params - $@"
         logger
         logger "Usage:"
-        logger "    $0 start tomcat_home"
-        logger "    $0 stop tomcat_home"
-        logger "    $0 status|state tomcat_home"
-        logger "    $0 monitor tomcat_home"
-        logger "    $0 restart tomcat_home"
-        logger "    $0 auto:generage:praams|agp tomcat_home"
+        logger "    $0 jdk:install"
+        logger "    $0 javac:install"
     ;;
 esac
 

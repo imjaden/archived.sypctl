@@ -89,7 +89,8 @@ test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
 sudo ln -s ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
 
 title "检查/安装 JDK..."
-command -v java > /dev/null || bash linux/bash/jdk-tools.sh install
+command -v java > /dev/null || bash linux/bash/jdk-tools.sh jdk:install
+command -v javac > /dev/null || bash linux/bash/jdk-tools.sh javac:install
 
 title "检查/安装 Rbenv/Ruby..."
 function fun_rbenv_install_ruby() {

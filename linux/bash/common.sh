@@ -80,6 +80,13 @@ function fun_prompt_java_already_installed() {
     return 0
 }
 
+function fun_prompt_javac_already_installed() {
+    version=$(javac -version 2>&1 | awk '{ print $2 }')
+    printf "$two_cols_table_format" "javac" "${version:0:40}"
+
+    return 0
+}
+
 function fun_prompt_nginx_already_installed() {
     version=$(nginx -V 2>&1 | awk '/version/ { print $3 }')
     printf "$two_cols_table_format" "nginx" "${version:0:40}"
@@ -292,7 +299,8 @@ function fun_deploy_service_guides() {
     # }
 
     check_install_defenders_include "JDK" && {
-        bash linux/bash/jdk-tools.sh install
+        bash linux/bash/jdk-tools.sh jdk:install
+        bash linux/bash/jdk-tools.sh javac:install
     }
 
     check_install_defenders_include "SYPAPI" && {

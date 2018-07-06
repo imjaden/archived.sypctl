@@ -4,9 +4,29 @@ require 'json'
 require 'fileutils'
 
 namespace :sypctl do
+  task print_json: :environment do
+    unless File.exists?(ENV['filepath'].to_s)
+      puts "Error: JSON 文件路径不存在 - #{ENV['filepath']}"
+      exit
+    end
+
+    begin
+      json_hash = JSON.parse(File.read(ENV['filepath'].to_s))
+    rescue => e
+      puts "Error: JSON 格式异常 - #{ENV['filepath']}"
+      exit
+    end
+
+    if json_hash["headings"] && json_hash["rows"]
+      puts Terminal::Table.new(headings: json_hash["headings"], rows: json_hash["rows"])
+    else
+      puts JSON.pretty_generate(json_hash)
+    end
+  end
+
   task clean_empty_rows: :environment do
     unless File.exists?(ENV['filepath'].to_s)
-      puts "Error: 要清理多余空行的文件路径"
+      puts "Error: 要清理多余空行的文件路径不存在（filepath）"
       exit
     end
 
@@ -18,7 +38,7 @@ namespace :sypctl do
 
     if content != File.read(filepath)
       filepath_bak = "#{filepath}.#{Time.now.strftime('%y%m%d%H%M%S')}"
-      `cp #{filepath} #{filepath_bak}`
+      FileUtils.cp(filepath, filepath_bak)
       File.open(filepath, "w:utf-8") { |file| file.puts(content) }
 
       puts "已修改文档: #{filepath}"

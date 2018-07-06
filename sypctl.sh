@@ -50,6 +50,9 @@ case "$1" in
     bundle) # agent task
         fun_execute_bundle_rake $@
     ;;
+    print_json)
+        fun_execute_bundle_rake bundle exec rake sypctl:print_json $@
+    ;;
     crontab) # sypctl crontab jobs
         fun_update_crontab_jobs
     ;;
