@@ -6,7 +6,7 @@ require 'fileutils'
 namespace :sypctl do
   task print_json: :environment do
     unless File.exists?(ENV['filepath'].to_s)
-      puts "Error: JSON 文件路径不存在 - #{ENV['filepath']}"
+      puts "Error:\nJSON 文件路径不存在 - #{ENV['filepath']}，请使用绝对路径\n推荐命令: readlink -f #{ENV['filepath']}"
       exit
     end
 

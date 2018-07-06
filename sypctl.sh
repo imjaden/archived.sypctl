@@ -51,7 +51,12 @@ case "$1" in
         fun_execute_bundle_rake $@
     ;;
     print_json)
-        fun_execute_bundle_rake bundle exec rake sypctl:print_json $@
+        test -n "$2" && {
+            cd agent
+            bundle exec rake sypctl:print_json filepath="$2"
+        } || {
+            echo "Warning: Please offer json filepath！"
+        }
     ;;
     crontab) # sypctl crontab jobs
         fun_update_crontab_jobs
