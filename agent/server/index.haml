@@ -1,30 +1,64 @@
-.row
+.row{style: "margin-left:-12px;margin-right:-12px;"}
   %ol.breadcrumb
-    %li sypctl-agent-server
-    %li= ENV['PLATFORM_OS']
-    %li= ENV['HOSTNAME']
     %li
       = ENV['APP_RUNNER']
       @
-      = Time.now.strftime("%y-%m-%d %H:%M:%S")
+      = ENV['HOSTNAME']
+      (
+      = ENV['PLATFORM_OS']
+      )
 
-  - @file_paths.each do |file_path|
+  - @file_paths.each_with_index do |file_path, file_index|
     - config = JSON.parse(IO.read(file_path))
     %table.table.table-condensed.table-bordered.smart-table
-      %caption= "#{File.basename(file_path, ".json")}@#{File.mtime(file_path)}"
+      %caption
+        %a{onclick: "SYPCTL.modal(this);", "data-title" => File.basename(file_path, ".json"), "data-mtime" => File.mtime(file_path)}= File.basename(file_path, ".json")
       %thead
         %tr
-          - (config["headings"] || []).each do |head|
-            %th= head
+          - (config["headings"] || []).each_with_index do |head, th_index|
+            %th{"data-class" => "#{file_index}-#{th_index}", class: "#{file_index}-#{th_index}"}= head
       %tbody
         - (config["rows"] || [[]]).each_with_index do |rows, row_index|
           %tr
-            - rows.each do |row|
-              %td{style: "max-width:100px;word-break:break-all;"}= row
+            - rows.each_with_index do |row, td_index|
+              %td{class: "#{file_index}-#{td_index}", style: "max-width:100px;word-break:break-all;"}= row
+
+  #slideInfo.modal.fade{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+    .modal-dialog{role: "document"}
+      .modal-content
+        .modal-header
+          %button.close{"aria-label" => "Close", "data-dismiss" => "modal", type: "button"}
+            %span{"aria-hidden" => "true"} ×
+          %h4.modal-title 标题
+        .modal-body
+          加载中...
+        .modal-footer
+          %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}  关闭
 
   :javascript
-    function toggleShow(ctl, id) {
-      $(id + "-short").toggleClass("hidden");
-      $(id + "-all").toggleClass("hidden");
-      $(ctl).html($(id + "-short").hasClass("hidden") ? "隐藏" : "显示")
+    window.SYPCTL = {
+      modal: function(ctl) {
+        var items = [];
+
+        $("#slideInfo .modal-title").html($(ctl).data('title'));
+        items.push("文档更新时间: " + $(ctl).data('mtime'));
+        items.push("<br>隐藏/显示表格列：");
+        $(ctl).closest("table").find("th").each(function() {
+          var state = $(this).hasClass("hidden") ? "" : "checked"
+          items.push("<input type=checkbox " + state + " data-class=" + $(this).data("class") + ">" + $(this).html());
+        })
+        $("#slideInfo .modal-body").html(items.join("<br>"))
+
+        $("#slideInfo").modal("show");
+        $("input[type=checkbox]").change(function() {
+          console.log("dd")
+          var $klass = $("." + $(this).data("class"));
+          if(this.checked) {
+            $klass.removeClass("hidden");
+          } else {
+            $klass.addClass("hidden");
+          }
+        });
+      }
     }
+ 
