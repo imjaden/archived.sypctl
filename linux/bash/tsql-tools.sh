@@ -38,7 +38,7 @@ test -f /etc/yum.repos.d/mssql-server-2017.repo || {
 }
 
 command -v mssql-server > /dev/null 2>&1 || {
-    sudo yum update
+    sudo yum update -y
     sudo yum install -y mssql-server
     sudo /opt/mssql/bin/mssql-conf setup
 }
@@ -64,6 +64,13 @@ command -v tsql > /dev/null 2>&1 && tsql -C || {
 }
 
 fun_install_gem_tiny_tds_or_not
+
+if [[ "${os_type}" = "CentOS" ]]; then
+    systemctl status mssql-server
+    systemctl stop mssql-server
+elif [[ "${os_type}" = "Ubuntu" ]]; then
+    echo "${os_platform} - TODO"
+fi
 
 tiny_tds_example=$(pwd)/linux/config/tiny_tds.rb
 test -f ${tiny_tds_example} && cat ${tiny_tds_example}

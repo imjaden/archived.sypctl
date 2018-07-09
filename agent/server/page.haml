@@ -9,17 +9,19 @@
       = Time.now.strftime("%y-%m-%d %H:%M:%S")
 
   - config = JSON.parse(IO.read(@page_path))
+  - heads = config["headings"] || []
+  - width = config["width"] || (heads.empty? ? [] : Array.new(heads.length) { "#{100.0/heads.length}%" })
   %table.table.table-condensed.table-bordered.smart-table
     %caption= "#{File.basename(@page_path, ".json")}@#{File.mtime(@page_path)}"
     %thead
       %tr
-        - (config["headings"] || []).each do |head|
-          %th= head
+        - (config["headings"] || []).each_width_index do |head, index|
+          %th{style: "width:#{width.dig(index)};"= head
     %tbody
-      - (config["rows"] || [[]]).each_with_index do |rows, row_index|
+      - (config["rows"] || [[]]).each_with_index do |items, row_index|
         %tr
-          - rows.each do |row|
-            %td{style: "max-width:100px;word-break:break-all;"}= row
+          - items.each do |item|
+            %td{style: "width:#{width.dig(index)};word-break:break-all;"}= item
 
   :javascript
     function toggleShow(ctl, id) {

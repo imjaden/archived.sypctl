@@ -10,18 +10,20 @@
 
   - @file_paths.each_with_index do |file_path, file_index|
     - config = JSON.parse(IO.read(file_path))
+    - heads = config["headings"] || []
+    - width = config["width"] || (heads.empty? ? [] : Array.new(heads.length) { "#{100.0/heads.length}%" })
     %table.table.table-condensed.table-bordered.smart-table
       %caption
         %a{onclick: "SYPCTL.modal(this);", "data-title" => File.basename(file_path, ".json"), "data-mtime" => File.mtime(file_path)}= File.basename(file_path, ".json")
       %thead
         %tr
-          - (config["headings"] || []).each_with_index do |head, th_index|
-            %th{"data-class" => "#{file_index}-#{th_index}", class: "#{file_index}-#{th_index}"}= head
+          - heads.each_with_index do |head, th_index|
+            %th{"data-class" => "#{file_index}-#{th_index}", class: "#{file_index}-#{th_index}", style: "width: #{width.dig(th_index)};"}= head
       %tbody
         - (config["rows"] || [[]]).each_with_index do |rows, row_index|
           %tr
             - rows.each_with_index do |row, td_index|
-              %td{class: "#{file_index}-#{td_index}", style: "max-width:100px;word-break:break-all;"}= row
+              %td{class: "#{file_index}-#{td_index}", style: "width: #{width.dig(td_index)};word-break:break-all;"}= row
 
   #slideInfo.modal.fade{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
     .modal-dialog{role: "document"}

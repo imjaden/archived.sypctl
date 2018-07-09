@@ -24,9 +24,6 @@ app_env=${3:-'production'}
 unicorn_config_file=config/unicorn.rb
 unicorn_pid_file=tmp/pids/unicorn.pid
 
-bundle_command=$(rbenv which bundle)
-gem_command=$(rbenv which gem)
-
 cd "${app_root_path}" || exit 1
 function title() { printf "\n%s\n\n" "$1"; }
 case "$1" in
@@ -63,16 +60,16 @@ case "$1" in
         fi
     ;;
     bundle)
-        $bundle_command install --local > /dev/null 2>&1
+        bundle install --local > /dev/null 2>&1
         if [[ $? -eq 0 ]]; then
             echo -e 'bundle install --local successfully'
         else
-            $bundle_command install
+            bundle install
         fi
     ;;
     start)
         mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
-        command_text="${bundle_command} exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D"
+        command_text="bundle exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D"
         echo "\$ ${command_text}"
         ${command_text}
         if [[ $? -eq 0 ]]; then
