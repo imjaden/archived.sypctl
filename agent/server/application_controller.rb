@@ -59,7 +59,11 @@ class ApplicationController < Sinatra::Base
   get '/page', '/monitor/page' do
     @page_path = app_root_join("monitor/pages/#{params[:page]}")
 
-    haml :page, layout: settings.layout
+    if File.exists?(@page_path)
+      haml :page, layout: settings.layout
+    else
+      "404 - File Not Found!"
+    end
   end
 
   protected

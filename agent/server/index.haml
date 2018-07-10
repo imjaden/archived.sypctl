@@ -8,22 +8,30 @@
       = ENV['PLATFORM_OS']
       )
 
-  - @file_paths.each_with_index do |file_path, file_index|
-    - config = JSON.parse(IO.read(file_path))
-    - heads = config["headings"] || []
-    - width = config["width"] || (heads.empty? ? [] : Array.new(heads.length) { "#{100.0/heads.length}%" })
-    %table.table.table-condensed.table-bordered.smart-table
-      %caption
-        %a{onclick: "SYPCTL.modal(this);", "data-title" => File.basename(file_path, ".json"), "data-mtime" => File.mtime(file_path)}= File.basename(file_path, ".json")
-      %thead
-        %tr
-          - heads.each_with_index do |head, th_index|
-            %th{"data-class" => "#{file_index}-#{th_index}", class: "#{file_index}-#{th_index}", style: "width: #{width.dig(th_index)};"}= head
-      %tbody
-        - (config["rows"] || [[]]).each_with_index do |rows, row_index|
-          %tr
-            - rows.each_with_index do |row, td_index|
-              %td{class: "#{file_index}-#{td_index}", style: "width: #{width.dig(td_index)};word-break:break-all;"}= row
+  #accordion.panel-group{"aria-multiselectable" => "true", :role => "tablist"}
+    - @file_paths.each_with_index do |file_path, file_index|
+      - config = JSON.parse(IO.read(file_path))
+      - heads = config["headings"] || []
+      - width = config["width"] || (heads.empty? ? [] : Array.new(heads.length) { "#{100.0/heads.length}%" })
+      .panel.panel-default
+        .panel-heading{role: "tab", id: "heading#{file_index}"}
+          %h4.panel-title
+            %a{"aria-controls" => "collapse#{file_index}", "aria-expanded" => "true", "data-parent" => "#accordion", "data-toggle" => "collapse", href: "#collapse#{file_index}", role: "button"}
+              = File.basename(file_path, ".json") 
+        .panel-collapse.collapse{class: "#{'in' if file_index.zero?}", "aria-labelledby" => "heading#{file_index}", role: "tabpanel", id: "collapse#{file_index}"}
+          .panel-body
+            %table.table.table-condensed.table-bordered.smart-table
+              %caption
+                %a{onclick: "SYPCTL.modal(this);", "data-title" => File.basename(file_path, ".json"), "data-mtime" => File.mtime(file_path)} 数据列设置
+              %thead
+                %tr
+                  - heads.each_with_index do |head, th_index|
+                    %th{"data-class" => "#{file_index}-#{th_index}", class: "#{file_index}-#{th_index}", style: "width: #{width.dig(th_index)};"}= head
+              %tbody
+                - (config["rows"] || [[]]).each_with_index do |rows, row_index|
+                  %tr
+                    - rows.each_with_index do |row, td_index|
+                      %td{class: "#{file_index}-#{td_index}", style: "width: #{width.dig(td_index)};word-break:break-all;"}= row
 
   #slideInfo.modal.fade{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
     .modal-dialog{role: "document"}

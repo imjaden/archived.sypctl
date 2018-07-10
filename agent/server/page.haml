@@ -1,31 +1,27 @@
-.row
+.row{style: "margin-left:-12px;margin-right:-12px;"}
   %ol.breadcrumb
-    %li sypctl-agent-server
-    %li= ENV['PLATFORM_OS']
-    %li= ENV['HOSTNAME']
     %li
-      = ENV['APP_RUNNER']
-      @
-      = Time.now.strftime("%y-%m-%d %H:%M:%S")
+      %a{href: "/"}
+        = ENV['APP_RUNNER']
+        @
+        = ENV['HOSTNAME']
+        (
+        = ENV['PLATFORM_OS']
+        )
 
   - config = JSON.parse(IO.read(@page_path))
   - heads = config["headings"] || []
   - width = config["width"] || (heads.empty? ? [] : Array.new(heads.length) { "#{100.0/heads.length}%" })
+  :css
+    caption, .table>thead>tr>th, .table>tbody>tr>td { padding-left: 10px; }
   %table.table.table-condensed.table-bordered.smart-table
     %caption= "#{File.basename(@page_path, ".json")}@#{File.mtime(@page_path)}"
     %thead
       %tr
-        - (config["headings"] || []).each_width_index do |head, index|
-          %th{style: "width:#{width.dig(index)};"= head
+        - heads.each_with_index do |head, th_index|
+          %th{style: "width:#{width.dig(th_index)};"}= head
     %tbody
       - (config["rows"] || [[]]).each_with_index do |items, row_index|
         %tr
           - items.each do |item|
-            %td{style: "width:#{width.dig(index)};word-break:break-all;"}= item
-
-  :javascript
-    function toggleShow(ctl, id) {
-      $(id + "-short").toggleClass("hidden");
-      $(id + "-all").toggleClass("hidden");
-      $(ctl).html($(id + "-short").hasClass("hidden") ? "隐藏" : "显示")
-    }
+            %td{style: "width:#{width.dig(row_index)};word-break:break-all;"}= item
