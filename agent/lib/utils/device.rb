@@ -46,6 +46,10 @@ module Utils
         [{"Filesystem":"/dev/mapper/centos_java1-root","Size":"50G","Used":"567M","Avail":"50G","Use%":"2%","MountedOn":"/"},{"Filesystem":"devtmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/dev"},{"Filesystem":"tmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/dev/shm"},{"Filesystem":"tmpfs","Size":"16G","Used":"25M","Avail":"16G","Use%":"1%","MountedOn":"/run"},{"Filesystem":"tmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/sys/fs/cgroup"},{"Filesystem":"/dev/mapper/centos_java1-usr","Size":"100G","Used":"3.1G","Avail":"97G","Use%":"4%","MountedOn":"/usr"},{"Filesystem":"/dev/sda1","Size":"1014M","Used":"167M","Avail":"848M","Use%":"17%","MountedOn":"/boot"},{"Filesystem":"/dev/mapper/centos_java1-tmp","Size":"10G","Used":"33M","Avail":"10G","Use%":"1%","MountedOn":"/tmp"},{"Filesystem":"/dev/mapper/centos_java1-opt","Size":"10G","Used":"67M","Avail":"10G","Use%":"1%","MountedOn":"/opt"},{"Filesystem":"/dev/mapper/centos_java1-home","Size":"100G","Used":"33M","Avail":"100G","Use%":"1%","MountedOn":"/home"},{"Filesystem":"/dev/mapper/centos_java1-data","Size":"600G","Used":"35M","Avail":"600G","Use%":"1%","MountedOn":"/data"},{"Filesystem":"/dev/mapper/centos_java1-var","Size":"100G","Used":"1.4G","Avail":"99G","Use%":"2%","MountedOn":"/var"},{"Filesystem":"tmpfs","Size":"3.2G","Used":"0","Avail":"3.2G","Use%":"0%","MountedOn":"/run/user/0"}]
       end
 
+      def uptime
+        (`uptime`.strip.scan(/(.*?)\s+up\s+(.*?),\s+(.*?),\s+(.*?),\s+(.*?)$/) || []).flatten
+      end
+
       def lan_ip
         '0.0.0.0'
       end
@@ -101,7 +105,7 @@ module Utils
       end
 
       def cpu
-        `cat /proc/cpuinfo| grep "processor"| wc -l`
+        `cat /proc/cpuinfo| grep "processor"| wc -l`.strip
       end
 
       # $ df
@@ -172,6 +176,14 @@ module Utils
             hsh[title] = disk[index]
           end
         end
+      end
+
+      # $ uptime
+      # 13:13:34 up 7 days, 14:00,  1 user,  load average: 38.79, 43.28, 42.16
+      #
+      # ["13:10:20", "7 days", "13:57", "1 user", "load average: 54.57, 45.68, 42.34"]
+      def uptime
+        (`uptime`.strip.scan(/(.*?)\s+up\s+(.*?),\s+(.*?),\s+(.*?),\s+(.*?)$/) || []).flatten
       end
 
       def lan_ip
@@ -268,21 +280,50 @@ module Utils
       end
 
       def cpu_usage
-        'todo'
+        hsh = cpu_usage_description
+        "#{hsh[:latest_load]}/#{hsh[:cpu]}"
       end
 
+      # ["13:10:20", "7 days", "13:57", "1 user", "load average: 54.57, 45.68, 42.34"]
       def cpu_usage_description
-        'todo'
+        system_time, runned_days, runned_hours, connected_users, load_average = klass.uptime
+        {
+          system_time: system_time,
+          running_time: "#{runned_days} #{runned_hours}",
+          connected_users: connected_users,
+          load_average: load_average.split(":")[1],
+          latest_load: load_average.split(":")[1].strip.split(/,/)[0],
+          cpu: cpu
+        }
+      rescue => e
+        {exception: e.message}
       end
 
+      def file_size_convertor(file_size)
+        file_size = file_size.to_s.downcase.gsub("i", "")
+        unit = file_size[-1]
+        size = file_size.sub(unit, "").to_f
+        unit_size = case unit
+        when "m" then 1
+        when "g" then 1024
+        when "t" then 1024**2
+        when "p" then 1024**3
+        when "e" then 1024**3
+        else 1
+        end
+
+        (size * unit_size).round(1)
+      rescue => e
+        0
+      end
+
+      # bug#fix 
+      # `df -h` 输出的标题头有可能为中文，读取 hash 时无法确实 key 名称（i18n 太多可能）
       def disk_usage
         arr = disk_usage_description
-        disk_monitor = ENV['DISK_MONITOR'] || '/'
-        item = arr.find { |hsh| (hsh[:MountedOn] || hsh['MountedOn']) == disk_monitor }
-        item = arr.find { |hsh| (hsh[:MountedOn] || hsh['MountedOn']) == '/home' } unless item
-        item = arr.find { |hsh| (hsh[:MountedOn] || hsh['MountedOn']) == '/data' } unless item
+        maximum_item = arr.max { |a, b| file_size_convertor(a.values[1]) <=> file_size_convertor(a.values[1]) }
 
-        item[:'Use%'] || item['Use%']
+        maximum_item.values[4]
       rescue => e
         e.message
       end
