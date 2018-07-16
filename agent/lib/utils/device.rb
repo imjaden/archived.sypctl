@@ -47,7 +47,7 @@ module Utils
       end
 
       def uptime
-        (`uptime`.strip.scan(/(.*?)\s+up\s+(.*?),\s+(.*?),\s+(.*?),\s+(.*?)$/) || []).flatten
+        (`uptime`.strip.scan(/(.*?)\s+up\s+(.*?),\s+(\d+)\suser[s],\s+load\saverage[s]:(.*?)$/) || []).flatten
       end
 
       def lan_ip
@@ -181,9 +181,17 @@ module Utils
       # $ uptime
       # 13:13:34 up 7 days, 14:00,  1 user,  load average: 38.79, 43.28, 42.16
       #
-      # ["13:10:20", "7 days", "13:57", "1 user", "load average: 54.57, 45.68, 42.34"]
-      def uptime
-        (`uptime`.strip.scan(/(.*?)\s+up\s+(.*?),\s+(.*?),\s+(.*?),\s+(.*?)$/) || []).flatten
+      # > `uptime`
+      # => "18:04  up 2 days,  8:03, 10 users, load averages: 1.53 1.62 1.60\n"
+      #> (`uptime`.strip.scan(/^(.*?)\s+up\s+(.*?),\s+(\d+)\susers?,\s+load\saverages?:\s?(.*?)$/) || []).flatten
+      # => ["18:04", "2 days,  8:03", "10", "1.62 1.64 1.61"]
+      #
+      # > `uptime`
+      # => " 18:05:04 up 21:22,  1 user,  load average: 3.46, 3.70, 3.74\n"
+      # > (`uptime`.strip.scan(/^(.*?)\s+up\s+(.*?),\s+(\d+)\susers?,\s+load\saverages?:\s?(.*?)$/) || []).flatten
+      # => ["18:05:04", "21:22", "1", "3.46, 3.70, 3.74"]
+      def uptime  
+        (`uptime`.strip.scan(/^(.*?)\s+up\s+(.*?),\s+(\d+)\susers?,\s+load\saverages?:\s?(.*?)$/) || []).flatten
       end
 
       def lan_ip
@@ -286,14 +294,15 @@ module Utils
 
       # ["13:10:20", "7 days", "13:57", "1 user", "load average: 54.57, 45.68, 42.34"]
       def cpu_usage_description
-        system_time, runned_days, runned_hours, connected_users, load_average = klass.uptime
+        system_time, running_time, connected_users, load_average = klass.uptime
         {
           system_time: system_time,
-          running_time: "#{runned_days} #{runned_hours}",
+          running_time: running_time,
           connected_users: connected_users,
-          load_average: load_average.split(":")[1],
-          latest_load: load_average.split(":")[1].strip.split(/,/)[0],
-          cpu: cpu
+          load_average: load_average.strip,
+          latest_load: load_average.strip.split(/,/)[0],
+          cpu: cpu,
+          uptime: `uptime`.strip
         }
       rescue => e
         {exception: e.message}
