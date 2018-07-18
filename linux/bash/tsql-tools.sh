@@ -29,6 +29,8 @@ command -v tsql > /dev/null 2>&1 && {
     tsql -C
     fun_install_gem_tiny_tds_or_not
 
+    systemctl status mssql-server
+    systemctl stop mssql-server
     title "MSSQL 开发环境已部署！"
     exit 0
 }
@@ -37,7 +39,7 @@ test -f /etc/yum.repos.d/mssql-server-2017.repo || {
     curl https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo | sudo tee /etc/yum.repos.d/mssql-server-2017.repo
 }
 
-command -v mssql-server > /dev/null 2>&1 || {
+yum info mssql-server || {
     sudo yum update -y
     sudo yum install -y mssql-server
     sudo /opt/mssql/bin/mssql-conf setup
@@ -57,9 +59,9 @@ command -v tsql > /dev/null 2>&1 && tsql -C || {
     wget ftp://ftp.freetds.org/pub/freetds/stable/freetds-1.00.27.tar.gz
     tar -xzf freetds-1.00.27.tar.gz
     cd freetds-1.00.27
-    ./configure --prefix=/usr/local --with-tdsver=7.3
-    make
-    make install
+    sudo ./configure --prefix=/usr/local --with-tdsver=7.3
+    sudo make
+    sudo make install
     cd ..
 }
 

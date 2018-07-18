@@ -52,8 +52,13 @@ namespace :sypctl do
   task deploy: :environment do
     task_list = IO.readlines('config/deploy_tasks.sh').map(&:strip).delete_if { |line| line.empty? or line.start_with?("#") }
     server_list = YAML.load(IO.read('config/server.yaml'))
+    todo_server = IO.readlines('config/server.list').map(&:strip).reject(&:empty?)
+    server_keys = server_list.keys.select do |node|
+      config = server_list[node]
+      todo_server.include?(config['description'])
+    end
     
-    server_list.keys.map do |node|
+    server_keys.map do |node|
       config = server_list[node]
       Thread.new(config) do |config|
         device_id = "#{config['outer_ip']}:#{config['outer_port']}@#{config['description']}"
