@@ -106,6 +106,9 @@ case "$1" in
     agent:server)
         fun_agent_server "$2" "$3"
     ;;
+    agent:device)
+        fun_agent_server "$2" "$3"
+    ;;
     linux:date)
         bash linux/bash/date-tools.sh "$2" "$3"
     ;;

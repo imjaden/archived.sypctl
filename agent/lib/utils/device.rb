@@ -218,10 +218,10 @@ module Utils
         e.message
       end
 
-      def uuid
+      def uuid(use_cache = true)
         uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, "device-uuid")
 
-        if File.exists?(uuid_tmp_path)
+        if use_cache && File.exists?(uuid_tmp_path)
           device_uuid = File.read(uuid_tmp_path).strip
           
           if device_uuid.empty?

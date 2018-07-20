@@ -24,13 +24,16 @@ def password
   File.read(password_tmp_path).strip
 end
 
-def print_agent_info
-  puts agent_json_path
+def print_agent_info(print_or_not = true)
+  puts agent_json_path if print_or_not
   if File.exists?(agent_json_path)
-    puts JSON.pretty_generate(JSON.parse(File.read(agent_json_path)))
+    data_hash = JSON.parse(File.read(agent_json_path))
+    puts JSON.pretty_generate(data_hash) if print_or_not
   else
-    puts "该主机未注册，请执行命令 \`sypctl agent:task guard\`"
+    data_hash = {}
+    puts "该主机未注册，请执行命令 \`sypctl agent:task guard\`" if print_or_not
   end
+  data_hash
 end
 
 def print_agent_log
@@ -44,9 +47,9 @@ def print_agent_log
   end
 end
 
-def agent_device_init_info
+def agent_device_init_info(use_cache = true)
   {
-    uuid: Utils::Device.uuid,
+    uuid: Utils::Device.uuid(use_cache),
     hostname: Utils::Device.hostname,
     username: 'sypagent',
     password: password,

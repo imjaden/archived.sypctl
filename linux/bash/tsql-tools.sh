@@ -29,8 +29,8 @@ command -v tsql > /dev/null 2>&1 && {
     tsql -C
     fun_install_gem_tiny_tds_or_not
 
-    systemctl status mssql-server
-    systemctl stop mssql-server
+    sudo systemctl status mssql-server
+    sudo systemctl stop mssql-server
     title "MSSQL 开发环境已部署！"
     exit 0
 }
@@ -68,8 +68,8 @@ command -v tsql > /dev/null 2>&1 && tsql -C || {
 fun_install_gem_tiny_tds_or_not
 
 if [[ "${os_type}" = "CentOS" ]]; then
-    systemctl status mssql-server
-    systemctl stop mssql-server
+    sudo systemctl status mssql-server
+    sudo systemctl stop mssql-server
 elif [[ "${os_type}" = "Ubuntu" ]]; then
     echo "${os_platform} - TODO"
 fi

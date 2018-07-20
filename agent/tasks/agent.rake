@@ -45,4 +45,19 @@ namespace :agent do
     klass = ['Utils', platform].inject(Object) { |obj, klass| obj.const_get(klass) }
     puts klass.device_uuid
   end
+
+  desc 'print device info'
+  task device: :environment do 
+    submited_hash = print_agent_info(false)
+    current_hash = agent_device_init_info
+
+    rows = %w(hostname username password os_type os_version lan_ip wan_ip memory cpu disk).map do |key|
+      [key, submited_hash[key], current_hash[key.to_sym]]
+    end
+
+    puts Time.now.strftime("timestamp: %Y-%m-%d %H:%M:%S")
+    puts Terminal::Table.new(headings: %w(option submited current), rows: rows)
+    puts "submited uuid: #{submited_hash['uuid']}"
+    puts "current  uuid: #{current_hash[:uuid]}"
+  end
 end
