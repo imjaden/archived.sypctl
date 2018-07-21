@@ -21,7 +21,10 @@ case "$1" in
         echo "HomePath: ${SYPCTL_HOME}"
     ;;
     git:pull|gp|upgrade|update)
-        fun_upgrade
+        fun_sypctl_upgrade
+    ;;
+    device:update)
+        fun_update_device
     ;;
     clean)
         fun_clean
@@ -104,9 +107,6 @@ case "$1" in
         fun_agent_job_daemon
     ;;
     agent:server)
-        fun_agent_server "$2" "$3"
-    ;;
-    agent:device)
         fun_agent_server "$2" "$3"
     ;;
     linux:date)

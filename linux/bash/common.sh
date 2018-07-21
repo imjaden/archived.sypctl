@@ -139,20 +139,22 @@ function fun_print_sypctl_help() {
     echo "sypctl agent:task guard     代理守护者，注册、提交功能"
     echo "sypctl agent:task info      查看注册信息"
     echo "sypctl agent:task log       查看提交日志"
+    echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
     echo "sypctl agent:job:daemon     服务器端任务的监护者"
     echo
     echo "常规操作："
-    echo "sypctl help         sypctl 支持的命令参数列表，及已部署服务的信息"
-    echo "sypctl deploy       部署服务引导，并安装部署输入 \`y\` 确认的服务"
-    echo "sypctl deployed     查看已部署服务"
-    echo "sypctl env          部署基础环境依赖：JDK/Rbenv/Ruby"
-    echo "sypctl upgrade      更新 sypctl 源码"
+    echo "sypctl help          sypctl 支持的命令参数列表，及已部署服务的信息"
+    echo "sypctl deploy        部署服务引导，并安装部署输入 \`y\` 确认的服务"
+    echo "sypctl deployed      查看已部署服务"
+    echo "sypctl env           部署基础环境依赖：JDK/Rbenv/Ruby"
+    echo "sypctl upgrade       更新 sypctl 源码"
+    echo "sypctl device:update 更新重新提交设备信息"
     echo 
-    echo "sypctl monitor      已部署的服务进程状态，若未监测到进程则启动该服务"
-    echo "sypctl start        启动已部署的服务进程"
-    echo "sypctl status       已部署的服务进程状态"
-    echo "sypctl restart      重启已部署的服务进程"
-    echo "sypctl stop         关闭已部署的服务进程"
+    echo "sypctl monitor       已部署的服务进程状态，若未监测到进程则启动该服务"
+    echo "sypctl start         启动已部署的服务进程"
+    echo "sypctl status        已部署的服务进程状态"
+    echo "sypctl restart       重启已部署的服务进程"
+    echo "sypctl stop          关闭已部署的服务进程"
     echo
     echo "sypctl toolkit <SYPCTL 脚本名称> [参数]"
 
@@ -162,8 +164,8 @@ function fun_print_sypctl_help() {
     echo "sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下："
     echo "                      - 生意+ shengyiplus"
     echo "                      - 睿商+ ruishangplus"
-    echo "                      - 永辉 yh_android"
-    echo "                      - 保臻 shenzhenpoly"
+    echo "                      - 永辉  yh_android"
+    echo "                      - 保臻  shenzhenpoly"
     echo "sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上"
     echo 
     echo "Current version is $VERSION"
@@ -180,7 +182,10 @@ function fun_print_logo() {
     echo
 }
 
-function fun_upgrade() {
+#
+# sypctl 版本升级后的处理逻辑
+#
+function fun_sypctl_upgrade() {
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     title "\$ git pull origin ${git_current_branch}"
@@ -206,7 +211,6 @@ function fun_upgrade() {
       echo ${timestamp} > .bundle-done
     fi
     test -f local-sypctl-server && bash tool.sh restart
-    cd ..
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
@@ -214,13 +218,48 @@ function fun_upgrade() {
         exit 0
     fi
 
-    test -f device-uuid && mv device-uuid init-uuid # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；即支持 device uuid 更新
-    rm -f db/agent.json # 升级后重新注册
+    # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；
+    # 即支持 device uuid 更新
+    test -f device-uuid && mv device-uuid init-uuid
+    # 升级后重新注册
+    test -f db/agent.json && cp db/agent.json tmp/agent.json-${timestamp}
+    cd ..
 
     fun_print_logo
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
     sypctl help
+}
+
+#
+# 同步设备信息至服务器
+#
+function fun_update_device() {
+    echo "\$ cd agent"
+    cd agent
+    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
+    echo "\$ bundle install ..."
+    bundle install
+    if [[ $? -eq 0 ]]; then
+      echo "\$ bundle install --local successfully"
+      echo ${timestamp} > .bundle-done
+    fi
+
+    echo "\$ bundle exec rake agent:device"
+    bundle exec rake agent:device
+
+    echo "\$ mv device-uuid init-uuid"
+    # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；
+    # 即支持 device uuid 更新
+    test -f device-uuid && mv device-uuid init-uuid
+    # 升级后重新注册
+    test -f db/agent.json && mv db/agent.json tmp/agent.json-${timestamp}
+
+    echo "\$ bundle exec rake agent:device"
+    bundle exec rake agent:guard
+
+    echo "\$ bundle exec rake agent:device"
+    bundle exec rake agent:device
 }
 
 function fun_clean() {
@@ -578,6 +617,7 @@ function fun_print_init_agent_help() {
     echo "sypctl agent:task guard     代理守护者，注册、提交功能"
     echo "sypctl agent:task info      查看注册信息"
     echo "sypctl agent:task log       查看提交日志"
+    echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
     echo "sypctl agent:job:daemon     服务器端任务的监护者"
     echo 
     echo "Current version is $VERSION"

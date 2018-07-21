@@ -84,12 +84,12 @@ end
 
 def post_to_server_register
   url = "#{ENV['SYPCTL-API']}/api/v1/register"
-  params = {device: agent_device_init_info}
-
+  params = {device: agent_device_init_info(false)}
+   
   init_uuid_path = agent_root_join("init-uuid")
   if File.exists?(init_uuid_path)
-    init_uuid = File.read(init_uuid_path).strip 
-    params[:uuid] = init_uuid if init_uuid.length >= 36
+    init_uuid = File.read(init_uuid_path).strip
+    params[:uuid] = init_uuid if init_uuid.length >= 10
   end
   human_name_path = agent_root_join("human-name")
   params[:device][:human_name] = File.read(human_name_path).strip if File.exists?(human_name_path)
