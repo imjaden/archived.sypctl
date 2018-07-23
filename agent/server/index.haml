@@ -11,18 +11,20 @@
   #accordion.panel-group{"aria-multiselectable" => "true", :role => "tablist"}
     - @file_paths.each_with_index do |file_path, file_index|
       - config = JSON.parse(IO.read(file_path))
+      - title = config["title"] || File.basename(file_path, ".json") 
+      - description = "#{config['description'] || '文档描述为空'}<br>文档更新时间：#{File.mtime(file_path)}"
       - heads = config["headings"] || []
       - width = config["width"] || (heads.empty? ? [] : Array.new(heads.length) { "#{100.0/heads.length}%" })
       .panel.panel-default
         .panel-heading{role: "tab", id: "heading#{file_index}"}
           %h4.panel-title
             %a{"aria-controls" => "collapse#{file_index}", "aria-expanded" => "true", "data-parent" => "#accordion", "data-toggle" => "collapse", href: "#collapse#{file_index}", role: "button"}
-              = File.basename(file_path, ".json") 
+              = title
         .panel-collapse.collapse{class: "#{'in' if file_index.zero?}", "aria-labelledby" => "heading#{file_index}", role: "tabpanel", id: "collapse#{file_index}"}
           .panel-body
             %table.table.table-condensed.table-bordered.smart-table
               %caption
-                %a{onclick: "SYPCTL.modal(this);", "data-title" => File.basename(file_path, ".json"), "data-mtime" => File.mtime(file_path)} 数据列设置
+                %a{onclick: "SYPCTL.modal(this);", "data-title" => title, "data-description" => description} 数据列设置
               %thead
                 %tr
                   - heads.each_with_index do |head, th_index|
@@ -51,7 +53,7 @@
         var items = [];
 
         $("#slideInfo .modal-title").html($(ctl).data('title'));
-        items.push("文档更新时间: " + $(ctl).data('mtime'));
+        items.push($(ctl).data('description'));
         items.push("<br>隐藏/显示表格列：");
         $(ctl).closest("table").find("th").each(function() {
           var state = $(this).hasClass("hidden") ? "" : "checked"

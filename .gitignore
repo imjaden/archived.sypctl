@@ -18,6 +18,8 @@ etl/tmp
 
 agent/env-files
 agent/human-name
+agent/web-title
+agent/web-favicon
 agent/init-uuid
 agent/device-uuid
 agent/password

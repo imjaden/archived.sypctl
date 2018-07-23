@@ -128,19 +128,26 @@ function fun_user_expect_to_install_package_guides() {
     done
 }
 
-function fun_print_sypctl_help() {
-    echo "Usage: sypctl <command> [<args>]"
-    echo 
-    echo "代理操作（可选）："
+function fun_print_init_agent_command_help() {
     echo "sypctl agent:init help"
-    echo "sypctl agent:init uuid <服务器端分配的 UUID>"
+    echo "sypctl agent:init uuid <服务器端已分配的 UUID>"
     echo "sypctl agent:init human_name <业务名称>"
+    echo "sypctl agent:init title <自定义代理 Web 的标题>"
+    echo "sypctl agent:init favicon <自定义代理 Web 的 favicon 图片链接>"
+    echo "sypctl agent:init list      初始化配置信息列表"
     echo
     echo "sypctl agent:task guard     代理守护者，注册、提交功能"
     echo "sypctl agent:task info      查看注册信息"
     echo "sypctl agent:task log       查看提交日志"
     echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
     echo "sypctl agent:job:daemon     服务器端任务的监护者"
+}
+
+function fun_print_sypctl_help() {
+    echo "Usage: sypctl <command> [<args>]"
+    echo 
+    echo "代理操作（可选）："
+    fun_print_init_agent_command_help
     echo
     echo "常规操作："
     echo "sypctl help          sypctl 支持的命令参数列表，及已部署服务的信息"
@@ -180,6 +187,60 @@ function fun_print_logo() {
     echo '     "#   #    #      #        #    #'
     echo ' "mmm#"   #    #       "mmm"   #    #mmmmm'
     echo
+}
+
+
+function fun_print_init_agent_help() {
+    echo "Usage: sypctl <command> [<args>]"
+    echo 
+    fun_print_init_agent_command_help
+    echo 
+    echo "Current version is $VERSION"
+    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+}
+
+#
+# 自定义初始化 agent 配置
+#
+function fun_init_agent() {
+    case "$1" in
+        uuid)
+            test -n "$2" && {
+                echo "$2" > agent/init-uuid
+                rm -f agent/db/agent.json
+            } || sypctl agent:init help
+        ;;
+        title)
+            test -n "$2" && {
+                echo "$2" > agent/web-title
+            } || sypctl agent:init help
+        ;;
+        favicon)
+            test -n "$2" && {
+                echo "$2" > agent/web-favicon
+            } || sypctl agent:init help
+        ;;
+        human_name)
+            test -n "$2" && {
+                echo "$2" > agent/human-name
+                rm -f agent/db/agent.json
+                sypctl agent:task guard
+                sypctl agent:task info
+            } || sypctl agent:init help
+        ;;
+        list)
+            echo "uuid       : $([[ -f agent/init-uuid ]] && cat agent/init-uuid || echo 'not-set')"
+            echo "human_name : $([[ -f agent/human_name ]] && cat agent/human_name || echo 'not-set')"
+            echo "title      : $([[ -f agent/web-title ]] && cat agent/web-title || echo 'not-set')"
+            echo "favicon    : $([[ -f agent/web-favicon ]] && cat agent/web-favicon || echo 'not-set')"
+        ;;
+        help)
+            fun_print_init_agent_help
+        ;;
+        *)
+            fun_print_init_agent_help
+        ;;
+    esac
 }
 
 #
@@ -605,48 +666,6 @@ function fun_update_rc_local() {
         echo "/etc/rc.local"
         echo "/etc/rc.d/rc.local"
     }
-}
-
-function fun_print_init_agent_help() {
-    echo "Usage: sypctl <command> [<args>]"
-    echo 
-    echo "sypctl agent:init help"
-    echo "sypctl agent:init uuid <服务器端分配的 UUID>"
-    echo "sypctl agent:init human_name <业务名称>"
-    echo
-    echo "sypctl agent:task guard     代理守护者，注册、提交功能"
-    echo "sypctl agent:task info      查看注册信息"
-    echo "sypctl agent:task log       查看提交日志"
-    echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
-    echo "sypctl agent:job:daemon     服务器端任务的监护者"
-    echo 
-    echo "Current version is $VERSION"
-    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
-}
-
-function fun_init_agent() {
-    case "$1" in
-        uuid)
-            test -n "$2" && {
-                echo "$2" > agent/init-uuid
-                rm -f agent/db/agent.json
-            } || sypctl agent:init help
-        ;;
-        human_name)
-            test -n "$2" && {
-                echo "$2" > agent/human-name
-                rm -f agent/db/agent.json
-                sypctl agent:task guard
-                sypctl agent:task info
-            } || sypctl agent:init help
-        ;;
-        help)
-            fun_print_init_agent_help
-        ;;
-        *)
-            fun_print_init_agent_help
-        ;;
-    esac
 }
 
 function fun_agent_job_daemon() {
