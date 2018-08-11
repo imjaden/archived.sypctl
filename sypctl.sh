@@ -6,7 +6,7 @@
 #
 ########################################
 #
-current_path="$(pwd)"
+export SYPCTL_EXECUTE_PATH="$(pwd)"
 test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
 cd ${SYPCTL_HOME}
 source linux/bash/common.sh
@@ -56,7 +56,11 @@ case "$1" in
     print_json)
         test -n "$2" && {
             cd agent
-            bundle exec rake sypctl:print_json filepath="$2"
+            json_path="$2"
+            test -f "${json_path}" || {
+                json_path="${SYPCTL_EXECUTE_PATH}/${json_path}"
+            }
+            bundle exec rake sypctl:print_json filepath="${json_path}"
         } || {
             echo "Warning: Please offer json filepath！"
         }
@@ -129,4 +133,4 @@ case "$1" in
     ;;
 esac
 
-cd ${current_path}
+cd ${SYPCTL_EXECUTE_PATH}

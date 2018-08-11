@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.70'
+VERSION='0.0.71'
 current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -180,6 +180,8 @@ function fun_print_sypctl_help() {
 }
 
 function fun_print_logo() {
+    # figlet SYPCTL
+    # toilet SYPCTL
     echo 
     echo '  mmmm m     m mmmmm    mmm mmmmmmm m'
     echo ' #"   " "m m"  #   "# m"   "   #    #'
@@ -537,7 +539,7 @@ function fun_execute_bundle_rake() {
         test -d logs || mkdir logs && { 
             log_count=$(ls logs/ | grep '.log' | wc -l)
             if [[ $log_count -gt 0 ]]; then
-                archived_path=logs/archived/${timestamp}
+                archived_path=tmp/archived/${timestamp}
                 mkdir -p ${archived_path}
                 mv logs/*.log ${archived_path}/
             fi

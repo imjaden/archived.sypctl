@@ -24,6 +24,7 @@ $LOAD_PATH.unshift(%(#{root_path}/server))
 
 sypctl_home = File.join(root_path, "../sypctl.sh")
 ENV['PLATFORM_OS']        = `bash #{sypctl_home} variable os_platform`.strip.downcase rescue `uname -s`
+ENV['EXECUTE_PATH']       = `echo ${SYPCTL_EXECUTE_PATH}`.strip
 ENV['APP_RUNNER']         = `whoami`.strip.downcase
 ENV['HOSTNAME']           = `hostname`.strip.downcase
 ENV['WEB_TITLE']          = File.read("#{root_path}/web-title").strip rescue "生意+ 代理"

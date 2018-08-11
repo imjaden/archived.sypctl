@@ -17,6 +17,7 @@ etl/logs
 etl/tmp
 
 agent/env-files
+agent/execute-path
 agent/human-name
 agent/web-title
 agent/web-favicon
@@ -32,7 +33,7 @@ agent/config/deploy_tasks.sh
 agent/logs/
 agent/tmp/
 agent/jobs/
-agent/db/agent.json
+agent/db/*.json
 agent/db/records-*
 agent/monitor/
 
