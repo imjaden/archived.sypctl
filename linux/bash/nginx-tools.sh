@@ -144,6 +144,5 @@ case "$1" in
         logger "    $0 install"
         logger "    $0 start"
         logger "    $0 monitor"
-        logger "    $0 check"
     ;;
 esac

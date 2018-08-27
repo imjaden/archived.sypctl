@@ -38,7 +38,7 @@ else
 fi
 
 command -v yum > /dev/null && {
-    packages=(git rdate dos2unix vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
+    packages=(git rdate dos2unix vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel mysql-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
     for package in ${packages[@]}; do
       rpm -q ${package} > /dev/null 2>&1 || {
           printf "installing ${package}..."
@@ -99,7 +99,7 @@ function fun_rbenv_install_ruby() {
     rbenv global 2.3.0
 
     gem install bundle
-    bundle config mirror.https://rubygems.org https://gems.ruby-china.org
+    bundle config mirror.https://rubygems.org https://gems.ruby-china.com
     bundle config build.nokogiri --use-system-libraries
 
     ruby -v

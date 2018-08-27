@@ -53,7 +53,7 @@ case "$1" in
 
         cp -f ${redis_install_path}/${redis_version}/src/redis-server /usr/local/bin/
         cp -f ${redis_install_path}/${redis_version}/src/redis-cli /usr/local/bin/
-        test ! -f /etc/redis/redis.conf || {
+        test -f /etc/redis/redis.conf || {
             mkdir -p /etc/redis/
             cp ${redis_install_path}/${redis_version}/redis.conf /etc/redis/
         }

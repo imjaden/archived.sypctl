@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.71'
+VERSION='0.0.72'
 current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -292,6 +292,9 @@ function fun_sypctl_upgrade() {
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
     sypctl help
+
+    # temporary command
+    bundle config mirror.https://rubygems.org https://gems.ruby-china.com
 }
 
 #
