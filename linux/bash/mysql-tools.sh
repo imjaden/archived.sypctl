@@ -27,7 +27,7 @@ case "$1" in
             CentOS7)
                 sudo wget http://repo.mysql.com/mysql57-community-release-el7.rpm
                 sudo rpm -ivh mysql57-community-release-el7.rpm
-                sudo yum install -y mysql-server
+                sudo yum install -y mysql mysql-server
 
                 echo "init mysql root password commands:"
                 echo

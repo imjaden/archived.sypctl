@@ -15,8 +15,7 @@ case $1 in
 
         mkdir -p linux/packages
         package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u151-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.3.6.tar.gz)
-        for package_name in ${package_names[@]}
-        do
+        for package_name in ${package_names[@]}; do
             if [[ -f linux/packages/${package_name} ]]; then
               tar jtvf packages/${package_name} > /dev/null 2>&1
               if [[ $? -gt 0 ]]; then
@@ -38,8 +37,7 @@ case $1 in
       fun_print_table_header "Packages State" "PackageName" "Download/Integrity"
 
       package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u151-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.3.6.tar.gz)
-      for package_name in ${package_names[@]}
-      do
+      for package_name in ${package_names[@]}; do
           if [[ ! -f linux/packages/${package_name} ]]; then
               printf "$two_cols_table_format" "${package_name}" "Downloading..."
               wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"

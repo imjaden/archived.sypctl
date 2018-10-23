@@ -128,6 +128,10 @@ case "$1" in
     etl:tiny_tds)
         fun_etl_tiny_tds $@
     ;;
+    service)
+        test -d /etc/sypctl/ || sudo mkdir -p /etc/sypctl/
+        ruby linux/ruby/service-tools.rb "$2" "$3"
+    ;;
     *)
         fun_print_sypctl_help
     ;;

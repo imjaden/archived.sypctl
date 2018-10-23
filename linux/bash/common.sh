@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.72'
+VERSION='0.0.73'
 current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -143,11 +143,25 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:job:daemon     服务器端任务的监护者"
 }
 
+function fun_print_sypctl_service_help() {
+    echo "sypctl service --help"
+    echo "    -h, --help                       参数说明"
+    echo "    -l, --list                       查看管理的服务列表"
+    echo "    -t, --check                      检查配置是否正确"
+    echo "    -s, --start                      启动服务列表中的应用"
+    echo "    -e, --status                     检查服务列表应用的运行状态"
+    echo "    -k, --stop                       关闭服务列表中的应用"
+    echo "    -r, --restart                    重启服务列表中的应用"
+}
+
 function fun_print_sypctl_help() {
     echo "Usage: sypctl <command> [<args>]"
     echo 
-    echo "代理操作（可选）："
+    echo "代理操作:"
     fun_print_init_agent_command_help
+    echo
+    echo "服务管理:"
+    fun_print_sypctl_service_help
     echo
     echo "常规操作："
     echo "sypctl help          sypctl 支持的命令参数列表，及已部署服务的信息"
@@ -295,6 +309,9 @@ function fun_sypctl_upgrade() {
 
     # temporary command
     bundle config mirror.https://rubygems.org https://gems.ruby-china.com
+    gem sources --remove https://rubygems.org/
+    gem sources --add https://gems.ruby-china.com/ 
+    gem sources -l
 }
 
 #
