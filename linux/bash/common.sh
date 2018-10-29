@@ -144,14 +144,12 @@ function fun_print_init_agent_command_help() {
 }
 
 function fun_print_sypctl_service_help() {
-    echo "sypctl service --help"
-    echo "    -h, --help                       参数说明"
-    echo "    -l, --list                       查看管理的服务列表"
-    echo "    -t, --check                      检查配置是否正确"
-    echo "    -s, --start                      启动服务列表中的应用"
-    echo "    -e, --status                     检查服务列表应用的运行状态"
-    echo "    -k, --stop                       关闭服务列表中的应用"
-    echo "    -r, --restart                    重启服务列表中的应用"
+    echo "sypctl service [args]"
+    echo "  list    查看管理的服务列表"
+    echo "  start   启动服务列表中的应用"
+    echo "  status  检查服务列表应用的运行状态"
+    echo "  stop    关闭服务列表中的应用"
+    echo "  restart 重启服务列表中的应用"
 }
 
 function fun_print_sypctl_help() {

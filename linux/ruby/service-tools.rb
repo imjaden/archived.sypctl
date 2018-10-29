@@ -106,7 +106,7 @@ end
 # 必填项: name, start, stop, pidpath
 # user 默认为当前运行账号
 def check_services
-  errors = list_services(false).map do |service|
+  errors = list_services(false, 'all').map do |service|
     (%w(name id user start stop pidpath) - service.keys).map do |key|
       "#{service['name']} 未配置 key: `#{key}`"
     end
@@ -121,8 +121,8 @@ def check_services
   end
 end
 
-def start_services
-  list_services(false, @options[:start] || 'all').each do |service|
+def start_services(target_service = nil)
+  list_services(false, @options[:start] || target_service || 'all').each do |service|
     puts "\n# 启动 #{service['name']}"
     pidpath = render_command(service['pidpath'], service)
     running_state, running_text = process_pid_status(pidpath)
@@ -139,11 +139,12 @@ def start_services
   end
 
   sleep 1
-  status_services
+
+  status_services(@options[:start] || target_service || 'all')
 end
 
-def status_services
-  table_rows = list_services(false, @options[:status] || 'all').map do |service|
+def status_services(target_service = nil)
+  table_rows = list_services(false, @options[:status] || target_service || 'all').map do |service|
     pidpath = render_command(service['pidpath'], service)
     [service['name'], service['id'], process_pid_status(pidpath).last]
   end
@@ -151,8 +152,8 @@ def status_services
   puts Terminal::Table.new(headings: %w(服务 标识 进程状态), rows: table_rows)
 end
 
-def stop_services
-  list_services(false, @options[:stop] || 'all').each do |service|
+def stop_services(target_service = nil)
+  list_services(false, @options[:stop] || target_service || 'all').each do |service|
     puts "\n## 关闭 #{service['name']}"
     pidpath = render_command(service['pidpath'], service)
     running_state, running_text = process_pid_status(pidpath)
@@ -169,9 +170,9 @@ def stop_services
 end
 
 def restart_services
-  stop_services
+  stop_services(@options[:restart])
   puts "-" * 30
-  start_services
+  start_services(@options[:restart])
 end
 
 send("#{@options.keys.first}_services")

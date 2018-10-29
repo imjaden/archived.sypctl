@@ -182,3 +182,84 @@ $ sypctl service stop app-unicorn
   ]
 }
 ```
+
+## TIPS
+
+1. 支持自定义 key, 在命令中嵌套使用，语法：`{{variable}}`。
+    - 1.1 不可与**预留关键 key: name/id/user/start/stop/pidpath 冲突**
+    - 1.2 预留关键 key 也可以作为变量使用
+  
+  
+  ```
+  {
+    "services": [
+      {
+        "name": "运营平台(普通配置)",
+        "id": "saas-admin",
+        "user": "root",
+        "start": [
+          "cd /usr/local/src/tomcatAdmin && bash bin/startup.sh"
+        ],
+        "stop": [
+          "cd /usr/local/src/tomcatAdmin && bash bin/shutdown.sh"
+        ],
+        "pidpath": "/usr/local/src/tomcatAdmin/temp/running.pid"
+      },
+      {
+        "name": "运营平台(嵌套变量)",
+        "id": "saas-admin-variable",
+        "user": "root",
+        "tomcat_home": "/usr/local/src/tomcatAdmin",
+        "start": [
+          "cd {{tomcat_home}} && bash bin/startup.sh"
+        ],
+        "stop": [
+          "cd {{tomcat_home}} && bash bin/shutdown.sh"
+        ],
+        "pidpath": "{{tomcat_home}}/temp/running.pid"
+      }
+    ]
+  }
+  ```
+
+2. 支持集群统筹管理
+    - 2.1 默认上述 `services.json` 配置的服务列表对所在机器全部有效
+    - 2.2 大数据集群机器多，每台设备安装服务不同，按单机模式则每台配置的`services.json` 不同, 维护成本高；集群统筹方案为配置 key(`hostname`) 分配服务列表
+
+    示例集群中有三台机器，共同维护了一份配置档，每台机器分配的服务不同，拷贝到各服务器，会按 `hostname` 分配的服务列表运维。
+    
+    单机模式也可以按集群模式配置，只是显得画蛇添足，配置的服务列表多于本机要运行的情况时可以使用该模式指定服务。
+    
+    ```
+  {
+    "services": [
+      {
+        "name": "service1",
+        "id": "service1",
+        "user": "user1",
+        "start": ["start service1"],
+        "stop": ["stop service1"],        
+        "pidpath": "/tmp/service1.pid"
+      },
+      {
+        "name": "service2",
+        "id": "service2",
+        "user": "user2",
+        "start": ["start service2"],
+        "stop": ["stop service2"],        
+        "pidpath": "/tmp/service2.pid"
+      },
+      {
+        "name": "service3",
+        "id": "service3",
+        "user": "user3",
+        "start": ["start service3"],
+        "stop": ["stop service3"],        
+        "pidpath": "/tmp/service3.pid"
+      }
+    ],
+    "hostname1": ["service1", "service2"],
+    "hostname2": ["service2", "service3"],
+    "hostname3": ["service1", "service2", "service3"]
+  }
+    ```
