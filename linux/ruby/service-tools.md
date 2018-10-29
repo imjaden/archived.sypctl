@@ -103,7 +103,7 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "user": "root",
       "start": [
         "cd /usr/local/src/providerAPI && nohup java -jar api-service.jar > api-service.log 2>&1 &",
-        "ps aux | grep api-service.jar | grep -v grep | awk '{ print $2 }' >  {{pidpath}}"
+        "ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }' | sort | head -n 1 >  {{pidpath}}"
       ],
       "stop": [
         "cat {{pidpath}} | xargs kill -9"
