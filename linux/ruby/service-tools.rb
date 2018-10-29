@@ -1,7 +1,7 @@
 # encoding: utf-8
 ########################################
 #  
-#  Service Manager
+#  Service Manager v1.0
 #
 ########################################
 #
@@ -48,9 +48,30 @@ def whoami
   `whoami`.strip
 end
 
-def process_pid_status(pid_path)
-  if File.exists?(pid_path)
-    pid = File.read(pid_path).strip
+def hostname
+  `hostname`.strip
+end
+
+def run_command(command)
+  puts "$ #{command}"
+  system(command)
+end
+
+def render_command(command, service)
+  dup_command = command.clone
+  dup_command.scan(/\{\{(.*?)\}\}/).flatten.each do |variable|
+    if service.keys.include?(variable)
+      command.gsub!("{{#{variable}}}", service[variable]) 
+    else
+      puts "warning: #{dup_command} 包含未知变量 #{variable}"
+    end
+  end
+  command
+end
+
+def process_pid_status(pidpath)
+  if File.exists?(pidpath)
+    pid = File.read(pidpath).strip
     (pid == `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip ? [true, "运行中(#{pid})"] : [false, "未运行"])
   else
     [false, "未运行，PID 文档不存在"]
@@ -64,24 +85,27 @@ def list_services(print_or_not = true)
     exit 1
   end
 
-  services = JSON.parse(File.read(service_path))
+  data_hash = JSON.parse(File.read(service_path))
+  services = data_hash['services']
+  localhost_services = data_hash[hostname] || []
+  services = services.select { |hsh| localhost_services.include?(hsh['name']) } unless localhost_services.empty?
   services.each { |service|  puts JSON.pretty_generate(service) } if print_or_not
   services
 rescue => e
   puts e.message
 end
 
-# 必填项: name, start_commands, stop_commands, pid_path
+# 必填项: name, start, stop, pidpath
 # user 默认为当前运行账号
 def check_services
   errors = list_services(false).map do |service|
-    (%w(name start_commands stop_commands pid_path) - service.keys).map do |key|
-      "#{service['name']} cannot detect key `#{key}`"
+    (%w(group name user start stop pidpath) - service.keys).map do |key|
+      "#{service['name']} 未配置 key: `#{key}`"
     end
   end.flatten
 
   if errors.empty?
-    puts "nginx: the configuration file /etc/sypctl/services.json syntax is ok"
+    puts "sypctl: the configuration file /etc/sypctl/services.json syntax is ok"
     # nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
     # nginx: configuration file /etc/nginx/nginx.conf test is successful
   else
@@ -89,28 +113,35 @@ def check_services
   end
 end
 
+def refresh_crontab
+end
+
 def start_services
   list_services(false).each do |service|
-    puts "\n## 启动 #{service['name']}\n\n"
-    running_state, running_text = process_pid_status(service['pid_path'])
+    puts "\n# 启动 #{service['name']}"
+    pidpath = render_command(service['pidpath'], service)
+    running_state, running_text = process_pid_status(pidpath)
     if running_state
       puts running_text
     else
-      service['start_commands'].each do |command|
+      service['start'].each do |command|
+        command = render_command(command, service)
         command = "sudo -p - #{service['user']} bash -c \"command\"" if (service['user'] || whoami) != whoami
-        puts "$ #{command}"
-        puts `#{command}`
+        run_command(command)
       end
     end
   end
 
   sleep 1
   status_services
+
+  refresh_crontab
 end
 
 def status_services
   table_rows = list_services(false).map do |service|
-    [service['group'] || service['name'], service['name'], process_pid_status(service['pid_path']).last]
+    pidpath = render_command(service['pidpath'], service)
+    [service['group'] || service['name'], service['name'], process_pid_status(pidpath).last]
   end
 
   puts Terminal::Table.new(headings: %w(群组 服务 进程状态), rows: table_rows)
@@ -118,16 +149,14 @@ end
 
 def stop_services
   list_services(false).each do |service|
-    puts "\n## 关闭 #{service['name']}\n\n"
-    running_state, running_text = process_pid_status(service['pid_path'])
+    puts "\n## 关闭 #{service['name']}"
+    pidpath = render_command(service['pidpath'], service)
+    running_state, running_text = process_pid_status(pidpath)
     if running_state
-      service['stop_commands'].each do |command|
-        command.scan(/\{\{(.*?)\}\}/).flatten.each do |variable|
-          command.gsub!("{{#{variable}}}", service['pid_path']) if variable.strip == 'pid_path'
-        end
+      service['stop'].each do |command|
+        command = render_command(command, service)
         command = "sudo -p - #{service['user']} bash -c \"command\"" if service['user'] != whoami
-        puts "$ #{command}"
-        puts `#{command}`
+        run_command(command)
       end
     else
       puts running_text
