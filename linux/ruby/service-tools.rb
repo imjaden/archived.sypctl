@@ -14,7 +14,7 @@ require 'optparse'
 require 'fileutils'
 require 'terminal-table'
 
-options = {}
+@options = {}
 option_parser = OptionParser.new do |opts|
   opts.banner = "Usage: service-tools.rb [args]"
   opts.on('-h', '--help', '参数说明') do
@@ -23,26 +23,26 @@ option_parser = OptionParser.new do |opts|
     exit
   end
   opts.on('-l', "--list", '查看管理的服务列表') do |value|
-    options[:list] = true
+    @options[:list] = true
   end
   opts.on('-t', "--check", '检查配置是否正确') do |value|
-    options[:check] = true
+    @options[:check] = true
   end
-  opts.on('-s', "--start", '启动服务列表中的应用') do |value|
-    options[:start] = true
+  opts.on('-s', "--start service", '启动服务列表中的应用') do |value|
+    @options[:start] = value
   end
-  opts.on('-e', "--status", '检查服务列表应用的运行状态') do |value|
-    options[:status] = true
+  opts.on('-e', "--status service", '检查服务列表应用的运行状态') do |value|
+    @options[:status] = value
   end
-  opts.on('-k', "--stop", '关闭服务列表中的应用') do |value|
-    options[:stop] = true
+  opts.on('-k', "--stop service", '关闭服务列表中的应用') do |value|
+    @options[:stop] = value
   end
-  opts.on('-r', "--restart", '重启服务列表中的应用') do |value|
-    options[:restart] = true
+  opts.on('-r', "--restart service", '重启服务列表中的应用') do |value|
+    @options[:restart] = value
   end
 end.parse!
 
-puts `ruby #{__FILE__} -h` if options.keys.empty?
+puts `ruby #{__FILE__} -h` if @options.keys.empty?
 
 def whoami
   `whoami`.strip
@@ -78,7 +78,7 @@ def process_pid_status(pidpath)
   end
 end
 
-def list_services(print_or_not = true)
+def list_services(print_or_not = true, target_service = 'all')
   service_path = "/etc/sypctl/services.json"
   unless File.exists?(service_path)
     puts "Error: 配置档不存在，请创建并配置 /etc/sypctl/services.json\n退出操作"
@@ -88,8 +88,16 @@ def list_services(print_or_not = true)
   data_hash = JSON.parse(File.read(service_path))
   services = data_hash['services']
   localhost_services = data_hash[hostname] || []
-  services = services.select { |hsh| localhost_services.include?(hsh['name']) } unless localhost_services.empty?
+  services = services.select { |hsh| localhost_services.include?(hsh['id']) } unless localhost_services.empty?
   services.each { |service|  puts JSON.pretty_generate(service) } if print_or_not
+  services = services.select { |hsh| hsh['id'] == target_service } if target_service != 'all'
+
+  if services.empty?
+    puts "Warning: 未匹配到服务 #{target_service}! \n本机配置的服务列表:"
+    puts data_hash['services'].map { |hsh| hsh['id'] }.join("\n")
+    exit
+  end
+
   services
 rescue => e
   puts e.message
@@ -99,7 +107,7 @@ end
 # user 默认为当前运行账号
 def check_services
   errors = list_services(false).map do |service|
-    (%w(group name user start stop pidpath) - service.keys).map do |key|
+    (%w(name id user start stop pidpath) - service.keys).map do |key|
       "#{service['name']} 未配置 key: `#{key}`"
     end
   end.flatten
@@ -113,11 +121,8 @@ def check_services
   end
 end
 
-def refresh_crontab
-end
-
 def start_services
-  list_services(false).each do |service|
+  list_services(false, @options[:start] || 'all').each do |service|
     puts "\n# 启动 #{service['name']}"
     pidpath = render_command(service['pidpath'], service)
     running_state, running_text = process_pid_status(pidpath)
@@ -126,29 +131,28 @@ def start_services
     else
       service['start'].each do |command|
         command = render_command(command, service)
-        command = "sudo -p - #{service['user']} bash -c \"command\"" if (service['user'] || whoami) != whoami
+        command = "sudo -p - #{service['user']} bash -c \"#{command}\"" if (service['user'] || whoami) != whoami
         run_command(command)
+        sleep 1
       end
     end
   end
 
   sleep 1
   status_services
-
-  refresh_crontab
 end
 
 def status_services
-  table_rows = list_services(false).map do |service|
+  table_rows = list_services(false, @options[:status] || 'all').map do |service|
     pidpath = render_command(service['pidpath'], service)
-    [service['group'] || service['name'], service['name'], process_pid_status(pidpath).last]
+    [service['name'], service['id'], process_pid_status(pidpath).last]
   end
 
-  puts Terminal::Table.new(headings: %w(群组 服务 进程状态), rows: table_rows)
+  puts Terminal::Table.new(headings: %w(服务 标识 进程状态), rows: table_rows)
 end
 
 def stop_services
-  list_services(false).each do |service|
+  list_services(false, @options[:stop] || 'all').each do |service|
     puts "\n## 关闭 #{service['name']}"
     pidpath = render_command(service['pidpath'], service)
     running_state, running_text = process_pid_status(pidpath)
@@ -170,4 +174,4 @@ def restart_services
   start_services
 end
 
-send("#{options.keys.first}_services")
+send("#{@options.keys.first}_services")

@@ -9,37 +9,58 @@
 ```
 服务进程管理脚本
 Usage: sypctl service [args]
-  list                       查看管理的服务列表
-  start                      启动服务列表中的应用
-  status                     检查服务列表应用的运行状态
-  stop                       关闭服务列表中的应用
-  restart                    重启服务列表中的应用
+  list    查看管理的服务列表
+  start   启动服务列表中的应用
+  status  检查服务列表应用的运行状态
+  stop    关闭服务列表中的应用
+  restart 重启服务列表中的应用
 ```
 
 ## 配置档(services.json)
 
-- 位置: /etc/sypctl/services.json
+- 位置: `/etc/sypctl/services.json`
 - services.json 内容为 JSON 数组对象
 - 数组中元素字段:
-    - group: 该服务所属群组
     - name: 该服务进程名称
-    - user: 启动该服务使用的系统账号
+    - id: 该服务的唯一标识（相对 service.json 对象数组）
+    - user: 启动该服务使用的系统用户
     - start: 启动服务的命令组
     - stop: 关闭服务的命令组
     - pidpath: 服务进程 PID 路径，进程状态根据 PID 判断
 
-**强调，service 工具监控、关闭服务进程是基于 pid ，无 pid 的服务请谨慎使用**
+**强调，service 工具监控、关闭服务进程是基于 pid ，无法定位 pid 的服务请谨慎使用**
 
 start/stop 操作是一个命令数组， 即需要预创建目录或清理日志等操作可以一并放在里面，同时命令中可以使用定义好的变量（或手工添加新字段），引用变量的语法 `{{variable}}`
 
-配置示例:
+
+## 操作示例
+
+```
+# 查看本机配置的服务列表
+$ sypctl service list
+
+# 查看本机配置的服务列表
+$ sypctl service status
+
+# 启动所有服务（已启动则会提示当前运行的 pid）
+$ sypctl service start
+# 只启动 app-unicorn 服务（已启动则会提示当前运行的 pid）
+$ sypctl service start app-unicorn
+
+# 关闭所有服务
+$ sypctl service stop
+# 只关闭 app-unicorn 服务
+$ sypctl service stop app-unicorn
+```
+
+完整的配置示例：
 
 ```
 {
   "services": [
     {
-      "group": "移动端 App",
-      "name": "app-unicon",
+      "name": "移动端 App 主服务",
+      "id": "app-unicorn",
       "user": "root",
       "start": [
         "cd /usr/local/src/syp-app-server && bundle exec unicorn -c ./config/unicorn.rb -p 8085 -E production -D"
@@ -50,8 +71,8 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/usr/local/src/syp-app-server/tmp/pids/unicorn.pid"
     },
     {
-      "group": "移动端 App",
-      "name": "app-sidekiq",
+      "name": "移动端 App 消息队列管理",
+      "id": "app-sidekiq",
       "user": "root",
       "start": [
         "cd /usr/local/src/syp-app-server && bundle exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d"
@@ -62,8 +83,8 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/usr/local/src/syp-app-server/tmp/pids/sidekiq.pid"
     },
     {
-      "group": "运营平台",
-      "name": "saas-admin",
+      "name": "运营平台",
+      "id": "saas-admin",
       "user": "root",
       "start": [
         "cd /usr/local/src/tomcatAdmin && bash bin/startup.sh"
@@ -74,8 +95,8 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/usr/local/src/tomcatAdmin/temp/running.pid"
     },
     {
-      "group": "运营平台",
-      "name": "saas-super-admin",
+      "name": "SAAS-SUPER 运营平台",
+      "id": "saas-super-admin",
       "user": "root",
       "start": [
         "cd /usr/local/src/tomcatSuperAdmin && bash bin/startup.sh"
@@ -86,8 +107,8 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/usr/local/src/tomcatSuperAdmin/temp/running.pid"
     },
     {
-      "group": "运营平台",
-      "name": "saas-api-interface",
+      "name": "JAVA 服务消费者",
+      "id": "saas-api",
       "user": "root",
       "start": [
         "cd /usr/local/src/tomcatAPI && bash bin/startup.sh"
@@ -98,8 +119,8 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/usr/local/src/tomcatAPI/temp/running.pid"
     },
     {
-      "group": "运营平台",
-      "name": "saas-api-service",
+      "name": "JAVA 服务提供者",
+      "id": "saas-api-service",
       "user": "root",
       "start": [
         "cd /usr/local/src/providerAPI && nohup java -jar api-service.jar > api-service.log 2>&1 &",
@@ -111,8 +132,20 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/usr/local/src/providerAPI/running.pid"
     },
     {
-      "group": "公共服务",
-      "name": "redis",
+      "name": "JMS 消息队列管理",
+      "id": "apache-activemq-5.15.5",
+      "user": "root",
+      "start": [
+        "cd /usr/local/src/apache-activemq-5.15.5 && bash bin/activemq start"
+      ],
+      "stop": [
+        "cd /usr/local/src/apache-activemq-5.15.5 && bash bin/activemq stop"
+      ],
+      "pidpath": "/usr/local/src/apache-activemq-5.15.5/data/activemq.pid"
+    },
+    {
+      "name": "公共服务",
+      "id": "redis",
       "user": "root",
       "start": [
         "redis-server /etc/redis/redis.conf"
@@ -123,8 +156,8 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/var/run/redis_6379.pid"
     },
     {
-      "group": "公共服务",
-      "name": "nginx",
+      "name": "公共服务",
+      "id": "nginx",
       "user": "root",
       "start": [
         "nginx"
@@ -135,8 +168,8 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
       "pidpath": "/var/run/nginx.pid"
     },
     {
-      "group": "公共服务",
-      "name": "zookeeper",
+      "name": "公共服务",
+      "id": "zookeeper",
       "user": "root",
       "start": [
         "bash /usr/local/src/zookeeper/bin/zkServer.sh start"
@@ -148,44 +181,4 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
     }
   ]
 }
-```
-
-## 操作示例
-
-启动命令:
-
-```
-$ sypctl service start
-```
-
-日志输出:
-
-```
-## 启动 App Server Unicon
-
-$ cd /Users/junjieli/Work/eziiot/syp-app-server && bundle exec unicorn -c ./config/unicorn.rb -p 8085 -E production -D
-
-
-## 启动 App Server Sidekiq
-
-$ cd /Users/junjieli/Work/eziiot/syp-app-server && bundle exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d
-
-
-## 启动 Redis
-
-$ sudo /usr/local/bin/redis-server /etc/redis/redis.conf
-
-
-## 启动 Nginx
-
-$ nginx
-
-+------------+--------------------+---------------+
-| 群组        | 服务               | 进程状态      |
-+------------+--------------------+---------------+
-| 移动端 App  | App Server Unicon  | 运行中(54901) |
-| 移动端 App  | App Server Sidekiq | 运行中(54923) |
-| 公共服务    | Redis              | 运行中(54931) |
-| 公共服务    | Nginx              | 运行中(54934) |
-+------------+--------------------+---------------+
 ```
