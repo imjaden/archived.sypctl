@@ -85,9 +85,9 @@ class Service
       if print_or_not
         if @options[:list] == 'id'
           table_rows = services.map do |service|
-            [service['name'], service['id'], (localhost_services.empty? || localhost_services.include?(service['id']) ? 'yes' : 'no')]
+            [service['name'] || service['id'], service['id'], service['user'], (localhost_services.empty? || localhost_services.include?(service['id']) ? 'yes' : 'no')]
           end
-          puts Terminal::Table.new(headings: %w(服务 标识 本机管理), rows: table_rows)
+          puts Terminal::Table.new(headings: %w(服务 标识 用户 本机管理), rows: table_rows)
         else
           puts JSON.pretty_generate(data_hash)
         end
@@ -132,10 +132,10 @@ class Service
     def status(target_service = nil)
       table_rows = list(false, @options[:status] || target_service || 'all').map do |service|
         pidpath = render_command(service['pidpath'], service)
-        [service['name'], service['id'], process_pid_status(pidpath).last]
+        [service['name'] || service['id'], service['id'], service['user'], process_pid_status(pidpath).last]
       end
 
-      puts Terminal::Table.new(headings: %w(服务 标识 进程状态), rows: table_rows)
+      puts Terminal::Table.new(headings: %w(服务 标识 用户 进程状态), rows: table_rows)
     end
 
     def stop(target_service = nil)
