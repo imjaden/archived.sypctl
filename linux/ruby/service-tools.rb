@@ -117,7 +117,7 @@ class Service
         else
           service['start'].each do |command|
             command = render_command(command, service)
-            command = "sudo -p - #{service['user']} bash -c \"#{command}\"" if (service['user'] || whoami) != whoami
+            command = "su -p - #{service['user']} bash -c \"#{command}\"" if (service['user'] || whoami) != whoami
             run_command(command)
             sleep 1
           end
@@ -207,6 +207,10 @@ class Service
         end
       end
       render_command(command, service)
+    rescue => e
+      puts e.message
+      puts "command: #{command}"
+      puts "service: #{service}"
     end
 
     def process_pid_status(pidpath)

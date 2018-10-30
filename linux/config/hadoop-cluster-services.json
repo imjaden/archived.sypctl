@@ -2,6 +2,7 @@
   "services": [
     {
       "name": "hdfs-secondarynamenode",
+      "id": "hdfs-secondarynamenode",
       "user": "hdfs",
       "start": [
         "mkdir -p /var/run/hadoop",
@@ -12,10 +13,11 @@
       "stop": [
         "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop secondarynamenode"
       ],
-      "pid_path": ""
+      "pidpath": "/var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid"
     },
     {
       "name": "hdfs-namenode",
+      "id": "hdfs-namenode",
       "user": "hdfs",
       "start": [
         "mkdir -p /var/run/hadoop",
@@ -26,10 +28,11 @@
       "stop": [
         "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop namenode"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid"
     },
     {
       "name": "hdfs-datanode",
+      "id": "hdfs-datanode",
       "user": "hdfs",
       "start": [
         "mkdir -p /var/run/hadoop",
@@ -40,10 +43,11 @@
       "stop": [
         "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop datanode"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid"
     },
     {
       "name": "zookeeper",
+      "id": "zookeeper",
       "user": "zookeeper",
       "start": [
         "mkdir -p /var/run/zookeeper",
@@ -54,10 +58,11 @@
       "stop": [
         "source /usr/hdp/current/zookeeper-server/conf/zookeeper-env.sh; env ZOOCFGDIR=/usr/hdp/current/zookeeper-server/conf ZOOCFG=zoo.cfg /usr/hdp/current/zookeeper-server/bin/zkServer.sh stop"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/zookeeper/zookeeper_server.pid"
     },
     {
       "name": "kylin",
+      "id": "kylin",
       "user": "hbase",
       "start": [
         "/home/hbase/apache-kylin-2.3.1-bin/bin/kylin.sh start"
@@ -65,10 +70,11 @@
       "stop": [
         "/home/hbase/apache-kylin-2.3.1-bin/bin/kylin.sh stop"
       ],
-      "pidpath": ""
+      "pidpath": "/home/hbase/apache-kylin-2.3.1-bin/pid"
     },
     {
       "name": "yarn-resourcemanager",
+      "id": "yarn-resourcemanager",
       "user": "yarn",
       "start": [
         "mkdir -p /var/run/hadoop-yarn",
@@ -79,10 +85,11 @@
       "stop": [
         "export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec; /usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config /usr/hdp/current/hadoop-client/conf stop resourcemanager"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid"
     },
     {
       "name": "yarn-nodemanager",
+      "id": "yarn-nodemanager",
       "user": "yarn",
       "start": [
         "mkdir -p /var/run/hadoop-yarn",
@@ -93,10 +100,11 @@
       "stop": [
         "/usr/hdp/2.6.1.0-129/hadoop-yarn/sbin/yarn-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop nodemanager"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid"
     },
     {
       "name": "mr-jobhistory",
+      "id": "mr-jobhistory",
       "user": "mapred",
       "start": [
         "/usr/hdp/2.6.1.0-129/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf start historyserver"
@@ -104,10 +112,11 @@
       "stop": [
         "/usr/hdp/2.6.1.0-129/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop historyserver"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid"
     },
     {
       "name": "hive-metastore",
+      "id": "hive-metastore",
       "user": "hive",
       "start": [
         "mkdir -p /var/run/hive",
@@ -116,12 +125,13 @@
         "/var/lib/ambari-agent/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-metastore/conf/conf.server /var/log/hive"
       ],
       "stop": [
-        "ps -ef | grep 'org.apache.hadoop.hive.metastore.HiveMetaStore' | grep -v grep | awk '{print $2}' | xargs kill -9"
+        "cat {{pidpath}} | xargs kill -9"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hive/hive.pid"
     },
     {
       "name": "hive-hiveserver2",
+      "id": "hive-hiveserver2",
       "user": "hive",
       "start": [
         "mkdir -p /var/run/hive",
@@ -130,12 +140,13 @@
         "/var/lib/ambari-agent/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive"
       ],
       "stop": [
-        "ps -ef | grep 'org.apache.hive.service.server.HiveServer2' | grep -v grep | awk '{print $2}' | xargs kill -9"
+        "cat {{pidpath}} | xargs kill -9"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hive/hive-server.pid"
     },
     {
       "name": "hbase-regionserver",
+      "id": "hbase-regionserver",
       "user": "hbase",
       "start": [
         "mkdir -p /var/run/hbase",
@@ -146,10 +157,11 @@
       "stop": [
         "/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf stop regionserver"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hbase/hbase-hbase-regionserver.pid"
     },
     {
       "name": "hbase-master",
+      "id": "hbase-master",
       "user": "hbase",
       "start": [
         "mkdir -p /var/run/hbase",
@@ -160,10 +172,11 @@
       "stop": [
         "/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf stop master"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/hbase/hbase-hbase-master.pid"
     },
     {
       "name": "mysql",
+      "id": "mysql",
       "user": "root",
       "start": [
         "systemctl start mysqld"
@@ -171,10 +184,11 @@
       "stop": [
         "systemctl stop mysqld"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/mysqld/mysqld.pid"
     },
     {
       "name": "mariadb",
+      "id": "mariadb",
       "user": "root",
       "start": [
         "systemctl start mariadb"
@@ -182,10 +196,11 @@
       "stop": [
         "systemctl stop mariadb"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/mariadb/mariadb.pid"
     },
     {
       "name": "ambari-server",
+      "id": "ambari-server",
       "user": "root",
       "start": [
         "ambari-server start"
@@ -193,10 +208,11 @@
       "stop": [
         "ambari-server stop"
       ],
-      "pidpath": ""
+      "pidpath": "/var/run/ambari-server/ambari-server.pid"
     },
     {
       "name": "ambari-agent",
+      "id": "ambari-agent",
       "user": "root",
       "start": [
         "ambari-agent start"
@@ -204,17 +220,52 @@
       "stop": [
         "ambari-agent stop"
       ],
-      "pidpath": ""
+      "pidpath": "/run/ambari-agent/ambari-agent.pid"
     }
   ],
-  "hadoop1": [],
-  "hadoop2": [],
-  "hadoop3": [],
-  "hadoop4": [],
-  "hadoop5": [],
-  "java1": [],
-  "java2": [],
-  "java3": [],
-  "etlserver": [],
-  "mysql": []
+  "hadoop1": [
+    "zookeeper",
+    "hdfs-namenode",
+    "hdfs-datanode",
+    "yarn-nodemanager",
+    "hbase-regionserver",
+    "ambari-server",
+    "ambari-agent"
+  ],
+  "hadoop2": [
+    "mysql",
+    "zookeeper",
+    "hdfs-secondarynamenode",
+    "hdfs-datanode",
+    "yarn-resourcemanager",
+    "yarn-nodemanager",
+    "hbase-master",
+    "hbase-regionserver",
+    "mr-jobhistory",
+    "hive-hiveserver2",
+    "hive-metastore",
+    "ambari-agent"
+  ],
+  "hadoop3": [
+    "zookeeper",
+    "hdfs-datanode",
+    "yarn-nodemanager",
+    "hbase-master",
+    "hbase-regionserver",
+    "ambari-agent"
+  ],
+  "hadoop4": [
+    "hdfs-datanode",
+    "yarn-nodemanager",
+    "hbase-regionserver",
+    "ambari-agent"
+  ],
+  "hadoop5": [
+    "mariadb",
+    "hdfs-datanode",
+    "yarn-nodemanager",
+    "hbase-regionserver",
+    "kylin",
+    "ambari-agent"
+  ]
 }

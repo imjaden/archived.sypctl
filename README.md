@@ -159,7 +159,7 @@ $ sypctl service stop
 $ sypctl service stop app-unicorn
 ```
 
-[单机模式的生意+服务配置示例](linux/config/eziiot-services.json)
+[单机模式的生意+服务配置示例](linux/config/eziiot-standalone-services.json)
 
 ### TIPS
 
