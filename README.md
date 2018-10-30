@@ -137,10 +137,13 @@ start/stop 操作是一个命令数组， 即需要预创建目录或清理日�
 ### 操作示例
 
 ```
-# 查看本机配置的服务列表(详细)
+# 查看配置的服务列表(详细)
 $ sypctl service list
-# 查看本机配置的服务列表(仅列 name/id/是否属于本机管理)
+# 查看配置的服务列表(仅列 name/id/是否属于本机管理)
 $ sypctl service list id
+
+# 查看配置的服务列表(详细，渲染命令中嵌套的变量)
+$ sypctl service render
 
 # 查看本机配置的服务列表
 $ sypctl service status
@@ -156,135 +159,7 @@ $ sypctl service stop
 $ sypctl service stop app-unicorn
 ```
 
-完整的配置示例：
-
-```
-{
-  "services": [
-    {
-      "name": "移动端 App 主服务",
-      "id": "app-unicorn",
-      "user": "root",
-      "start": [
-        "cd /usr/local/src/syp-app-server && bundle exec unicorn -c ./config/unicorn.rb -p 8085 -E production -D"
-      ],
-      "stop": [
-        "cat {{pidpath}} | xargs kill -9"
-      ],
-      "pidpath": "/usr/local/src/syp-app-server/tmp/pids/unicorn.pid"
-    },
-    {
-      "name": "移动端 App 消息队列管理",
-      "id": "app-sidekiq",
-      "user": "root",
-      "start": [
-        "cd /usr/local/src/syp-app-server && bundle exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d"
-      ],
-      "stop": [
-        "cat {{pidpath}} | xargs kill -9"
-      ],
-      "pidpath": "/usr/local/src/syp-app-server/tmp/pids/sidekiq.pid"
-    },
-    {
-      "name": "运营平台",
-      "id": "saas-admin",
-      "user": "root",
-      "start": [
-        "cd /usr/local/src/tomcatAdmin && bash bin/startup.sh"
-      ],
-      "stop": [
-        "cd /usr/local/src/tomcatAdmin && bash bin/shutdown.sh"
-      ],
-      "pidpath": "/usr/local/src/tomcatAdmin/temp/running.pid"
-    },
-    {
-      "name": "SAAS-SUPER 运营平台",
-      "id": "saas-super-admin",
-      "user": "root",
-      "start": [
-        "cd /usr/local/src/tomcatSuperAdmin && bash bin/startup.sh"
-      ],
-      "stop": [
-        "cd /usr/local/src/tomcatSuperAdmin && bash bin/shutdown.sh"
-      ],
-      "pidpath": "/usr/local/src/tomcatSuperAdmin/temp/running.pid"
-    },
-    {
-      "name": "JAVA 服务消费者",
-      "id": "saas-api",
-      "user": "root",
-      "start": [
-        "cd /usr/local/src/tomcatAPI && bash bin/startup.sh"
-      ],
-      "stop": [
-        "cd /usr/local/src/tomcatAPI && bash bin/shutdown.sh"
-      ],
-      "pidpath": "/usr/local/src/tomcatAPI/temp/running.pid"
-    },
-    {
-      "name": "JAVA 服务提供者",
-      "id": "saas-api-service",
-      "user": "root",
-      "start": [
-        "cd /usr/local/src/providerAPI && nohup java -jar api-service.jar > api-service.log 2>&1 &",
-        "ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }' | sort | head -n 1 >  {{pidpath}}"
-      ],
-      "stop": [
-        "cat {{pidpath}} | xargs kill -9"
-      ],
-      "pidpath": "/usr/local/src/providerAPI/running.pid"
-    },
-    {
-      "name": "JMS 消息队列管理",
-      "id": "apache-activemq-5.15.5",
-      "user": "root",
-      "start": [
-        "cd /usr/local/src/apache-activemq-5.15.5 && bash bin/activemq start"
-      ],
-      "stop": [
-        "cd /usr/local/src/apache-activemq-5.15.5 && bash bin/activemq stop"
-      ],
-      "pidpath": "/usr/local/src/apache-activemq-5.15.5/data/activemq.pid"
-    },
-    {
-      "name": "公共服务",
-      "id": "redis",
-      "user": "root",
-      "start": [
-        "redis-server /etc/redis/redis.conf"
-      ],
-      "stop": [
-        "cat {{pidpath}} | xargs kill -9"
-      ],
-      "pidpath": "/var/run/redis_6379.pid"
-    },
-    {
-      "name": "公共服务",
-      "id": "nginx",
-      "user": "root",
-      "start": [
-        "nginx"
-      ],
-      "stop": [
-        "nginx -s stop"
-      ],
-      "pidpath": "/var/run/nginx.pid"
-    },
-    {
-      "name": "公共服务",
-      "id": "zookeeper",
-      "user": "root",
-      "start": [
-        "bash /usr/local/src/zookeeper/bin/zkServer.sh start"
-      ],
-      "stop": [
-        "bash /usr/local/src/zookeeper/bin/zkServer.sh stop"
-      ],
-      "pidpath": "/usr/local/src/zookeeper/data/zookeeper_server.pid"
-    }
-  ]
-}
-```
+[单机模式的生意+服务配置示例](linux/config/eziiot-services.json)
 
 ### TIPS
 
@@ -365,3 +240,5 @@ $ sypctl service stop app-unicorn
       "hostname3": ["service1", "service2", "service3"]
     }
     ```
+
+    [集群模式的Hadoop 大数据服务配置示例](linux/config/hadoop-cluster-services.json)
