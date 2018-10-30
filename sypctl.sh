@@ -130,11 +130,9 @@ case "$1" in
     ;;
     service)
         test -d /etc/sypctl/ || sudo mkdir -p /etc/sypctl/
-        support_commands=(list start stop status restart)
+        support_commands=(render list start stop status restart)
         if [[ "${support_commands[@]}" =~ "$2" ]]; then
-            operate=$2
-            object=${3:-all}
-            SYPCTL_HOME=${SYPCTL_HOME} ruby linux/ruby/service-tools.rb "--${operate}" "${object}"
+            SYPCTL_HOME=${SYPCTL_HOME} ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
         else
             echo "Error - unknown command: $2, support: ${support_commands[@]}"
         fi

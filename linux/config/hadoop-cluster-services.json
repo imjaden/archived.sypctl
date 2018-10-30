@@ -1,0 +1,220 @@
+{
+  "services": [
+    {
+      "name": "hdfs-secondarynamenode",
+      "user": "hdfs",
+      "start": [
+        "mkdir -p /var/run/hadoop",
+        "chown -R hdfs:hadoop /var/run/hadoop",
+        "chmod -R 777 /var/run/hadoop",
+        "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf start secondarynamenode"
+      ],
+      "stop": [
+        "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop secondarynamenode"
+      ],
+      "pid_path": ""
+    },
+    {
+      "name": "hdfs-namenode",
+      "user": "hdfs",
+      "start": [
+        "mkdir -p /var/run/hadoop",
+        "chown -R hdfs:hadoop /var/run/hadoop",
+        "chmod -R 777 /var/run/hadoop",
+        "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf start namenode"
+      ],
+      "stop": [
+        "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop namenode"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "hdfs-datanode",
+      "user": "hdfs",
+      "start": [
+        "mkdir -p /var/run/hadoop",
+        "chown -R hdfs:hadoop /var/run/hadoop",
+        "chmod -R 777 /var/run/hadoop",
+        "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf start datanode"
+      ],
+      "stop": [
+        "/usr/hdp/2.6.1.0-129/hadoop/sbin/hadoop-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop datanode"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "zookeeper",
+      "user": "zookeeper",
+      "start": [
+        "mkdir -p /var/run/zookeeper",
+        "chown -R zookeeper:hadoop /var/run/zookeeper",
+        "chmod -R 777 /var/run/zookeeper",
+        "source /usr/hdp/current/zookeeper-server/conf/zookeeper-env.sh; env ZOOCFGDIR=/usr/hdp/current/zookeeper-server/conf ZOOCFG=zoo.cfg /usr/hdp/current/zookeeper-server/bin/zkServer.sh start"
+      ],
+      "stop": [
+        "source /usr/hdp/current/zookeeper-server/conf/zookeeper-env.sh; env ZOOCFGDIR=/usr/hdp/current/zookeeper-server/conf ZOOCFG=zoo.cfg /usr/hdp/current/zookeeper-server/bin/zkServer.sh stop"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "kylin",
+      "user": "hbase",
+      "start": [
+        "/home/hbase/apache-kylin-2.3.1-bin/bin/kylin.sh start"
+      ],
+      "stop": [
+        "/home/hbase/apache-kylin-2.3.1-bin/bin/kylin.sh stop"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "yarn-resourcemanager",
+      "user": "yarn",
+      "start": [
+        "mkdir -p /var/run/hadoop-yarn",
+        "chown -R yarn:hadoop /var/run/hadoop-yarn",
+        "chmod -R 777 /var/run/hadoop-yarn",
+        "export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec; /usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config /usr/hdp/current/hadoop-client/conf start resourcemanager"
+      ],
+      "stop": [
+        "export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec; /usr/hdp/current/hadoop-yarn-resourcemanager/sbin/yarn-daemon.sh --config /usr/hdp/current/hadoop-client/conf stop resourcemanager"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "yarn-nodemanager",
+      "user": "yarn",
+      "start": [
+        "mkdir -p /var/run/hadoop-yarn",
+        "chown -R yarn:hadoop /var/run/hadoop-yarn",
+        "chmod -R 777 /var/run/hadoop-yarn",
+        "/usr/hdp/2.6.1.0-129/hadoop-yarn/sbin/yarn-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf start nodemanager"
+      ],
+      "stop": [
+        "/usr/hdp/2.6.1.0-129/hadoop-yarn/sbin/yarn-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop nodemanager"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "mr-jobhistory",
+      "user": "mapred",
+      "start": [
+        "/usr/hdp/2.6.1.0-129/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf start historyserver"
+      ],
+      "stop": [
+        "/usr/hdp/2.6.1.0-129/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /usr/hdp/2.6.1.0-129/hadoop/conf stop historyserver"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "hive-metastore",
+      "user": "hive",
+      "start": [
+        "mkdir -p /var/run/hive",
+        "chown -R yarn:hadoop /var/run/hive",
+        "chmod -R 777 /var/run/hive",
+        "/var/lib/ambari-agent/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-metastore/conf/conf.server /var/log/hive"
+      ],
+      "stop": [
+        "ps -ef | grep 'org.apache.hadoop.hive.metastore.HiveMetaStore' | grep -v grep | awk '{print $2}' | xargs kill -9"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "hive-hiveserver2",
+      "user": "hive",
+      "start": [
+        "mkdir -p /var/run/hive",
+        "chown -R yarn:hadoop /var/run/hive",
+        "chmod -R 777 /var/run/hive",
+        "/var/lib/ambari-agent/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive"
+      ],
+      "stop": [
+        "ps -ef | grep 'org.apache.hive.service.server.HiveServer2' | grep -v grep | awk '{print $2}' | xargs kill -9"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "hbase-regionserver",
+      "user": "hbase",
+      "start": [
+        "mkdir -p /var/run/hbase",
+        "chown -R hbase:hadoop /var/run/hbase",
+        "chmod -R 777 /var/run/hbase",
+        "/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf start regionserver"
+      ],
+      "stop": [
+        "/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf stop regionserver"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "hbase-master",
+      "user": "hbase",
+      "start": [
+        "mkdir -p /var/run/hbase",
+        "chown -R hbase:hadoop /var/run/hbase",
+        "chmod -R 777 /var/run/hbase",
+        "/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf start master"
+      ],
+      "stop": [
+        "/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf stop master"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "mysql",
+      "user": "root",
+      "start": [
+        "systemctl start mysqld"
+      ],
+      "stop": [
+        "systemctl stop mysqld"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "mariadb",
+      "user": "root",
+      "start": [
+        "systemctl start mariadb"
+      ],
+      "stop": [
+        "systemctl stop mariadb"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "ambari-server",
+      "user": "root",
+      "start": [
+        "ambari-server start"
+      ],
+      "stop": [
+        "ambari-server stop"
+      ],
+      "pidpath": ""
+    },
+    {
+      "name": "ambari-agent",
+      "user": "root",
+      "start": [
+        "ambari-agent start"
+      ],
+      "stop": [
+        "ambari-agent stop"
+      ],
+      "pidpath": ""
+    }
+  ],
+  "hadoop1": [],
+  "hadoop2": [],
+  "hadoop3": [],
+  "hadoop4": [],
+  "hadoop5": [],
+  "java1": [],
+  "java2": [],
+  "java3": [],
+  "etlserver": [],
+  "mysql": []
+}

@@ -99,13 +99,13 @@ For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
 
 ## `sypctl service`
 
-## 工具用途
+### 工具用途
 
 1. 统一汇总各服务进程的管理命令（启动、关闭、PID）
 2. 统一命令使用汇总的命令管理服务进程的状态
 3. 基于上述两点，便捷、轻量级运维各服务进程
 
-## 基本用法
+### 基本用法
 
 ```
 服务进程管理脚本
@@ -117,7 +117,7 @@ Usage: sypctl service [args]
   restart 重启服务列表中的应用
 ```
 
-## 配置档(services.json)
+### 配置档(services.json)
 
 - 位置: `/etc/sypctl/services.json`
 - services.json 内容为 JSON 数组对象
@@ -134,11 +134,13 @@ Usage: sypctl service [args]
 start/stop 操作是一个命令数组， 即需要预创建目录或清理日志等操作可以一并放在里面，同时命令中可以使用定义好的变量（或手工添加新字段），引用变量的语法 `{{variable}}`
 
 
-## 操作示例
+### 操作示例
 
 ```
-# 查看本机配置的服务列表
+# 查看本机配置的服务列表(详细)
 $ sypctl service list
+# 查看本机配置的服务列表(仅列 name/id/是否属于本机管理)
+$ sypctl service list id
 
 # 查看本机配置的服务列表
 $ sypctl service status
@@ -284,7 +286,7 @@ $ sypctl service stop app-unicorn
 }
 ```
 
-## TIPS
+### TIPS
 
 1. 支持自定义 key, 在命令中嵌套使用，语法：`{{variable}}`。
     - 1.1 不可与**预留关键 key: name/id/user/start/stop/pidpath 冲突**
@@ -363,4 +365,3 @@ $ sypctl service stop app-unicorn
       "hostname3": ["service1", "service2", "service3"]
     }
     ```
-
