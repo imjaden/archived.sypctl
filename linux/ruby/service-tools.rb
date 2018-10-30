@@ -117,7 +117,7 @@ class Service
         else
           service['start'].each do |command|
             command = render_command(command, service)
-            command = "su -p - #{service['user']} bash -c \"#{command}\"" if (service['user'] || whoami) != whoami
+            command = "su -p - #{service['user']} bash -c \"#{command}\"" if (service['user'] || whoami) != whoami && !%w(mkdir chmod chown).any? { |cmd| command.start_with?(cmd) }
             run_command(command)
             sleep 1
           end
@@ -146,9 +146,7 @@ class Service
         if running_state
           service['stop'].each do |command|
             command = render_command(command, service)
-            if service['user'] != whoami && !%w(mkdir chmod chown).any? { |cmd| command.start_with?(cmd) }
-              command = "sudo -p - #{service['user']} bash -c \"command\"" 
-            end
+            command = "sudo -p - #{service['user']} bash -c \"command\""  if (service['user'] || whoami) != whoami && !%w(mkdir chmod chown).any? { |cmd| command.start_with?(cmd) }
             run_command(command)
           end
         else
