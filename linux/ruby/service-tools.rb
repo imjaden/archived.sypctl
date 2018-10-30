@@ -146,7 +146,9 @@ class Service
         if running_state
           service['stop'].each do |command|
             command = render_command(command, service)
-            command = "sudo -p - #{service['user']} bash -c \"command\"" if service['user'] != whoami
+            if service['user'] != whoami && !%w(mkdir chmod chown).any? { |cmd| command.start_with?(cmd) }
+              command = "sudo -p - #{service['user']} bash -c \"command\"" 
+            end
             run_command(command)
           end
         else
