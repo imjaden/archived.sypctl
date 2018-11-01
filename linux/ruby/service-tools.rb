@@ -151,7 +151,7 @@ class Service
     end
 
     def stop(target_service = nil)
-      list(false, @options[:stop] || target_service || 'all').each do |service|
+      list(false, @options[:stop] || target_service || 'all').reverse.each do |service|
         puts "\n## 关闭 #{service['name']}"
         pid_path = render_command(service['pid_path'], service)
         service['stop'].each do |command|
