@@ -4,7 +4,9 @@ require 'json'
 require 'fileutils'
 
 namespace :service do
-  task list: :environment do 
+  desc 'print sypctl-version'
+  task list: :environment do
+    puts ENV["SYPCTL-VERSION"]
   end
 
   task load: :environment do

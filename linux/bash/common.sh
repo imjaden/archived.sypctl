@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='0.0.73'
+VERSION=$(test -f version && cat version || echo 'unkown')
 current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')

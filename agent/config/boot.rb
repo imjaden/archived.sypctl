@@ -7,6 +7,7 @@ ENV['RACK_ENV']    ||= 'development'
 ENV['VIEW_PATH']     = %(#{root_path}/server)
 unicorn_port_path    = File.join(root_path, 'app-port')
 ENV['UNICORN_PORT']  = File.exist?(unicorn_port_path) ? File.read(unicorn_port_path).strip : '8086'
+ENV["SYPCTL-VERSION"] = File.read("../version") rescue "unknown"
 
 begin
   ENV['BUNDLE_GEMFILE'] ||= %(#{root_path}/Gemfile)
