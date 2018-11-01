@@ -154,18 +154,13 @@ class Service
       list(false, @options[:stop] || target_service || 'all').each do |service|
         puts "\n## 关闭 #{service['name']}"
         pid_path = render_command(service['pid_path'], service)
-        running_state, running_text = process_pid_status(pid_path)
-        if running_state
-          service['stop'].each do |command|
-            command = render_command(command, service)
+        service['stop'].each do |command|
+          command = render_command(command, service)
 
-            if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
-              command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\""
-            end
-            run_command(command)
+          if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
+            command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\""
           end
-        else
-          puts running_text
+          run_command(command)
         end
       end
     end

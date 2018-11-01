@@ -171,6 +171,48 @@ $ sypctl service stop app-unicorn
 
 [单机模式的生意+服务配置示例](linux/config/services-eziiot@centos7.json)
 
+### 关于 PID
+
+#### Apache Tomcat/8.5.24
+
+修改 `bin/catalina.sh` 在 154 行添加一行给 `CATALINA_PID` 变量赋值。
+
+```
+$ vim bin/catalina.sh
+
+if [ -r "$CATALINA_BASE/bin/setenv.sh" ]; then
+  . "$CATALINA_BASE/bin/setenv.sh"
+elif [ -r "$CATALINA_HOME/bin/setenv.sh" ]; then
+  . "$CATALINA_HOME/bin/setenv.sh"
+fi
+
+# 添加此行
+CATALINA_PID="$CATALINA_HOME/temp/running.pid"
+```
+
+#### nohup
+
+手敲代码启动 nohup 后台服务时，一举指明访问日志（正确的及异常的）的输出文件、PID 文件:
+
+```
+nohup java -jar api-service.jar > api-service.log 2>&1 & echo $! > running.pid
+```
+
+- `> api-service.log` java 命令输出重定向到 api-service.log（异常的错误输出则会丢失，而这些是开发人员调试所需要的）
+- `> api-service.log 2>&1` linux 中屏幕标准输出为 1，标准错误输出为 2，`2>&1` 则表示标准错误输出重定向到标准输出中
+- `nohup ...command... &` nohup 标准用法
+- `$!` 上一个后台执行程序的进程号(PID); `$?` 上一个命令执行的结果状态(0 成功，其他失败)；`$$` 当前的进程号(PID)
+- `echo $! > running.pid` 把刚刚执行的 nohup 后台进程 PID 写入 running.pid 文件
+
+**强调:** `sypctl service` 不支持上述命令，原因很简单：`$!` 会产生歧义， `sypctl service` 会起进程逐条运行 `start/stop` 中的命令，所以在运行上述命令时，`$!` 拿到的其实是 `sypctl service` 的进程号(逃)
+
+推荐两部曲写法:(手工操作推荐上述命令)
+
+```
+nohup java -jar api-service.jar > api-service.log 2>&1 &
+ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }' | sort | head -n 1 >  {{pid_path}}
+```
+
 ### TIPS
 
 1. 支持自定义变量, 在命令中嵌套使用，语法：`{{variable}}`。
@@ -279,3 +321,22 @@ $ sypctl service stop app-unicorn
     ```
 
     [集群模式的Hadoop 大数据服务配置示例](linux/config/services-kylin@centos7.json)
+
+3. 多措施关闭进程
+    - 3.1 启动时由于各种原因进程启动成功但 PID 写入文件失败
+    - 3.2 关闭进程时由于各种原因失败，但删除 PID 文件成功
+
+    上述情况都会导致关闭进程的脚本提示关闭起程成功，但其实进程一直在运行。（业务 BUG 场景是部署的新代码没有生效，本质是代码重启失败）。
+
+    推荐使用工具自带的关闭脚本关闭进程后，再使用 `ps` 把查找到服务目录的进程一同杀死。
+
+    ```
+    "cd {{tomcat_home}} && bash bin/shutdown.sh",
+    "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+
+    # 或
+
+    "cat {{pid_path}} | xargs kill -9",
+    "ps aux | grep redis-server | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+    ```
+

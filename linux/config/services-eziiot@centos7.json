@@ -33,7 +33,7 @@
         "cd {{root_path}} && bundle exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d"
       ],
       "stop": [
-        "cat {{pid_path}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -KILL"
       ],
       "pid_path": "{{root_path}}/tmp/pids/sidekiq.pid",
       "depend": [
@@ -51,7 +51,8 @@
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
-        "cd {{tomcat_home}} && bash bin/shutdown.sh"
+        "cd {{tomcat_home}} && bash bin/shutdown.sh",
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
       ],
       "pid_path": "{{tomcat_home}}/temp/running.pid",
       "depend": [
@@ -69,7 +70,8 @@
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
-        "cd {{tomcat_home}} && bash bin/shutdown.sh"
+        "cd {{tomcat_home}} && bash bin/shutdown.sh",
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
       ],
       "pid_path": "{{tomcat_home}}/temp/running.pid",
       "depend": [
@@ -88,7 +90,8 @@
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
-        "cd {{tomcat_home}} && bash bin/shutdown.sh"
+        "cd {{tomcat_home}} && bash bin/shutdown.sh",
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
       ],
       "pid_path": "{{tomcat_home}}/temp/running.pid",
       "depend": [
@@ -108,7 +111,8 @@
         "ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }' | sort | head -n 1 >  {{pid_path}}"
       ],
       "stop": [
-        "cat {{pid_path}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -9",
+        "ps aux | grep api-service.jar | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
       ],
       "pid_path": "{{root_path}}/running.pid",
       "depend": [
@@ -127,7 +131,8 @@
         "cd {{activemq_home}} && bash bin/activemq start"
       ],
       "stop": [
-        "cd {{activemq_home}} && bash bin/activemq stop"
+        "cd {{activemq_home}} && bash bin/activemq stop",
+        "ps aux | grep {{activemq_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
       ],
       "pid_path": "{{activemq_home}}/data/activemq.pid",
       "depend": [
@@ -146,7 +151,8 @@
         "redis-server /etc/redis/redis.conf"
       ],
       "stop": [
-        "cat {{pid_path}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -9",
+        "ps aux | grep redis-server | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
       ],
       "pid_path": "/var/run/redis_6379.pid"
     },
@@ -170,7 +176,8 @@
         "bash {{zookeeper_home}}/bin/zkServer.sh start"
       ],
       "stop": [
-        "bash {{zookeeper_home}}/bin/zkServer.sh stop"
+        "bash {{zookeeper_home}}/bin/zkServer.sh stop",
+        "ps aux | grep {{zookeeper_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
       ],
       "pid_path": "{{zookeeper_home}}/data/zookeeper_server.pid",
       "extra": {
