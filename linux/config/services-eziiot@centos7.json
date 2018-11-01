@@ -1,96 +1,158 @@
 {
+  "config": {
+    "switch_user_except": [
+      "mkdir",
+      "chown",
+      "chmod"
+    ]
+  },
   "services": [
+    {
+      "name": "运营平台(嵌套变量)",
+      "id": "saas-admin-variable",
+      "user": "root",
+      "start": [
+        "cd {{tomcat_home}} && bash bin/startup.sh"
+      ],
+      "stop": [
+        "cd {{tomcat_home}} && bash bin/shutdown.sh"
+      ],
+      "pid_path": "{{tomcat_home}}/temp/{{id}}.pid",
+      "extra": {
+        "id": "tomcat-admin",
+        "tomcat_home": "/usr/local/src/tomcatAdmin"
+      }
+    },
     {
       "name": "移动端 App 主服务",
       "id": "app-unicorn",
       "user": "root",
-      "root_path": "/usr/local/src/syp-app-server",
       "start": [
         "cd {{root_path}} && bundle exec unicorn -c ./config/unicorn.rb -p 8085 -E production -D"
       ],
       "stop": [
-        "cat {{pidpath}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -9"
       ],
-      "pidpath": "{{root_path}}/tmp/pids/unicorn.pid"
+      "pid_path": "{{root_path}}/tmp/pids/unicorn.pid",
+      "depend": [
+        "redis"
+      ],
+      "extra": {
+        "root_path": "/usr/local/src/syp-app-server"
+      }
     },
     {
       "name": "移动端 App 消息队列管理",
       "id": "app-sidekiq",
       "user": "root",
-      "root_path": "/usr/local/src/syp-app-server",
       "start": [
         "cd {{root_path}} && bundle exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d"
       ],
       "stop": [
-        "cat {{pidpath}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -9"
       ],
-      "pidpath": "{{root_path}}/tmp/pids/sidekiq.pid"
+      "pid_path": "{{root_path}}/tmp/pids/sidekiq.pid",
+      "depend": [
+        "redis"
+      ],
+      "extra": {
+        "root_path": "/usr/local/src/syp-app-server"
+      }
     },
     {
       "name": "运营平台",
       "id": "saas-admin",
       "user": "root",
-      "tomcat_home": "/usr/local/src/tomcatAdmin",
       "start": [
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
         "cd {{tomcat_home}} && bash bin/shutdown.sh"
       ],
-      "pidpath": "{{tomcat_home}}/temp/running.pid"
+      "pid_path": "{{tomcat_home}}/temp/running.pid",
+      "depend": [
+        "redis"
+      ],
+      "extra": {
+        "tomcat_home": "/usr/local/src/tomcatAdmin"
+      }
     },
     {
       "name": "SAAS-SUPER 运营平台",
       "id": "saas-super-admin",
       "user": "root",
-      "tomcat_home": "/usr/local/src/tomcatSuperAdmin",
       "start": [
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
         "cd {{tomcat_home}} && bash bin/shutdown.sh"
       ],
-      "pidpath": "{{tomcat_home}}/temp/running.pid"
+      "pid_path": "{{tomcat_home}}/temp/running.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "tomcat_home": "/usr/local/src/tomcatSuperAdmin"
+      }
     },
     {
       "name": "JAVA 服务消费者",
       "id": "saas-api",
       "user": "root",
-      "tomcat_home": "/usr/local/src/tomcatSuperAdmin",
       "start": [
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
         "cd {{tomcat_home}} && bash bin/shutdown.sh"
       ],
-      "pidpath": "{{tomcat_home}}/temp/running.pid"
+      "pid_path": "{{tomcat_home}}/temp/running.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "tomcat_home": "/usr/local/src/tomcatSuperAdmin"
+      }
     },
     {
       "name": "JAVA 服务提供者",
       "id": "saas-api-service",
       "user": "root",
-      "root_path": "/usr/local/src/providerAPI",
       "start": [
         "cd {{root_path}} && nohup java -jar api-service.jar > api-service.log 2>&1 &",
-        "ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }' | sort | head -n 1 >  {{pidpath}}"
+        "ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }' | sort | head -n 1 >  {{pid_path}}"
       ],
       "stop": [
-        "cat {{pidpath}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -9"
       ],
-      "pidpath": "{{root_path}}/running.pid"
+      "pid_path": "{{root_path}}/running.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "root_path": "/usr/local/src/providerAPI"
+      }
     },
     {
       "name": "JMS 消息队列管理",
       "id": "apache-activemq-5.15.5",
       "user": "root",
-      "activemq_home": "/usr/local/src/apache-activemq-5.15.5",
       "start": [
         "cd {{activemq_home}} && bash bin/activemq start"
       ],
       "stop": [
         "cd {{activemq_home}} && bash bin/activemq stop"
       ],
-      "pidpath": "{{activemq_home}}/data/activemq.pid"
+      "pid_path": "{{activemq_home}}/data/activemq.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "activemq_home": "/usr/local/src/activemqJMS"
+      }
     },
     {
       "name": "公共服务 Redis",
@@ -100,9 +162,9 @@
         "redis-server /etc/redis/redis.conf"
       ],
       "stop": [
-        "cat {{pidpath}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -9"
       ],
-      "pidpath": "/var/run/redis_6379.pid"
+      "pid_path": "/var/run/redis_6379.pid"
     },
     {
       "name": "公共服务 Nginx",
@@ -114,20 +176,22 @@
       "stop": [
         "sudo nginx -s stop"
       ],
-      "pidpath": "/var/run/nginx.pid"
+      "pid_path": "/var/run/nginx.pid"
     },
     {
       "name": "公共服务 Zookeeper",
       "id": "zookeeper",
       "user": "root",
-      "zookeeper_home": "/usr/local/src/zookeeper",
       "start": [
         "bash {{zookeeper_home}}/bin/zkServer.sh start"
       ],
       "stop": [
         "bash {{zookeeper_home}}/bin/zkServer.sh stop"
       ],
-      "pidpath": "{{zookeeper_home}}/data/zookeeper_server.pid"
+      "pid_path": "{{zookeeper_home}}/data/zookeeper_server.pid",
+      "extra": {
+        "zookeeper_home": "/usr/local/src/zookeeper"
+      }
     }
   ]
 }

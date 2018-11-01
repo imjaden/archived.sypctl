@@ -40,8 +40,8 @@ option_parser = OptionParser.new do |opts|
   opts.on('-r', "--restart service", '重启服务列表中的应用') do |value|
     options[:restart] = value
   end
-  opts.on('-r', "--render", '渲染命令中嵌套的变量') do |value|
-    options[:render] = true
+  opts.on('-r', "--render service", '渲染命令中嵌套的变量') do |value|
+    options[:render] = value
   end
 end.parse!
 
@@ -51,48 +51,38 @@ class Service
   class << self
     def options(options)
       @options = options
-    end
 
-    def render()
       service_path = "/etc/sypctl/services.json"
       unless File.exists?(service_path)
         puts "Error: 配置档不存在，请创建并配置 /etc/sypctl/services.json\n退出操作"
         exit 1
       end
 
-      data_hash = JSON.parse(File.read(service_path))
-      data_hash['services'].map do |service|
+      @data_hash = JSON.parse(File.read(service_path))
+      @services = @data_hash['services']
+      @hosts = @data_hash['hosts'] || {}
+      @config = @data_hash['config'] || {}
+      @extra = @data_hash['extra'] || {}
+    end
+
+    def render()
+      services = @data_hash['services']
+      services = services.select { |hsh| hsh['id'] == @options[:render] } if @options[:render] != 'all'
+
+      services = services.map do |service|
         service['start'] = service['start'].map { |command| render_command(command, service) }
         service['stop'] = service['stop'].map { |command| render_command(command, service) }
-        service['pidpath'] = render_command(service['pidpath'], service)
+        service['pid_path'] = render_command(service['pid_path'], service)
         service
       end
-      puts JSON.pretty_generate(data_hash)
+      puts JSON.pretty_generate(services)
     rescue => e
       puts e.message
     end
 
     def list(print_or_not = true, target_service = 'all')
-      service_path = "/etc/sypctl/services.json"
-      unless File.exists?(service_path)
-        puts "Error: 配置档不存在，请创建并配置 /etc/sypctl/services.json\n退出操作"
-        exit 1
-      end
-
-      data_hash = JSON.parse(File.read(service_path))
-      services = data_hash['services']
-      localhost_services = data_hash[hostname] || []
-      if print_or_not
-        if @options[:list] == 'id'
-          table_rows = services.map do |service|
-            [service['name'] || service['id'], service['id'], service['user'], (localhost_services.empty? || localhost_services.include?(service['id']) ? 'yes' : 'no')]
-          end
-          puts Terminal::Table.new(headings: %w(服务 标识 用户 本机管理), rows: table_rows)
-        else
-          puts JSON.pretty_generate(data_hash)
-        end
-      end
-
+      localhost_services = @hosts[hostname] || []
+      services = @data_hash['services']
       services = services.select { |hsh| localhost_services.include?(hsh['id']) } unless localhost_services.empty?
       services = services.select { |hsh| hsh['id'] == target_service } if target_service != 'all'
 
@@ -100,6 +90,23 @@ class Service
         puts "Warning: 未匹配到服务 #{target_service}! \n本机配置的服务列表:"
         puts data_hash['services'].map { |hsh| hsh['id'] }.join("\n")
         exit
+      end
+
+      depends = services.map { |service| service['depend'] || [] }.flatten
+      services.each do |service|
+        service['execute_weight'] = depends.count { |id| service['id'] == id }
+      end
+      services = services.sort { |a, b| [b['execute_weight'], b['id']] <=> [a['execute_weight'], a['id']] }
+
+      if print_or_not
+        if @options[:list] == 'id'
+          table_rows = services.map do |service|
+            [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], (localhost_services.empty? || localhost_services.include?(service['id']) ? 'yes' : 'no')]
+          end
+          puts Terminal::Table.new(headings: %w(服务 标识 用户 执行权重 本机管理), rows: table_rows)
+        else
+          puts JSON.pretty_generate(services)
+        end
       end
 
       services
@@ -110,16 +117,21 @@ class Service
     def start(target_service = nil)
       list(false, @options[:start] || target_service || 'all').each do |service|
         puts "\n# 启动 #{service['name']}"
-        pidpath = render_command(service['pidpath'], service)
-        running_state, running_text = process_pid_status(pidpath)
+        pid_path = render_command(service['pid_path'], service)
+        running_state, running_text = process_pid_status(pid_path)
         if running_state
           puts running_text
         else
           service['start'].each do |command|
             command = render_command(command, service)
-            command = "su -p - #{service['user']} bash -c \"#{command}\"" if (service['user'] || whoami) != whoami && !%w(mkdir chmod chown).any? { |cmd| command.start_with?(cmd) }
+
+            # 使用 su 切换用户执行命令，需要满足以下两点:
+            # 1. 运行账号不是当前用户
+            # 2. 没有指明不需要切换用户操作命令(开头命令)
+            if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
+              command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\"" 
+            end
             run_command(command)
-            sleep 1
           end
         end
       end
@@ -131,22 +143,25 @@ class Service
 
     def status(target_service = nil)
       table_rows = list(false, @options[:status] || target_service || 'all').map do |service|
-        pidpath = render_command(service['pidpath'], service)
-        [service['name'] || service['id'], service['id'], service['user'], process_pid_status(pidpath).last]
+        pid_path = render_command(service['pid_path'], service)
+        [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], process_pid_status(pid_path).last]
       end
 
-      puts Terminal::Table.new(headings: %w(服务 标识 用户 进程状态), rows: table_rows)
+      puts Terminal::Table.new(headings: %w(服务 标识 用户 执行权重 进程状态), rows: table_rows)
     end
 
     def stop(target_service = nil)
       list(false, @options[:stop] || target_service || 'all').each do |service|
         puts "\n## 关闭 #{service['name']}"
-        pidpath = render_command(service['pidpath'], service)
-        running_state, running_text = process_pid_status(pidpath)
+        pid_path = render_command(service['pid_path'], service)
+        running_state, running_text = process_pid_status(pid_path)
         if running_state
           service['stop'].each do |command|
             command = render_command(command, service)
-            command = "sudo -p - #{service['user']} bash -c \"command\""  if (service['user'] || whoami) != whoami && !%w(mkdir chmod chown).any? { |cmd| command.start_with?(cmd) }
+
+            if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
+              command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\""
+            end
             run_command(command)
           end
         else
@@ -161,11 +176,11 @@ class Service
       start(@options[:restart])
     end
 
-    # 预留关键字: name, start, stop, pidpath
+    # 预留关键字: name, start, stop, pid_path
     # user 默认为当前运行账号
     def check(target_service = nil)
       errors = list(false, @options[:list] || target_service || 'all').map do |service|
-        (%w(name id user start stop pidpath) - service.keys).map do |key|
+        (%w(name id user start stop pid_path) - service.keys).map do |key|
           "#{service['name']} 未配置 key: `#{key}`"
         end
       end.flatten
@@ -194,17 +209,31 @@ class Service
       system(command)
     end
 
+    def need_su_to_execute_command?(command, service)
+      keywords = (service['switch_user_except'] || [])
+      return !keywords.any? { |keyword| command.start_with?(keyword) } unless keywords.empty?
+
+      keywords = (@config['switch_user_except'] || [])
+      return !keywords.any? { |keyword| command.start_with?(keyword) }
+    end
+
+    def render_variable(key, hsh, command)
+      return hsh[key] if hsh[key]
+
+      puts "warning: #{command} 包含未知key: #{key}"
+      return "##{key}#"
+    end
+
     def render_command(command, service)
       command_origin = command.clone
       variables = command_origin.scan(/\{\{(.*?)\}\}/).flatten
       return command if variables.empty?
 
+      # 变量优先级: 私有 extra > 全局 extra > service 关键字
+      extra = @extra.merge(service['extra'] || {})
+      variables_hash = service.merge(extra)
       variables.each do |variable|
-        if service.keys.include?(variable)
-          command.gsub!("{{#{variable}}}", service[variable]) 
-        else
-          puts "warning: #{command_origin} 包含未知变量 #{variable}"
-        end
+        command.gsub!("{{#{variable}}}", render_variable(variable, variables_hash, command_origin))
       end
       render_command(command, service)
     rescue => e
@@ -213,9 +242,9 @@ class Service
       puts "service: #{service}"
     end
 
-    def process_pid_status(pidpath)
-      if File.exists?(pidpath)
-        pid = File.read(pidpath).strip
+    def process_pid_status(pid_path)
+      if File.exists?(pid_path)
+        pid = File.read(pid_path).strip
         (pid == `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip ? [true, "运行中(#{pid})"] : [false, "未运行"])
       else
         [false, "未运行，PID 文档不存在"]
