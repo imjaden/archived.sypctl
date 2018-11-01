@@ -8,22 +8,6 @@
   },
   "services": [
     {
-      "name": "运营平台(嵌套变量)",
-      "id": "saas-admin-variable",
-      "user": "root",
-      "start": [
-        "cd {{tomcat_home}} && bash bin/startup.sh"
-      ],
-      "stop": [
-        "cd {{tomcat_home}} && bash bin/shutdown.sh"
-      ],
-      "pid_path": "{{tomcat_home}}/temp/{{id}}.pid",
-      "extra": {
-        "id": "tomcat-admin",
-        "tomcat_home": "/usr/local/src/tomcatAdmin"
-      }
-    },
-    {
       "name": "移动端 App 主服务",
       "id": "app-unicorn",
       "user": "root",
@@ -137,7 +121,7 @@
     },
     {
       "name": "JMS 消息队列管理",
-      "id": "apache-activemq-5.15.5",
+      "id": "saas-activemq-jms",
       "user": "root",
       "start": [
         "cd {{activemq_home}} && bash bin/activemq start"

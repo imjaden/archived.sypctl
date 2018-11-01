@@ -84,7 +84,7 @@ class Service
       localhost_services = @hosts[hostname] || []
       services = @data_hash['services']
       services = services.select { |hsh| localhost_services.include?(hsh['id']) } unless localhost_services.empty?
-      services = services.select { |hsh| hsh['id'] == target_service } if target_service != 'all'
+      services = services.select { |hsh| target_service.split(",").include?(hsh['id'])  } if target_service != 'all'
 
       if services.empty?
         puts "Warning: 未匹配到服务 #{target_service}! \n本机配置的服务列表:"
