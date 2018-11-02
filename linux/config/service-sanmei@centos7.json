@@ -79,7 +79,7 @@
         "zookeeper"
       ],
       "extra": {
-        "tomcat_home": "/usr/local/src/tomcatSuperAdmin"
+        "tomcat_home": "/usr/local/src/tomcatAPI"
       }
     },
     {
@@ -99,7 +99,7 @@
         "zookeeper"
       ],
       "extra": {
-        "tomcat_home": "/usr/local/src/tomcatAPI"
+        "tomcat_home": "/usr/local/src/tomcatSuperAdmin"
       }
     },
     {
@@ -183,6 +183,50 @@
       "extra": {
         "zookeeper_home": "/usr/local/src/zookeeper"
       }
+    },
+    {
+      "name": "公共服务 MySQL",
+      "id": "mysql@centos7",
+      "user": "root",
+      "start": [
+        "systemctl start mysqld"
+      ],
+      "stop": [
+        "systemctl stop mysqld"
+      ],
+      "pid_path": "/var/run/mysqld/mysqld.pid",
+      "extra": {
+        "log_path": "/var/log/mysqld.log",
+        "config_path": "/etc/my.cnf"
+      }
     }
-  ]
+  ],
+  "hosts": {
+    "mysql": [
+      "mysql@centos7"
+    ],
+    "java1": [
+      "nginx"
+    ],
+    "java2": [
+      "redis",
+      "zookeeper",
+      "app-unicorn",
+      "app-sidekiq",
+      "nginx",
+      "saas-super-admin",
+      "saas-api-service",
+      "saas-api"
+    ],
+    "java3": [
+      "redis",
+      "zookeeper",
+      "app-unicorn",
+      "app-sidekiq",
+      "nginx",
+      "saas-super-admin",
+      "saas-api-service",
+      "saas-api"
+    ]
+  }
 }

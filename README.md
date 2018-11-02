@@ -97,7 +97,7 @@ For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
 - 定时任务
 - 开机启动
 
-## [服务管理工具](linux/ruby/service-tools.md)
+## 服务管理工具(linux/ruby/service-tools.md) `sypctl service`
 
 ### 工具用途
 
@@ -153,11 +153,13 @@ $ sypctl service list id
 $ sypctl service render
 # 查看配置的服务列表(仅渲染某个服务的执行命令)
 $ sypctl service render app-unicorn
+$ sypctl service render app-unicorn,app-sidekiq
 
 # 查看本机服务的状态状态
 $ sypctl service status
 # 查看某服务的运行状态
 $ sypctl service status app-unicorn
+$ sypctl service status app-unicorn,app-sidekiq
 
 # 启动所有服务（已启动则会提示当前运行的 pid）
 $ sypctl service start
@@ -168,6 +170,7 @@ $ sypctl service start app-unicorn
 $ sypctl service stop
 # 只关闭 app-unicorn 服务
 $ sypctl service stop app-unicorn
+$ sypctl service stop app-unicorn,app-sidekiq
 ```
 
 [单机模式的生意+服务配置示例](linux/config/services-eziiot@centos7.json)
@@ -340,4 +343,17 @@ ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }
     "cat {{pid_path}} | xargs kill -9",
     "ps aux | grep redis-server | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
     ```
+
+4. 关于 `hostname`
+
+   像大数据集群为了方便机群内部交互，都会显示的设置 `hostname` 为业务标识；常规服务建议也显示的设置 hostname，方便运维。
+
+   ```
+   # centos7
+   $ hostname
+     mysql.localdomain
+   $ hostnamectl set-hostname mysql
+   $ hostname
+     mysql
+   ```
 

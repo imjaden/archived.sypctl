@@ -87,8 +87,8 @@ class Service
       services = services.select { |hsh| target_service.split(",").include?(hsh['id'])  } if target_service != 'all'
 
       if services.empty?
-        puts "Warning: 未匹配到服务 #{target_service}! \n本机配置的服务列表:"
-        puts data_hash['services'].map { |hsh| hsh['id'] }.join("\n")
+        puts "Warning: 未匹配到服务 #{target_service}! \n\n本机配置的服务列表:"
+        puts @data_hash['services'].map { |hsh| "- #{hsh['id']}\n" }.join
         exit
       end
 
@@ -221,7 +221,7 @@ class Service
 
     def render_command(command, service)
       command_origin = command.clone
-      variables = command_origin.scan(/\{\{(.*?)\}\}/).flatten
+      variables = command_origin.scan(/\{\{(.*?)\}\}/).flatten.map(&:strip)
       return command if variables.empty?
 
       # 变量优先级: 私有 extra > 全局 extra > service 关键字
