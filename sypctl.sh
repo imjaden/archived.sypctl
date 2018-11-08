@@ -107,6 +107,7 @@ case "$1" in
         fun_init_agent "$2" "$3"
     ;;
     agent:task)
+        [[ "$2" = "service" ]] && sypctl service status
         fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
         [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
     ;;
