@@ -43,6 +43,9 @@ option_parser = OptionParser.new do |opts|
   opts.on('-r', "--render service", '渲染命令中嵌套的变量') do |value|
     options[:render] = value
   end
+  opts.on('-m', "--monitor all", '监控列表中的服务，未运行则启动') do |value|
+    options[:monitor] = value
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -99,11 +102,11 @@ class Service
       services = services.sort { |a, b| [b['execute_weight'], b['id']] <=> [a['execute_weight'], a['id']] }
 
       if print_or_not
-        if @options[:list] == 'id'
-          table_rows = services.map do |service|
+        if %w(id allid).include?(@options[:list])
+          table_rows = (@options[:list] == 'allid' ? @services : services).map do |service|
             [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], (localhost_services.empty? || localhost_services.include?(service['id']) ? 'yes' : 'no')]
           end
-          puts Terminal::Table.new(headings: %w(服务 标识 用户 执行权重 本机管理), rows: table_rows)
+          puts Terminal::Table.new(headings: %w(服务 标识 用户 权重 本机管理), rows: table_rows)
         else
           puts JSON.pretty_generate(services)
         end
@@ -118,21 +121,11 @@ class Service
       list(false, @options[:start] || target_service || 'all').each do |service|
         puts "\n# 启动 #{service['name']}"
         pid_path = render_command(service['pid_path'], service)
-        running_state, running_text = process_pid_status(pid_path)
-        if running_state
-          puts running_text
+        state, message = process_pid_status(pid_path)
+        if state
+          puts message
         else
-          service['start'].each do |command|
-            command = render_command(command, service)
-
-            # 使用 su 切换用户执行命令，需要满足以下两点:
-            # 1. 运行账号不是当前用户
-            # 2. 没有指明不需要切换用户操作命令(开头命令)
-            if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
-              command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\"" 
-            end
-            run_command(command)
-          end
+          start_service(service)
         end
       end
 
@@ -147,7 +140,11 @@ class Service
         [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], process_pid_status(pid_path).last]
       end
 
-      puts Terminal::Table.new(headings: %w(服务 标识 用户 执行权重 进程状态), rows: table_rows)
+      table_heads = %w(服务 标识 用户 权重 进程状态)
+      puts Terminal::Table.new(headings: table_heads, rows: table_rows)
+
+      data = { heads: table_heads, data: table_rows } 
+      File.open("/etc/sypctl/status.output", "w:utf-8") { |file| file.puts(data.to_json) }
     end
 
     def stop(target_service = nil)
@@ -169,6 +166,19 @@ class Service
       stop(@options[:restart])
       puts "-" * 30
       start(@options[:restart])
+    end
+
+    def monitor
+      list(false, 'all').each do |service|
+        pid_path = render_command(service['pid_path'], service)
+        state, message = process_pid_status(pid_path)
+        next if state
+
+        puts "\n# 启动 #{service['name']}"
+        start_service(service)
+      end
+
+      status('all')
     end
 
     # 预留关键字: name, start, stop, pid_path
@@ -242,7 +252,21 @@ class Service
         pid = File.read(pid_path).strip
         (pid == `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip ? [true, "运行中(#{pid})"] : [false, "未运行"])
       else
-        [false, "未运行，PID 文档不存在"]
+        [false, "未运行，PID 不存在"]
+      end
+    end
+
+    def start_service(service)
+      service['start'].each do |command|
+        command = render_command(command, service)
+
+        # 使用 su 切换用户执行命令，需要满足以下两点:
+        # 1. 运行账号不是当前用户
+        # 2. 没有指明不需要切换用户操作命令(开头命令)
+        if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
+          command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\"" 
+        end
+        run_command(command)
       end
     end
   end

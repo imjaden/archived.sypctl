@@ -168,6 +168,41 @@ def post_to_server_submitor
   end
 end
 
+def post_service_to_server_submitor
+  url = "#{ENV['SYPCTL-API']}/api/v1/service"
+  service_path = "/etc/sypctl/services.json"
+  status_data_path = "/etc/sypctl/status.output"
+
+  monitor_content, total_count, stopped_count = "file not exists", -1, -1
+  if File.exists?(status_data_path)
+    monitor_content = File.read(status_data_path)
+    staus_data = JSON.parse(monitor_content)["data"]
+    total_count = staus_data.count
+    stopped_count = staus_data.select { |arr| arr.last.include?("未运行") }.count
+  end
+
+  uuid = agent_device_state_info[:uuid]
+  params = {
+    uuid: uuid,
+    service: {
+      uuid: uuid,
+      hostname: `hostname`.strip,
+      config: File.exists?(service_path) ? File.read(service_path) : "file not exists",
+      monitor: monitor_content,
+      total_count: total_count,
+      stopped_count: stopped_count
+    }
+  }
+
+  response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
+  
+  puts "POST #{url}\n\nparameters:"
+  puts JSON.pretty_generate(params)
+  puts "\nresponse:"
+  puts response.code
+  puts response.body
+end
+
 #
 # syoctl instance methods
 #

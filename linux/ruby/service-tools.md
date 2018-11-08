@@ -47,8 +47,10 @@ services, 数组中对象，9 个二级预留关键字:
 ```
 # 查看配置的服务列表(详细)
 $ sypctl service list
-# 查看配置的服务列表(仅列 name/id/是否属于本机管理)
+# 查看配置的服务列表(仅列属于本机管理服务的 name/id)
 $ sypctl service list id
+# 查看配置的服务列表(列所有管理服务的 name/id)
+$ sypctl service list allid
 
 # 查看配置的服务列表(详细，渲染命令中嵌套的变量)
 $ sypctl service render

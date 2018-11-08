@@ -68,6 +68,9 @@ case "$1" in
     crontab) # sypctl crontab jobs
         fun_update_crontab_jobs
     ;;
+    crontab:jobs)
+    
+    ;;
     rc.local)
         fun_update_rc_local
     ;;
@@ -130,7 +133,7 @@ case "$1" in
     ;;
     service)
         test -d /etc/sypctl/ || sudo mkdir -p /etc/sypctl/
-        support_commands=(render list start stop status restart)
+        support_commands=(render list start stop status restart monitor)
         if [[ "${support_commands[@]}" =~ "$2" ]]; then
             SYPCTL_HOME=${SYPCTL_HOME} ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
         else

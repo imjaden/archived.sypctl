@@ -150,6 +150,7 @@ function fun_print_sypctl_service_help() {
     echo "  status  检查服务列表应用的运行状态"
     echo "  stop    关闭服务列表中的应用"
     echo "  restart 重启服务列表中的应用"
+    echo "  monitor 监控列表中的服务，未运行则启动"
 }
 
 function fun_print_sypctl_help() {
@@ -272,9 +273,11 @@ function fun_sypctl_upgrade() {
         sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
     fi
 
+    sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
     sypctl crontab > /dev/null 2>&1
     sypctl rc.local > /dev/null 2>&1
     sypctl linux:date check > /dev/null 2>&1
+    sypctl memory:free > /dev/null 2>&1
 
     title "\$ cd agent && bundle install"
     cd agent
@@ -653,9 +656,9 @@ function fun_update_crontab_jobs() {
     echo "" >> ~/.${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
     echo "*/5 * * * * sypctl agent:task guard" >> ~/${crontab_conf}
-    echo "*/1 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
+    echo "*/5 * * * * sypctl agent:task service" >> ~/${crontab_conf}
+    echo "*/5 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
     echo "0 0 * * * sypctl upgrade" >> ~/${crontab_conf}
-    echo "0 0 * * * sypctl memory:free" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
@@ -670,7 +673,15 @@ function fun_update_rc_local() {
 
     test -f ${rc_local_filepath} && {
         sudo chmod go+w ${rc_local_filepath}
+        cp ${rc_local_filepath} ${rc_local_filepath}-bk${timestamp}
+
+        # 清理连续的空行，仅留最一个空行
+        # 对比备份原文件，内容未变化则删除备份
+        sed -i '/^$/{N;/\n$/D};' ${rc_local_filepath}
+        diff ${rc_local_filepath} ${rc_local_filepath}-bk${timestamp}
+        [[ $? -eq 0 ]] && rm -f ${rc_local_filepath}-bk${timestamp}
         
+        # 判断是否已配置，有则清除
         if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
             begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
             end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)

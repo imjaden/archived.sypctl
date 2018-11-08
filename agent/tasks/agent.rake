@@ -12,6 +12,11 @@ namespace :agent do
     post_to_server_submitor
   end
 
+  desc "submit service content and status data to server"
+  task service: :environment do
+    post_service_to_server_submitor
+  end
+
   desc 'agent submit job execute status'
   task job: :environment do
     if ENV['uuid'].to_s.empty?

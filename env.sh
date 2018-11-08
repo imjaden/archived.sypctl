@@ -86,7 +86,7 @@ git remote set-url origin http://gitlab.ibi.ren/syp-apps/sypctl.git
 git pull origin dev-0.0.1 > /dev/null 2>&1
 
 test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
-sudo ln -s ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
+sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
 
 title "检查/安装 JDK..."
 command -v java > /dev/null || bash linux/bash/jdk-tools.sh jdk:install

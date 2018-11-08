@@ -3,8 +3,10 @@ require 'rubygems'
 
 ENV["SYPCTL-VERSION"] = File.read("../version") rescue "unknown"
 ENV['RUBY-VERSION'] = `ruby -v`.strip
-ENV["SYPCTL-API"] = "http://sypctl-api.ibi.ren"
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
+ENV["SYPCTL-API"] = "http://sypctl-api.ibi.ren"
+ENV["SYPCTL-API"] = "http://localhost:4567"
+
 
 $LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])
 $LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/lib/tasks))
