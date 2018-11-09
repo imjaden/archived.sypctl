@@ -52,7 +52,7 @@ namespace :sypctl do
   task deploy: :environment do
     task_list = IO.readlines('config/deploy_tasks.sh').map(&:strip).delete_if { |line| line.empty? or line.start_with?("#") }
     server_list = YAML.load(IO.read('config/server.yaml'))
-    todo_server = IO.readlines('config/server.list').map(&:strip).reject(&:empty?)
+    todo_server = IO.readlines('config/server.list').map(&:strip).reject(&:empty?).reject { |line| line.start_with?("#") }
     server_keys = server_list.keys.select do |node|
       config = server_list[node]
       todo_server.include?(config['description'])

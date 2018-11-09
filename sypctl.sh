@@ -65,11 +65,13 @@ case "$1" in
             echo "Warning: Please offer json filepath！"
         }
     ;;
-    crontab) # sypctl crontab jobs
+    crontab:update) # sypctl crontab jobs
         fun_update_crontab_jobs
     ;;
     crontab:jobs)
-    
+        bash $0 agent:task guard
+        bash $0 agent:task service
+        bash $0 agent:jobs guard
     ;;
     rc.local)
         fun_update_rc_local
@@ -111,8 +113,8 @@ case "$1" in
         fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
         [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
     ;;
-    agent:job:daemon)
-        fun_agent_job_daemon
+    agent:jobs)
+        fun_agent_job_${2:-guard}
     ;;
     agent:server)
         fun_agent_server "$2" "$3"

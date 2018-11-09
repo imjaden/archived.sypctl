@@ -655,10 +655,8 @@ function fun_update_crontab_jobs() {
 
     echo "" >> ~/.${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
-    echo "*/5 * * * * sypctl agent:task guard" >> ~/${crontab_conf}
-    echo "*/5 * * * * sypctl agent:task service" >> ~/${crontab_conf}
-    echo "*/5 * * * * sypctl agent:job:daemon" >> ~/${crontab_conf}
-    echo "0 0 * * * sypctl upgrade" >> ~/${crontab_conf}
+    echo "*/5 * * * * sypctl crontab:jobs" >> ~/${crontab_conf}
+    echo "0   0 * * * sypctl upgrade" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
@@ -690,7 +688,7 @@ function fun_update_rc_local() {
 
         sudo echo "" >> ${rc_local_filepath}
         sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
-        sudo echo "sudo -u ${current_user} sypctl crontab" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\"" >> ${rc_local_filepath}
         sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
     } || {
         title "cannot found rc.local in below path:"
@@ -699,7 +697,7 @@ function fun_update_rc_local() {
     }
 }
 
-function fun_agent_job_daemon() {
+function fun_agent_job_guard() {
     for filepath in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
         mv ${filepath} ${filepath}-running
