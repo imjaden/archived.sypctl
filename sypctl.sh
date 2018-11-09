@@ -67,6 +67,7 @@ case "$1" in
     ;;
     crontab:update) # sypctl crontab jobs
         fun_update_crontab_jobs
+        fun_update_rc_local
     ;;
     crontab:jobs)
         bash $0 agent:task guard
