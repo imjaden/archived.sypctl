@@ -199,6 +199,24 @@
         "log_path": "/var/log/mysqld.log",
         "config_path": "/etc/my.cnf"
       }
+    },
+    {
+      "name": "公共服务 VNC",
+      "id": "vncserver",
+      "user": "root",
+      "start": [
+        "systemctl daemon-reload",
+        "vncserver -list | grep '^:' | awk '{ print $1 }' | xargs vncserver -kill",
+        "vncserver -geometry 1024x768 -depth 24"
+      ],
+      "stop": [
+        "vncserver -list | grep '^:' | awk '{ print $1 }' | xargs vncserver -kill"
+      ],
+      "pid_path": "/root/.vnc/etlserver:1.pid",
+      "extra": {
+        "log_path": "/var/log/mysqld.log",
+        "config_path": "/etc/systemd/system/vncserver@:1.service"
+      }
     }
   ],
   "hosts": {
@@ -210,23 +228,26 @@
     ],
     "java2": [
       "redis",
+      "nginx",
       "zookeeper",
       "app-unicorn",
       "app-sidekiq",
-      "nginx",
       "saas-super-admin",
       "saas-api-service",
       "saas-api"
     ],
     "java3": [
       "redis",
+      "nginx",
       "zookeeper",
       "app-unicorn",
       "app-sidekiq",
-      "nginx",
       "saas-super-admin",
       "saas-api-service",
       "saas-api"
+    ],
+    "etlserver": [
+      "vncserver"
     ]
   }
 }

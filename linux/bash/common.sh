@@ -274,8 +274,7 @@ function fun_sypctl_upgrade() {
     fi
 
     sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
-    sypctl crontab > /dev/null 2>&1
-    sypctl rc.local > /dev/null 2>&1
+    sypctl crontab:update > /dev/null 2>&1
     sypctl linux:date check > /dev/null 2>&1
     sypctl memory:free > /dev/null 2>&1
 
