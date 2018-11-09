@@ -214,7 +214,6 @@
       ],
       "pid_path": "/root/.vnc/etlserver:1.pid",
       "extra": {
-        "log_path": "/var/log/mysqld.log",
         "config_path": "/etc/systemd/system/vncserver@:1.service"
       }
     }

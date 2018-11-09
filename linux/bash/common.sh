@@ -675,7 +675,7 @@ function fun_update_rc_local() {
         # 清理连续的空行，仅留最一个空行
         # 对比备份原文件，内容未变化则删除备份
         sed -i '/^$/{N;/\n$/D};' ${rc_local_filepath}
-        diff ${rc_local_filepath} ${rc_local_filepath}-bk${timestamp}
+        diff ${rc_local_filepath} ${rc_local_filepath}-bk${timestamp} > /dev/null 2>&1
         [[ $? -eq 0 ]] && rm -f ${rc_local_filepath}-bk${timestamp}
         
         # 判断是否已配置，有则清除
