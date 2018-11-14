@@ -41,7 +41,7 @@ case "$1" in
             fi
 
             if [[ ! -f linux/packages/${package_name} ]]; then
-                wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
                 printf "$two_cols_table_format" "Redis package" "Downloaded"
             fi
         fi

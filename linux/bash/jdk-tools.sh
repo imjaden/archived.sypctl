@@ -40,9 +40,9 @@ case "$1" in
             exit 1
         }
 
-        jdk_package=linux/packages/jdk-8u151-linux-x64.tar.gz
+        jdk_package=linux/packages/jdk-8u192-linux-x64.tar.gz
         jdk_install_path=/usr/local/src
-        jdk_version=jdk1.8.0_151
+        jdk_version=jdk1.8.0_192
 
         if [[ ! -f ${jdk_package} ]]; then
             printf "$two_cols_table_format" "JDK package" "Not Found"
@@ -58,7 +58,7 @@ case "$1" in
             fi
 
             if [[ ! -f linux/packages/${package_name} ]]; then
-                wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
                 printf "$two_cols_table_format" "JDK package" "Downloaded"
             fi
         fi

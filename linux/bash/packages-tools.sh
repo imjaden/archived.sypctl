@@ -8,13 +8,13 @@
 #
 
 source linux/bash/common.sh
-package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u151-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.4.12.tar.gz)
+package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u192-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.4.12.tar.gz)
 
 fun_download_package_when_not_exists() {
   package_name="$1"
   if [[ ! -f linux/packages/${package_name} ]]; then
       printf "$two_cols_table_format" "${package_name}" "Downloading..."
-      wget -q -P linux/packages/ "http://cdn.sypctl.com/${package_name}"
+      wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
       printf "$two_cols_table_format" "${package_name}" "Downloaded"
   fi
 }

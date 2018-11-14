@@ -32,6 +32,7 @@ case "$1" in
             CentOS7)
                 sudo yum install -y readline-devel gcc-c++ openssl-devel
                 sudo rpm -Uvh http://nginx.org/packages/rhel/7/x86_64/RPMS/nginx-1.12.2-1.el7_4.ngx.x86_64.rpm
+                sudo yum -y install nginx
             ;;
             Ubuntu16)  
                 nginx_package=linux/packages/nginx-1.11.3.tar.gz
@@ -57,7 +58,7 @@ case "$1" in
                     fi
 
                     if [[ ! -f linux/packages/${package_name} ]]; then
-                        wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                        wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
                         printf "$two_cols_table_format" "nginx package" "Downloaded"
                     fi
                 fi
