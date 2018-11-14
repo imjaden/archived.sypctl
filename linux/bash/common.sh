@@ -78,7 +78,7 @@ function fun_prompt_java_already_installed() {
     current_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
     [[ "$1" = "table" ]] && printf "$two_cols_table_format" "java" "${current_version:0:40}" || java -version
 
-    if [[ "${current_version}" != "${expect_version}" ]]; then
+    if [[ "jdk${current_version}" != "${expect_version}" ]]; then
         echo 
         echo "current jdk version: ${current_version}"
         echo " expect jdk version: ${expect_version}"
