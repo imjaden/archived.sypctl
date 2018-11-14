@@ -8,13 +8,20 @@
 #
 
 source linux/bash/common.sh
+package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u151-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.4.12.tar.gz)
 
+fun_download_package_when_not_exists() {
+  package_name="$1"
+  if [[ ! -f linux/packages/${package_name} ]]; then
+      printf "$two_cols_table_format" "${package_name}" "Downloading..."
+      wget -q -P linux/packages/ "http://cdn.sypctl.com/${package_name}"
+      printf "$two_cols_table_format" "${package_name}" "Downloaded"
+  fi
+}
 case $1 in
     check|deploy)
         fun_print_table_header "Packages State" "PackageName" "Download/Integrity"
-
         mkdir -p linux/packages
-        package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u151-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.3.6.tar.gz)
         for package_name in ${package_names[@]}; do
             if [[ -f linux/packages/${package_name} ]]; then
               tar jtvf packages/${package_name} > /dev/null 2>&1
@@ -23,11 +30,7 @@ case $1 in
               fi
             fi
 
-            if [[ ! -f linux/packages/${package_name} ]]; then
-                printf "$two_cols_table_format" "${package_name}" "Downloading..."
-                wget -q -P linux/packages/ "http://p93zhu9fx.bkt.clouddn.com/${package_name}"
-                printf "$two_cols_table_format" "${package_name}" "Downloaded"
-            fi
+            fun_download_package_when_not_exists ${package_name}
         done
 
         clear
@@ -35,14 +38,8 @@ case $1 in
     ;;
     state|status)
       fun_print_table_header "Packages State" "PackageName" "Download/Integrity"
-
-      package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u151-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.3.6.tar.gz)
       for package_name in ${package_names[@]}; do
-          if [[ ! -f linux/packages/${package_name} ]]; then
-              printf "$two_cols_table_format" "${package_name}" "Downloading..."
-              wget -q -P linux/packages/ "http://p93zhu9fx.bkt.clouddn.com/${package_name}"
-              printf "$two_cols_table_format" "${package_name}" "Downloaded"
-          fi
+          fun_download_package_when_not_exists ${package_name}
 
           test -f linux/packages/${package_name}
           download_state=$([[ $? -eq 0 ]] && echo 'true' || echo 'false')

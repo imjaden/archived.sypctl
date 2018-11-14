@@ -27,6 +27,9 @@ zk_home="${1:-$ZK_HOME}"
 cmd_type="${2:-start}"
 option="${3:-use-header}"
 
+zk_package=linux/packages/zookeeper-3.4.12.tar.gz
+zk_version=zookeeper-3.4.12
+
 case "${cmd_type}" in
     check)
         logger "TODO"
@@ -36,9 +39,6 @@ case "${cmd_type}" in
             printf "$two_cols_table_format" "Zookeeper" "Deployed"
             exit 2
         fi
-
-        zk_package=linux/packages/zookeeper-3.3.6.tar.gz
-        zk_version=zookeeper-3.3.6
 
         rm -fr ~/tools/${zk_version} 
         test -d ~/tools || mkdir -p ~/tools
@@ -73,9 +73,7 @@ case "${cmd_type}" in
         echo "already enter zookeeper installed dir, do yourself!"
     ;;
     install)
-        zk_package="zookeeper-3.3.6.tar.gz"
         zk_install_path=/usr/local/src
-        zk_version=zookeeper-3.3.6
 
         if [[ ! -f ${zk_package} ]]; then
             printf "$two_cols_table_format" "Zookeeper" "Tar Package Not Found"
