@@ -2,24 +2,33 @@
 #
 ########################################
 #  
-#  Nginx Tool
+#  Nginx Install Manager
 #
 ########################################
+#
+# 参数说明:
+#
+# @operate   必填，Nginx 安装操作
+# @format    选填，操作日志的输出格式
+#
+# 完整示例：
+#
+# ```
+# sypctl toolkit nginx install
+# # sypctl 内部格式输出时使用 format: table 
+# sypctl toolkit nginx install table 
+# ```
 
 source linux/bash/common.sh
 
-option="${2:-use-header}"
-
+format=${2:-custom}
 case "$1" in
     check)
-        command -v nginx >/dev/null 2>&1 && fun_prompt_nginx_already_installed || {
-            echo "warning: nginx command not found"
-            exit 2
-        }
+        command -v nginx >/dev/null 2>&1 && fun_prompt_nginx_already_installed ${format} || echo "warning: nginx command not found"
     ;;
     install|deploy)
         command -v nginx >/dev/null 2>&1 && {
-            fun_prompt_nginx_already_installed
+            fun_prompt_nginx_already_installed ${format}
             exit 1
         }
 
@@ -38,29 +47,39 @@ case "$1" in
                 nginx_package=linux/packages/nginx-1.11.3.tar.gz
                 nginx_install_path=/usr/local/src
                 nginx_version=nginx-1.11.3
+                package_name="$(basename $nginx_package)"
 
+                # 删除旧安装目录
                 if [[ -d ${nginx_install_path}/${nginx_version} ]]; then
                     rm -fr ${nginx_install_path}/${nginx_version} 
-                    printf "$two_cols_table_format" "nginx package" "Removed Useless Package"
+                    [[ "${format}" = "table" ]] && printf "$two_cols_table_format" "Nginx package" "removed useless folder" || echo "remove useless folder: ${nginx_install_path}/${nginx_version} "
                 fi
 
+                # 校正 tar.gz 文件的完整性(是否可以正常解压)
+                # 不完整则删除
+                if [[ -f ${nginx_package} ]]; then
+                    tar jtvf ${nginx_package} > /dev/null 2>&1
+                    [[ $? -gt 0 ]] && rm -f ${nginx_package}
+                fi
+
+                # 不存在则下载
                 if [[ ! -f ${nginx_package} ]]; then
-                    printf "$two_cols_table_format" "nginx package" "Not Found"
-                    printf "$two_cols_table_format" "nginx package" "Downloading..."
+                    if [[ "${format}" = "table" ]]; then
+                        printf "$two_cols_table_format" "Nginx package" "Not Found"
+                        printf "$two_cols_table_format" "Nginx package" "Downloading..."
+                    else
+                        echo "downloading ${package_name}..."
+                    fi
 
                     mkdir -p linux/packages
-                    package_name="$(basename $nginx_package)"
-                    if [[ -f linux/packages/${package_name} ]]; then
-                      tar jtvf packages/${package_name} > /dev/null 2>&1
-                      if [[ $? -gt 0 ]]; then
-                          rm -f linux/packages/${package_name}
-                      fi
-                    fi
+                    wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
+                    [[ "${format}" = "table" ]] && printf "$two_cols_table_format" "Nginx package" "downloaded" || echo "downloaded ${package_name}"
+                fi
 
-                    if [[ ! -f linux/packages/${package_name} ]]; then
-                        wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
-                        printf "$two_cols_table_format" "nginx package" "Downloaded"
-                    fi
+                # 安装包不存在（说明下载失败）则退出 
+                if [[ ! -f ${nginx_package} ]]; then
+                    [[ "${format}" = "table" ]] && printf "$two_cols_table_format" "Nginx package" "download failed" || echo "download ${package_name} failed then exit"
+                    exit 2
                 fi
 
                 tar -xzvf ${nginx_package} -C ${nginx_install_path}
@@ -83,7 +102,7 @@ case "$1" in
             ;;
         esac
 
-        nginx -V
+        command -v nginx >/dev/null 2>&1 && fun_prompt_nginx_already_installed ${format} || echo "install nginx failed"
     ;;
     start|startup)
         bash $0 check
@@ -130,7 +149,7 @@ case "$1" in
         exit 1
     ;;
     monitor)
-        bash $0 status ${option}
+        bash $0 status
         if [[ $? -gt 0 ]]; then
             printf "$two_cols_table_format" "nginx" "Process Not Found"
             printf "$two_cols_table_format" "nginx" "Starting..."
@@ -141,9 +160,7 @@ case "$1" in
         logger "warning: unkown params - $@"
         logger
         logger "Usage:"
-        logger "    $0 check"
-        logger "    $0 install"
-        logger "    $0 start"
-        logger "    $0 monitor"
+        logger "\$ sypctl toolkit jdk check"
+        logger "\$ sypctl toolkit jdk install"
     ;;
 esac

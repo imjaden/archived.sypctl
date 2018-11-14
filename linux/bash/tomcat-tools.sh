@@ -6,9 +6,6 @@
 #
 ########################################
 #
-# 建议在 ~/.bash_profile 中配置 TOMCAT_HOME 变量
-#--------------------------------------------
-#
 # 参数说明:(传参顺序必须一致)
 #
 # @tomcat_home   tomcat 部署路径，默认为 TOMCAT_HOME
@@ -28,14 +25,13 @@ source linux/bash/common.sh
 tomcat_home="${1:-$TOMCAT_HOME}"
 cmd_type="${2:-startup}"
 option="${3:-use-header}"
-
 case "${cmd_type}" in
     check)
         printf "$two_cols_table_format" "Tomcat:check" "TODO"
     ;; 
     install)
         if [[ -d ${tomcat_home} ]]; then
-            printf "$two_cols_table_format" "${tomcat_home}" "Deployed"
+            printf "$two_cols_table_format" "${tomcat_home}" "deployed"
             exit 2
         fi
 
@@ -45,8 +41,8 @@ case "${cmd_type}" in
         if [[ ! -d ~/tools/${tomcat_version} ]]; then
             test -d ~/tools || mkdir -p ~/tools
             if [[ ! -f ${tomcat_package} ]]; then
-                printf "$two_cols_table_format" "Tomcat package" "Not Found"
-                printf "$two_cols_table_format" "Tomcat package" "Downloading..."
+                printf "$two_cols_table_format" "Tomcat package" "not exist"
+                printf "$two_cols_table_format" "Tomcat package" "downloading..."
 
                 mkdir -p linux/packages
                 package_name="$(basename $redis_package)"
@@ -59,7 +55,7 @@ case "${cmd_type}" in
 
                 if [[ ! -f linux/packages/${package_name} ]]; then
                     wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
-                    printf "$two_cols_table_format" "Tomcat package" "Downloaded"
+                    printf "$two_cols_table_format" "Tomcat package" "downloaded"
                 fi
             fi
             
@@ -77,14 +73,14 @@ case "${cmd_type}" in
         tail -f logs/catalina.out
     ;;
     start|startup)
-        printf "$two_cols_table_format" "${tomcat_home}" "Starting..."
+        printf "$two_cols_table_format" "${tomcat_home}" "starting..."
         cat /dev/null > ${tomcat_home}/logs/catalina.out
         rm -rf ${tomcat_home}/work/* 
 
         sleep 1s
 
         bash ${tomcat_home}/bin/startup.sh > /dev/null 2>&1
-        printf "$two_cols_table_format" "${tomcat_home}" "Started"
+        printf "$two_cols_table_format" "${tomcat_home}" "started"
 
         bash $0 ${tomcat_home} status
     ;;
@@ -92,7 +88,7 @@ case "${cmd_type}" in
         printf "$two_cols_table_format" "${tomcat_home}" "Stoping..."
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
         if [ ! -n "${pids}" ]; then
-            printf "$two_cols_table_format" "${tomcat_home}" "Pid Not Found"
+            printf "$two_cols_table_format" "${tomcat_home}" "pid not found"
         else
             printf "$two_cols_table_format" "${tomcat_home}" "${pids}"
             bash ${tomcat_home}/bin/shutdown.sh
@@ -105,7 +101,7 @@ case "${cmd_type}" in
                 kill -9 ${pids}
             fi
         fi
-        printf "$two_cols_table_format" "${tomcat_home}" "Stoped"
+        printf "$two_cols_table_format" "${tomcat_home}" "stoped"
     ;;
     status|state)
         pids=$(ps aux | grep tomcat | grep ${tomcat_home} | grep -v 'grep' | grep -v 'tomcat-tools' | awk '{print $2}' | xargs)
@@ -121,8 +117,8 @@ case "${cmd_type}" in
     monitor)
         bash $0 ${tomcat_home} status ${option}
         if [[ $? -gt 0 ]]; then
-            printf "$two_cols_table_format" "${tomcat_home}" "Not Found"
-            printf "$two_cols_table_format" "${tomcat_home}" "Starting..."
+            printf "$two_cols_table_format" "${tomcat_home}" "not found"
+            printf "$two_cols_table_format" "${tomcat_home}" "starting..."
             bash $0 ${tomcat_home} startup
         fi
     ;;

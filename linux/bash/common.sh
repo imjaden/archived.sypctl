@@ -74,35 +74,60 @@ function fun_prompt_command_already_installed() {
 }
 
 function fun_prompt_java_already_installed() {
-    version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
-    printf "$two_cols_table_format" "java" "${version:0:40}"
+    expect_version=jdk1.8.0_192
+    current_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    [[ "$1" = "table" ]] && printf "$two_cols_table_format" "java" "${current_version:0:40}" || java -version
+
+    if [[ "${current_version}" != "${expect_version}" ]]; then
+        echo 
+        echo "current jdk version: ${current_version}"
+        echo " expect jdk version: ${expect_version}"
+        echo "run the command to force install expect jdk:"
+        echo
+        echo "$ sypctl toolkit jdk jdk:install:force"
+        echo
+    fi
 
     return 0
 }
 
 function fun_prompt_javac_already_installed() {
     version=$(javac -version 2>&1 | awk '{ print $2 }')
-    printf "$two_cols_table_format" "javac" "${version:0:40}"
+    [[ "$1" = "table" ]] && printf "$two_cols_table_format" "javac" "${version:0:40}" || javac -version
 
     return 0
 }
 
 function fun_prompt_nginx_already_installed() {
-    version=$(nginx -V 2>&1 | awk '/version/ { print $3 }')
-    printf "$two_cols_table_format" "nginx" "${version:0:40}"
+    if [[ "$1" = "table" ]]; then
+        version=$(nginx -V 2>&1 | awk '/version/ { print $3 }')
+        printf "$two_cols_table_format" "nginx" "${version:0:40}"
+    else
+        nginx -V
+    fi
 
     return 0
 }
 
 function fun_prompt_redis_already_installed() {
-    version=$(redis-cli --version)
-    printf "$two_cols_table_format" "redis-cli" "${version:0:40}"
+    if [[ "$1" = "table" ]]; then
+        version=$(redis-cli --version | awk '{ print $2 }')
+        printf "$two_cols_table_format" "redis-cli" "${version:0:40}"
+    else
+        redis-cli --version
+        redis-server --version
+    fi
 
     return 0
 }
 
 function fun_prompt_vncserver_already_installed() {
-    printf "$two_cols_table_format" "vncserver" "$(which vncserver)"
+    if [[ "$1" = "table" ]]; then
+        printf "$two_cols_table_format" "vncserver" "$(which vncserver)"
+    else
+        echo "already installed vncserver!"
+        rwhich vncserver
+    fi
 
     return 0
 }
@@ -426,16 +451,20 @@ function fun_deploy_service_guides() {
     }
 
     check_install_defenders_include "SYPAPI" && {
-        bash linux/bash/tomcat-tools.sh /usr/local/src/tomcatAPI        install 8081
-        bash linux/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar install
+        root_path=/usr/local/src/tomcatAPI
+        bash linux/bash/tomcat-tools.sh ${root_path} install 8081
+        jar_path=/usr/local/src/providerAPI/api-service.jar
+        bash linux/bash/jar-service-tools.sh ${jar_path} install
     }
 
     check_install_defenders_include "SYPSuperAdmin" && {
-        bash linux/bash/tomcat-tools.sh /usr/local/src/tomcatSuperAdmin install 8082
+        root_path=/usr/local/src/tomcatSuperAdmin
+        bash linux/bash/tomcat-tools.sh ${root_path} install 8082
     }
 
     check_install_defenders_include "SYPAdmin" && {
-        bash linux/bash/tomcat-tools.sh /usr/local/src/tomcatAdmin      install 8083
+        root_path=/usr/local/src/tomcatAdmin
+        bash linux/bash/tomcat-tools.sh ${root_path} install 8083
     }
 
     check_install_defenders_include "Zookeeper" && {
@@ -459,41 +488,11 @@ function fun_print_deployed_services() {
         version=$(${cmd} --version)
         printf "$two_cols_table_format" "${cmd}" "${version:0:30}"
     done
-    fun_prompt_java_already_installed
+    fun_prompt_java_already_installed "table"
 
     test -f .install-defender && while read line; do
         printf "$two_cols_table_format" "Component" "$line"
     done < .install-defender
-
-    fun_print_table_footer
-}
-
-function fun_operator_service_process() {
-    fun_print_table_header "Components Process State" "Component" "ProcessId"
-
-    check_install_defenders_include "Redis" && {
-        bash linux/bash/redis-tools.sh $1 "no-header"
-    }
-
-    check_install_defenders_include "Zookeeper" && {
-        bash linux/bash/zookeeper-tools.sh /usr/local/src/zookeeper $1 "no-header"
-    }
-
-    check_install_defenders_include "SYPAPI" && {
-        bash linux/bash/jar-service-tools.sh /usr/local/src/providerAPI/api-service.jar $1 "no-header"
-        bash linux/bash/tomcat-tools.sh      /usr/local/src/tomcatAPI        $1 "no-header"
-    }
-
-    check_install_defenders_include "SYPSuperAdmin" && {
-        bash linux/bash/tomcat-tools.sh      /usr/local/src/tomcatSuperAdmin $1 "no-header"
-    }
-
-    check_install_defenders_include "SYPAdmin" && {
-        bash linux/bash/tomcat-tools.sh      /usr/local/src/tomcatAdmin      $1 "no-header"
-    }
-    check_install_defenders_include "Nginx" && {
-        bash linux/bash/nginx-tools.sh $1 "no-header"
-    }
 
     fun_print_table_footer
 }
@@ -707,29 +706,30 @@ function fun_agent_job_guard() {
 }
 
 function fun_print_toolkit_list() {
+    echo "pwd: $(pwd)"
     echo "Error: 请输入 sypctl 系统脚本名称！"
     echo
     echo "Usage: sypctl tookit <脚本名称> [参数]"
     echo
-    echo "脚本列表："
     for tookit in $(ls linux/bash/*-tools.sh); do
         tookit=${tookit##*/}
         tookit=${tookit%-*}
-    echo "- ${tookit}"
+    echo "\$ sypctl toolkit ${tookit} [参数]"
     done
 }
 
 function fun_toolkit_caller() {
     test -z "$2" && {
         fun_print_toolkit_list
-        exit
+        exit 1
     }
 
     toolkit=linux/bash/$2-tools.sh
     test -f ${toolkit} && {
-        bash linux/bash/$2-tools.sh "$3" "$4" "$5" "$6"
+        bash ${toolkit} "$3" "$4" "$5" "$6"
+        exit 0
     } || {
-        echo "toolkit: $2 不存在，退出！"
+        echo "脚本 ${toolkit} 不存在，退出！"
         fun_print_toolkit_list
         exit 1
     }

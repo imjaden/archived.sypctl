@@ -11,7 +11,6 @@ source linux/bash/common.sh
 
 cmd_type="${1:-start}"
 option="${2:-use-header}"
-
 case "${cmd_type}" in 
     install|deploy)
         command -v vncserver >/dev/null 2>&1 || {

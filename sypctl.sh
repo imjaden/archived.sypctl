@@ -35,9 +35,6 @@ case "$1" in
     deployed)
         fun_print_deployed_services
     ;;
-    start|stop|status|restart|monitor)
-        fun_operator_service_process "$1"
-    ;;
     guide|install:help|ih)
         fun_user_expect_to_install_package_guides
     ;;
