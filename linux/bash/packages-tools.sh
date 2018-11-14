@@ -25,7 +25,7 @@ case $1 in
 
             if [[ ! -f linux/packages/${package_name} ]]; then
                 printf "$two_cols_table_format" "${package_name}" "Downloading..."
-                wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+                wget -q -P linux/packages/ "http://p93zhu9fx.bkt.clouddn.com/${package_name}"
                 printf "$two_cols_table_format" "${package_name}" "Downloaded"
             fi
         done
@@ -40,7 +40,7 @@ case $1 in
       for package_name in ${package_names[@]}; do
           if [[ ! -f linux/packages/${package_name} ]]; then
               printf "$two_cols_table_format" "${package_name}" "Downloading..."
-              wget -q -P linux/packages/ "http://7jpozz.com1.z0.glb.clouddn.com/${package_name}"
+              wget -q -P linux/packages/ "http://p93zhu9fx.bkt.clouddn.com/${package_name}"
               printf "$two_cols_table_format" "${package_name}" "Downloaded"
           fi
 
