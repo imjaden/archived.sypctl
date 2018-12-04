@@ -153,7 +153,28 @@ function fun_user_expect_to_install_package_guides() {
     done
 }
 
+function fun_print_sypctl_help() {
+    echo "Usage: sypctl <command> [args]"
+    echo 
+    echo "常规操作："
+    echo "sypctl help          sypctl 支持的命令参数列表，及已部署服务的信息"
+    echo "sypctl upgrade       更新 sypctl 源码"
+    echo "sypctl env           部署基础环境依赖：JDK/Rbenv/Ruby"
+    echo "sypctl deploy        部署服务引导，并安装部署输入 \`y\` 确认的服务"
+    echo "sypctl deployed      查看已部署服务"
+    echo "sypctl device:update 更新重新提交设备信息"
+    echo
+    echo "sypctl agent help    #代理# 配置"
+    echo "sypctl toolkit help  #工具# 安装"
+    echo "sypctl service help  #服务# 管理"
+    echo
+    fun_print_logo
+    echo "Current version is $VERSION"
+    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+}
+
 function fun_print_init_agent_command_help() {
+    echo "代理配置:"
     echo "sypctl agent:init help"
     echo "sypctl agent:init uuid <服务器端已分配的 UUID>"
     echo "sypctl agent:init human_name <业务名称>"
@@ -161,60 +182,34 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:init favicon <自定义代理 Web 的 favicon 图片链接>"
     echo "sypctl agent:init list      初始化配置信息列表"
     echo
+    echo "任务操作:"
     echo "sypctl agent:task guard     代理守护者，注册、提交功能"
     echo "sypctl agent:task info      查看注册信息"
     echo "sypctl agent:task log       查看提交日志"
     echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
-    echo "sypctl agent:job:daemon     服务器端任务的监护者"
+    echo "sypctl agent:jobs guard     服务器端任务的监护者"
+}
+
+function fun_print_toolkit_list() {
+    echo "工具安装:"
+    echo "$ sypctl toolkit [toolkit-name] [args]"
+    for tookit in $(ls linux/bash/*-tools.sh); do
+        tookit=${tookit##*/}
+        tookit=${tookit%-*}
+    echo "                 ${tookit} [args]"
+    done
+    echo "当前路径: $(pwd)"
 }
 
 function fun_print_sypctl_service_help() {
-    echo "sypctl service [args]"
-    echo "  list    查看管理的服务列表"
-    echo "  start   启动服务列表中的应用"
-    echo "  status  检查服务列表应用的运行状态"
-    echo "  stop    关闭服务列表中的应用"
-    echo "  restart 重启服务列表中的应用"
-    echo "  monitor 监控列表中的服务，未运行则启动"
-}
-
-function fun_print_sypctl_help() {
-    echo "Usage: sypctl <command> [<args>]"
-    echo 
-    echo "代理操作:"
-    fun_print_init_agent_command_help
-    echo
     echo "服务管理:"
-    fun_print_sypctl_service_help
-    echo
-    echo "常规操作："
-    echo "sypctl help          sypctl 支持的命令参数列表，及已部署服务的信息"
-    echo "sypctl deploy        部署服务引导，并安装部署输入 \`y\` 确认的服务"
-    echo "sypctl deployed      查看已部署服务"
-    echo "sypctl env           部署基础环境依赖：JDK/Rbenv/Ruby"
-    echo "sypctl upgrade       更新 sypctl 源码"
-    echo "sypctl device:update 更新重新提交设备信息"
-    echo 
-    echo "sypctl monitor       已部署的服务进程状态，若未监测到进程则启动该服务"
-    echo "sypctl start         启动已部署的服务进程"
-    echo "sypctl status        已部署的服务进程状态"
-    echo "sypctl restart       重启已部署的服务进程"
-    echo "sypctl stop          关闭已部署的服务进程"
-    echo
-    echo "sypctl toolkit <SYPCTL 脚本名称> [参数]"
-
-    echo "sypctl etl:import <数据表连接配置档>"
-    echo "sypctl etl:status"
-    echo 
-    echo "sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下："
-    echo "                      - 生意+ shengyiplus"
-    echo "                      - 睿商+ ruishangplus"
-    echo "                      - 永辉  yh_android"
-    echo "                      - 保臻  shenzhenpoly"
-    echo "sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上"
-    echo 
-    echo "Current version is $VERSION"
-    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+    echo "sypctl service [args]"
+    echo "               list    查看管理的服务列表"
+    echo "               start   启动服务列表中的应用"
+    echo "               status  检查服务列表应用的运行状态"
+    echo "               stop    关闭服务列表中的应用"
+    echo "               restart 重启服务列表中的应用"
+    echo "               monitor 监控列表中的服务，未运行则启动"
 }
 
 function fun_print_logo() {
@@ -705,24 +700,12 @@ function fun_agent_job_guard() {
     done
 }
 
-function fun_print_toolkit_list() {
-    echo "pwd: $(pwd)"
-    echo "Error: 请输入 sypctl 系统脚本名称！"
-    echo
-    echo "Usage: sypctl tookit <脚本名称> [参数]"
-    echo
-    for tookit in $(ls linux/bash/*-tools.sh); do
-        tookit=${tookit##*/}
-        tookit=${tookit%-*}
-    echo "\$ sypctl toolkit ${tookit} [参数]"
-    done
-}
 
 function fun_toolkit_caller() {
-    test -z "$2" && {
+    if [[ -z "$2" || "$2" = "help" ]]; then
         fun_print_toolkit_list
         exit 1
-    }
+    fi
 
     toolkit=linux/bash/$2-tools.sh
     test -f ${toolkit} && {
@@ -733,6 +716,46 @@ function fun_toolkit_caller() {
         fun_print_toolkit_list
         exit 1
     }
+}
+
+function fun_service_caller() {
+    if [[ "${2}" = "help" ]]; then
+        fun_print_sypctl_service_help
+        exit 1
+    fi
+
+    test -d /etc/sypctl/ || sudo mkdir -p /etc/sypctl/
+    support_commands=(render list start stop status restart monitor)
+    if [[ "${support_commands[@]}" =~ "$2" ]]; then
+        SYPCTL_HOME=${SYPCTL_HOME} ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
+    else
+        echo "Error - unknown command: $2, support: ${support_commands[@]}"
+    fi
+}
+
+function fun_agent_caller() {
+    case "$1" in
+        agent)
+            fun_print_init_agent_command_help
+        ;;
+        agent:init)
+            fun_init_agent "$2" "$3"
+        ;;
+        agent:task)
+            [[ "$2" = "service" ]] && sypctl service monitor
+            fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
+            [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
+        ;;
+        agent:jobs)
+            fun_agent_job_${2:-guard}
+        ;;
+        agent:server)
+            fun_agent_server "$2" "$3"
+        ;;
+        *)
+            echo "Error - unknown command: $@"
+        ;;
+    esac
 }
 
 function fun_etl_caller() {

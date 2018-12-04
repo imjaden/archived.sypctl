@@ -1,0 +1,26 @@
+{
+  "config": {
+    "switch_user_except": [
+      "mkdir",
+      "chown",
+      "chmod"
+    ]
+  },
+  "services": [
+    {
+      "name": "公共服务 haproxy",
+      "id": "haproxy",
+      "user": "root",
+      "start": [
+        "service rsyslog start",
+        "service haproxy start"
+      ],
+      "stop": [
+        "service rsyslog stop",
+        "service haproxy stop",
+        "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "/var/run/haproxy.pid"
+    }
+  ]
+}

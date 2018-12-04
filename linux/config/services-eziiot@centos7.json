@@ -26,7 +26,7 @@
       }
     },
     {
-      "name": "移动端 App 消息队列管理",
+      "name": "移动端 App 消息队列",
       "id": "app-sidekiq",
       "user": "root",
       "start": [

@@ -85,15 +85,6 @@ case "$1" in
     ssh-keygen)
         fun_generate_sshkey_when_not_exist
     ;;
-    ambari:install)
-        bash linux/bash/ambari-tools.sh install
-    ;;
-    vnc:install)
-        bash linux/bash/vnc-tools.sh install
-    ;;
-    redis:install)
-        bash linux/bash/redis-tools.sh install
-    ;;
     memory:free|mf)
         fun_free_memory
     ;;
@@ -103,25 +94,8 @@ case "$1" in
     variable)
         fun_print_variable "$2"
     ;;
-    agent:init)
-        fun_init_agent "$2" "$3"
-    ;;
-    agent:task)
-        [[ "$2" = "service" ]] && sypctl service status
-        fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
-        [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
-    ;;
-    agent:jobs)
-        fun_agent_job_${2:-guard}
-    ;;
-    agent:server)
-        fun_agent_server "$2" "$3"
-    ;;
     linux:date)
         bash linux/bash/date-tools.sh "$2" "$3"
-    ;;
-    toolkit)
-        fun_toolkit_caller $@
     ;;
     etl:import)
         fun_etl_caller $@
@@ -132,14 +106,14 @@ case "$1" in
     etl:tiny_tds)
         fun_etl_tiny_tds $@
     ;;
+    toolkit)
+        fun_toolkit_caller $@
+    ;;
     service)
-        test -d /etc/sypctl/ || sudo mkdir -p /etc/sypctl/
-        support_commands=(render list start stop status restart monitor)
-        if [[ "${support_commands[@]}" =~ "$2" ]]; then
-            SYPCTL_HOME=${SYPCTL_HOME} ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
-        else
-            echo "Error - unknown command: $2, support: ${support_commands[@]}"
-        fi
+        fun_service_caller $@
+    ;;
+    agent*)
+        fun_agent_caller $@
     ;;
     *)
         fun_print_sypctl_help
