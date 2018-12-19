@@ -184,6 +184,7 @@ function fun_print_init_agent_command_help() {
     echo
     echo "任务操作:"
     echo "sypctl agent:task guard     代理守护者，注册、提交功能"
+    echo "sypctl agent:task doing     查看在执行的部署任务信息"
     echo "sypctl agent:task info      查看注册信息"
     echo "sypctl agent:task log       查看提交日志"
     echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
@@ -711,13 +712,30 @@ function fun_agent_job_guard() {
     for filepath in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
         mv ${filepath} ${filepath}-running
-        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')}" > agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
-        bash agent/jobs/sypctl-job-${job_uuid}.sh >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
-        echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')}" >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
-        echo '' >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
-        echo '提交部署状态至服务器' >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
-        sypctl bundle exec rake agent:job uuid=${job_uuid} >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
+        output_path=agent/jobs/sypctl-job-${job_uuid}.sh-output
+        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')}" > ${output_path} 2>&1
+        bash agent/jobs/sypctl-job-${job_uuid}.sh >> ${output_path} 2>&1
+        echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')}" >> ${output_path} 2>&1
+        echo '' >> ${output_path} 2>&1
+        echo '提交部署状态至服务器' >> ${output_path} 2>&1
+        sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
         rm -f ${filepath}-running
+    done
+}
+
+function fun_agent_job_doing() {
+    if [[ $(find agent/jobs/ -name '*-running' | wc -l) -eq 0 ]]; then
+        echo '无在执行的任务'
+        exit 1
+    fi
+
+    for filepath in $(ls agent/jobs/*-running); do
+        job_uuid=$(cat $filepath)
+        echo "任务UUID: ${job_uuid}"
+        echo "任务配置: ${SYPCTL_HOME}/agent/jobs/sypctl-job-${job_uuid}.json"
+        echo "部署执行: ${SYPCTL_HOME}/agent/jobs/sypctl-job-${job_uuid}.sh"
+        echo "执行日志: ${SYPCTL_HOME}/agent/jobs/sypctl-job-${job_uuid}.sh-output"
+        echo ""
     done
 }
 
