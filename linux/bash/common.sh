@@ -783,10 +783,10 @@ function fun_agent_caller() {
 function fun_app_caller() {
     case "$1" in
         app:config)
-            sypctl bundle exec rake app:config "key=$2" "value=$3"
+            fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=$2" "value=$3"
         ;;
         app:deploy)
-            sypctl bundle exec rake app:deploy
+            fun_execute_bundle_rake_without_logger bundle exec rake app:deploy
         ;;
         *)
             fun_print_app_command_help
