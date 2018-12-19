@@ -6,39 +6,6 @@ require 'digest/md5'
 require 'securerandom'
 
 namespace :app do
-  desc "app version config"
-  task :config do
-    tmp_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/app-deploy-tmp')
-    config_path = File.join(tmp_path, 'config.json')
-
-    puts "Bundle 进程 ID: #{Process.pid}"
-    key = ENV['key']
-    value = ENV['value']
-    if key == 'init'
-      value = SecureRandom.uuid.gsub('-', '')
-      FileUtils.rm_rf(tmp_path) if File.exists?(tmp_path)
-      FileUtils.mkdir_p(tmp_path)
-      puts "初始化部署, 临时分配 UUID: #{value}"
-    else
-      value ||= 'unset'
-      FileUtils.mkdir_p(tmp_path) unless File.exists?(tmp_path)
-      puts "初始化配置, #{key}: #{value}"
-    end
-
-    config = JSON.parse(File.read(config_path)) rescue {}
-    if key == 'version.backup_path'
-      config[key] ||= []
-      config[key].push(value)
-      config[key] = config[key].uniq
-    else
-      config[key] = value
-    end
-
-    File.open(config_path, 'w:utf-8') do |file|
-      file.puts(config.to_json)
-    end
-  end
-
   def check_file_md5(label, path, md5)
     if File.exists?(path)
       local_md5 = Digest::MD5.file(path).hexdigest
@@ -93,10 +60,8 @@ namespace :app do
     end
   end
 
-  desc "app version deploy"
-  task :deploy do
-    tmp_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/app-deploy-tmp')
-    config_path = File.join(tmp_path, 'config.json')
+  
+  def deploy_app(tmp_path, config_path)
     config = JSON.parse(File.read(config_path)) rescue {}
 
     puts "Bundle 进程 ID: #{Process.pid}"
@@ -105,6 +70,11 @@ namespace :app do
       puts '配置异常: 应用/版本 UUID 未配置，退出操作'
       exit 1
     end
+
+    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/tmp-#{config['init']}")
+    config_path = File.join(sandbox_path, 'config.json')
+    FileUtils.mv(tmp_path, sandbox_path)
+    puts "部署准备: 创建任务沙盒目录 #{File.basename(sandbox_path)}"
     
     data = get_api_info('应用', "#{ENV['SYPCTL-API']}/api/v1/app?uuid=#{config['app.uuid']}")
     exit 1 unless data
@@ -133,7 +103,7 @@ namespace :app do
 
     btime = Time.now
     url = "#{ENV['SYPCTL-API']}#{config['version']['download_path']}"
-    local_version_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/app-deploy-tmp', config['version']['file_name'])
+    local_version_path = File.join(sandbox_path, config['version']['file_name'])
 
     delete_file_if_exists('下载', local_version_path)
     download_version_file(url, local_version_path)
@@ -164,12 +134,50 @@ namespace :app do
       end
     end
 
-    new_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/version-' + config['version']['uuid'])
-    FileUtils.rm_rf(new_path) if File.exists?(new_path)
-    FileUtils.mv(tmp_path, new_path)
+    archive_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/version-' + config['version']['uuid'])
+    FileUtils.rm_rf(archive_path) if File.exists?(archive_path)
+    FileUtils.mv(sandbox_path, archive_path)
 
-    puts "部署归档: 清理临时目录 #{tmp_path}"
-    puts "部署归档: 归档存储目录 #{new_path}"
+    puts "部署归档: 清理沙盒目录 #{sandbox_path}"
+    puts "部署归档: 归档存储目录 #{archive_path}"
     puts '部署完成: 时间戳 ' + Time.now.strftime('%y-%m-%d %H:%M:%S')
+  end
+
+  desc "app version config"
+  task :config do
+    tmp_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/app-deploy-tmp')
+    config_path = File.join(tmp_path, 'config.json')
+
+    puts "Bundle 进程 ID: #{Process.pid}"
+    key = ENV['key']
+    value = ENV['value']
+    if key == 'deploy'
+      config = JSON.parse(File.read(config_path)) rescue {}
+      deploy_app(tmp_path, config_path)
+    else
+      if key == 'init'
+        value = SecureRandom.uuid.gsub('-', '')
+        FileUtils.rm_rf(tmp_path) if File.exists?(tmp_path)
+        FileUtils.mkdir_p(tmp_path)
+        puts "初始化部署, 临时分配 UUID: #{value}"
+      else
+        value ||= 'unset'
+        FileUtils.mkdir_p(tmp_path) unless File.exists?(tmp_path)
+        puts "初始化配置, #{key}: #{value}"
+      end
+
+      config = JSON.parse(File.read(config_path)) rescue {}
+      if key == 'version.backup_path'
+        config[key] ||= []
+        config[key].push(value)
+        config[key] = config[key].uniq
+      else
+        config[key] = value
+      end
+
+      File.open(config_path, 'w:utf-8') do |file|
+        file.puts(config.to_json)
+      end
+    end
   end
 end
