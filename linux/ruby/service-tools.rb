@@ -129,7 +129,7 @@ class Service
         end
       end
 
-      sleep 2
+      sleep 3
 
       status(@options[:start] || target_service || 'all')
     end
@@ -165,6 +165,7 @@ class Service
     def restart
       stop(@options[:restart])
       puts "-" * 30
+      sleep 3
       start(@options[:restart])
     end
 

@@ -713,13 +713,13 @@ function fun_agent_job_guard() {
         job_uuid=$(cat $filepath)
         mv ${filepath} ${filepath}-running
         output_path=agent/jobs/sypctl-job-${job_uuid}.sh-output
-        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')}" > ${output_path} 2>&1
+        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" > ${output_path} 2>&1
         bash agent/jobs/sypctl-job-${job_uuid}.sh >> ${output_path} 2>&1
-        echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')}" >> ${output_path} 2>&1
+        echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
         echo '' >> ${output_path} 2>&1
         echo '提交部署状态至服务器' >> ${output_path} 2>&1
         sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
-        rm -f ${filepath}-running
+        mv ${filepath}-running ${job_uuid}-done
     done
 }
 
