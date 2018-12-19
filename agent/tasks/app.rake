@@ -71,7 +71,7 @@ namespace :app do
       res = HTTParty.get(url, stream_body: true) do |fragment|
         file.write(fragment.force_encoding('utf-8'))
         if Time.now - ptime >= 5
-          puts "下载进度: 时间戳 #{Time.now.strftime('%y-%m-%d %H:%M:%S')}, 文件大小 #{File.size(path).number_to_human_size}"
+          puts "下载进度: 时间戳 #{Time.now.strftime('%y-%m-%d %H:%M:%S')}, 文件大小 #{File.exists?(path) ? File.size(path).number_to_human_size : '0'}"
           ptime = Time.now
         end
       end
