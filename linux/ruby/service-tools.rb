@@ -68,7 +68,7 @@ class Service
       @extra = @data_hash['extra'] || {}
     end
 
-    def render()
+    def render
       services = @data_hash['services']
       services = services.select { |hsh| hsh['id'] == @options[:render] } if @options[:render] != 'all'
 
@@ -119,9 +119,9 @@ class Service
 
     def start(target_service = nil)
       list(false, @options[:start] || target_service || 'all').each do |service|
-        puts "\n# 启动 #{service['name']}"
+        puts "\n# 启动 #{service['name']}\n\n"
         pid_path = render_command(service['pid_path'], service)
-        state, message = process_pid_status(pid_path)
+        state, message = process_status_by_pid(pid_path)
         if state
           puts message
         else
@@ -137,7 +137,7 @@ class Service
     def status(target_service = nil)
       table_rows = list(false, @options[:status] || target_service || 'all').map do |service|
         pid_path = render_command(service['pid_path'], service)
-        [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], process_pid_status(pid_path).last]
+        [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], process_status_by_pid(pid_path).last]
       end
 
       table_heads = %w(服务 标识 用户 权重 进程状态)
@@ -149,8 +149,7 @@ class Service
 
     def stop(target_service = nil)
       list(false, @options[:stop] || target_service || 'all').reverse.each do |service|
-        puts "\n## 关闭 #{service['name']}"
-        pid_path = render_command(service['pid_path'], service)
+        puts "\n## 关闭 #{service['name']}\n\n"
         service['stop'].each do |command|
           command = render_command(command, service)
 
@@ -159,6 +158,9 @@ class Service
           end
           run_command(command)
         end
+
+        pid_path = render_command(service['pid_path'], service)
+        kill_process_by_pid(pid_path)
       end
     end
 
@@ -172,7 +174,7 @@ class Service
     def monitor
       list(false, 'all').each do |service|
         pid_path = render_command(service['pid_path'], service)
-        state, message = process_pid_status(pid_path)
+        state, message = process_status_by_pid(pid_path)
         next if state
 
         puts "\n# 启动 #{service['name']}"
@@ -248,13 +250,23 @@ class Service
       puts "service: #{service}"
     end
 
-    def process_pid_status(pid_path)
+    def process_status_by_pid(pid_path)
       if File.exists?(pid_path)
         pid = File.read(pid_path).strip
         (pid == `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip ? [true, "运行中(#{pid})"] : [false, "未运行"])
       else
         [false, "未运行，PID 不存在"]
       end
+    end
+
+    def kill_process_by_pid(pid_path, try_time = 1)
+      return false if try_time > 3
+      state, message = process_status_by_pid(pid_path)
+      return false unless state
+      
+      puts "#{message}, 第#{try_time}次尝试 KILL 进程, #{pid_path}"
+      run_command("cat #{pid_path} | xargs kill -KILL > /dev/null 2>&1")
+      kill_process_by_pid(pid_path, try_time + 1)
     end
 
     def start_service(service)
