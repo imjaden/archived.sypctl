@@ -11,6 +11,7 @@ namespace :app do
     tmp_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/app-deploy-tmp')
     config_path = File.join(tmp_path, 'config.json')
 
+    puts "Bundle 进程 ID: #{Process.pid}"
     key = ENV['key']
     value = ENV['value']
     if key == 'init'
@@ -98,6 +99,7 @@ namespace :app do
     config_path = File.join(tmp_path, 'config.json')
     config = JSON.parse(File.read(config_path)) rescue {}
 
+    puts "Bundle 进程 ID: #{Process.pid}"
     puts '部署开始: 时间戳 ' + Time.now.strftime('%y-%m-%d %H:%M:%S')
     if !config['app.uuid'] || !config['version.uuid']
       puts '配置异常: 应用/版本 UUID 未配置，退出操作'
@@ -107,10 +109,23 @@ namespace :app do
     data = get_api_info('应用', "#{ENV['SYPCTL-API']}/api/v1/app?uuid=#{config['app.uuid']}")
     exit 1 unless data
     config['app'] = data
+    puts "应用信息:"
+    puts "    - UUID: #{data['uuid']}"
+    puts "    - 应用名称: #{data['name']}"
+    puts "    - 文件类型: #{data['file_type']}"
+    puts "    - 文件名称: #{data['file_name']}"
+    puts "    - 部署目录: #{data['file_path']}"
 
     data = get_api_info('版本', "#{ENV['SYPCTL-API']}/api/v1/app/version?uuid=#{config['version.uuid']}")
     exit 1 unless data
     config['version'] = data
+    puts "版本信息:"
+    puts "    - UUID: #{data['uuid']}"
+    puts "    - 版本名称: #{data['version']}"
+    puts "    - 文件大小: #{data['file_size']}"
+    puts "    - 文件名称: #{data['file_name']}"
+    puts "    - 文件哈希: #{data['md5']}"
+    puts "    - 下载链接: #{data['download_path']}"
     
     File.open(config_path, 'w:utf-8') do |file|
       file.puts(config.to_json)
@@ -125,7 +140,7 @@ namespace :app do
     check_file_md5('下载', local_version_path, config['version']['md5'])
     
     target_file_path = File.join(config['app']['file_path'], config['app']['file_name'])
-    delete_file_if_exists('部署', target_file_path)
+    delete_file_if_exists('部署', target_file_path, config['app']['file_path'])
 
     unless File.exists?(config['app']['file_path'])
       FileUtils.mkdir_p(config['app']['file_path'])
