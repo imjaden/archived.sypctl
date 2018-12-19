@@ -80,10 +80,16 @@ namespace :app do
     puts "下载用时: #{Time.now - btime}s"
   end
 
-  def delete_file_if_exists(label, path)    
+  def delete_file_if_exists(label, path, backup_path = nil)    
     return unless File.exists?(path)
-    FileUtils.rm_rf(path)
-    puts "#{label}预检: 删除已存在文件 #{path}" 
+    if backup_path && File.exists?(backup_path)
+      backup_file_path = File.join(backup_path, Time.now.strftime('%y%m%d%H%M%S') + '-' + File.basename(path))
+      FileUtils.mv(path, backup_file_path)
+      puts "#{label}预检: 移动文件 #{path} 至 #{backup_file_path}"
+    else
+      FileUtils.rm_rf(path)
+      puts "#{label}预检: 删除已存在文件 #{path}" 
+    end
   end
 
   desc "app version deploy"

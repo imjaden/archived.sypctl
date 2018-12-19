@@ -129,7 +129,7 @@ class Service
         end
       end
 
-      sleep 1
+      sleep 2
 
       status(@options[:start] || target_service || 'all')
     end
