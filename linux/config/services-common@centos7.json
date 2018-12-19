@@ -8,7 +8,23 @@
   },
   "services": [
     {
-      "name": "公共服务 haproxy",
+      "name": "公共服务 Zookeeper",
+      "id": "zookeeper",
+      "user": "root",
+      "start": [
+        "bash {{zookeeper_home}}/bin/zkServer.sh start"
+      ],
+      "stop": [
+        "bash {{zookeeper_home}}/bin/zkServer.sh stop",
+        "ps aux | grep {{zookeeper_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+      ],
+      "pid_path": "{{zookeeper_home}}/data/zookeeper_server.pid",
+      "extra": {
+        "zookeeper_home": "/usr/local/src/zookeeper"
+      }
+    },
+    {
+      "name": "公共服务 Haproxy",
       "id": "haproxy",
       "user": "root",
       "start": [
@@ -21,6 +37,34 @@
         "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "/var/run/haproxy.pid"
+    },
+    {
+      "name": "公共服务 mysql",
+      "id": "mysql",
+      "user": "root",
+      "start": [
+        "systemctl start mysqld"
+      ],
+      "stop": [
+        "systemctl stop mysqld"
+      ],
+      "pid_path": "/var/run/mysqld/mysqld.pid"
+    },
+    {
+      "name": "公共服务 SSH",
+      "id": "ssh",
+      "user": "root",
+      "start": [
+        "systemctl enable sshd",
+        "systemctl start sshd"
+      ],
+      "stop": [
+        "echo 'never stop sshd'"
+      ],
+      "pid_path": "/var/run/sshd.pid",
+      "extra": {
+        "config_path": "/etc/ssh/sshd_config"
+      }
     }
   ]
 }

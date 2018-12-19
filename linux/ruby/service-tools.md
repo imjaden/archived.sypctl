@@ -93,8 +93,23 @@ elif [ -r "$CATALINA_HOME/bin/setenv.sh" ]; then
   . "$CATALINA_HOME/bin/setenv.sh"
 fi
 
-# 添加此行
+# 添加此行, 启动 Tomcat 时把 PID 写入文件
 CATALINA_PID="$CATALINA_HOME/temp/running.pid"
+
+#
+# 修正 Tomcat 启动的项目中 Log 打印中文乱码问题
+#
+# 注释原始代码
+# if [ -z "$LOGGING_MANAGER" ]; then
+#   LOGGING_MANAGER="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"
+# fi
+#
+# 添加下方五行代码
+if [ -z "$LOGGING_MANAGER" ]; then
+   JAVA_OPTS="$JAVA_OPTS -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
+else
+   JAVA_OPTS="$JAVA_OPTS $LOGGING_MANAGER -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
+fi
 ```
 
 #### nohup

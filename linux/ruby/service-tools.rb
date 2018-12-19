@@ -99,7 +99,7 @@ class Service
       services.each do |service|
         service['execute_weight'] = depends.count { |id| service['id'] == id }
       end
-      services = services.sort { |a, b| [b['execute_weight'], b['id']] <=> [a['execute_weight'], a['id']] }
+      services = services.sort { |a, b| [b['execute_weight'], b['name']] <=> [a['execute_weight'], a['name']] }
 
       if print_or_not
         if %w(id allid).include?(@options[:list])

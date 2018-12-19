@@ -112,6 +112,12 @@ case "$1" in
     service)
         fun_service_caller $@
     ;;
+    app)
+        fun_app_caller 'help'
+    ;;
+    app:*)
+        fun_app_caller $@
+    ;;
     agent*)
         fun_agent_caller $@
     ;;

@@ -1,3 +1,9 @@
+# sypctl
+
+## 待做事项
+
+- [ ] `sypctl agent:task guard` 执行后，检查 crontab/rc.local 配置，保证定时任务与被执行任务检查定时配置的互佑监督
+
 ## 初始化
 
 ```
@@ -7,56 +13,28 @@ $ curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash
 ## 使用手册
 
 ```
-Usage: sypctl <command> [<args>]
-
-代理操作:
-sypctl agent:init help
-sypctl agent:init uuid <服务器端已分配的 UUID>
-sypctl agent:init human_name <业务名称>
-sypctl agent:init title <自定义代理 Web 的标题>
-sypctl agent:init favicon <自定义代理 Web 的 favicon 图片链接>
-sypctl agent:init list      初始化配置信息列表
-
-sypctl agent:task guard     代理守护者，注册、提交功能
-sypctl agent:task info      查看注册信息
-sypctl agent:task log       查看提交日志
-sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）
-sypctl agent:job:daemon     服务器端任务的监护者
-
-服务管理:
-sypctl service [args]
-  list    查看管理的服务列表
-  start   启动服务列表中的应用
-  status  检查服务列表应用的运行状态
-  stop    关闭服务列表中的应用
-  restart 重启服务列表中的应用
+Usage: sypctl <command> [args]
 
 常规操作：
 sypctl help          sypctl 支持的命令参数列表，及已部署服务的信息
+sypctl upgrade       更新 sypctl 源码
+sypctl env           部署基础环境依赖：JDK/Rbenv/Ruby
 sypctl deploy        部署服务引导，并安装部署输入 `y` 确认的服务
 sypctl deployed      查看已部署服务
-sypctl env           部署基础环境依赖：JDK/Rbenv/Ruby
-sypctl upgrade       更新 sypctl 源码
 sypctl device:update 更新重新提交设备信息
 
-sypctl monitor       已部署的服务进程状态，若未监测到进程则启动该服务
-sypctl start         启动已部署的服务进程
-sypctl status        已部署的服务进程状态
-sypctl restart       重启已部署的服务进程
-sypctl stop          关闭已部署的服务进程
+sypctl agent help    #代理# 配置
+sypctl toolkit help  #工具# 安装
+sypctl service help  #服务# 管理
 
-sypctl toolkit <SYPCTL 脚本名称> [参数]
-sypctl etl:import <数据表连接配置档>
-sypctl etl:status
 
-sypctl apk <app-name> 打包生意+ 安卓APK;支持的应用如下：
-                      - 生意+ shengyiplus
-                      - 睿商+ ruishangplus
-                      - 永辉  yh_android
-                      - 保臻  shenzhenpoly
-sypctl <app-name>     切换生意+ iOS 不同项目的静态资源；应用名称同上
+  mmmm m     m mmmmm    mmm mmmmmmm m
+ #"   " "m m"  #   "# m"   "   #    #
+ "#mmm   "#"   #mmm#" #        #    #
+     "#   #    #      #        #    #
+ "mmm#"   #    #       "mmm"   #    #mmmmm
 
-Current version is 0.0.73
+Current version is 0.0.81
 For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
 ```
 
@@ -64,19 +42,8 @@ For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
 
 - 软件安装目录：/usr/local/src
 - 数据存储目录: /data/
-- 配置信息目录: /opt/syp-config/
+- 配置信息目录: /opt/config/
 - Web 服务目录: /var/www/
-
-## 部署软件
-
-- JDK
-- Redis
-- Zookeeper
-- providerAPI(jar)
-- Tomcat(war)
-    - TomcatAPI
-    - TomcatAdmin
-    - TomcatSuperAdmin
 
 ## 环境配置
 

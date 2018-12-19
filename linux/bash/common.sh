@@ -190,6 +190,18 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:jobs guard     服务器端任务的监护者"
 }
 
+function fun_print_app_command_help() {
+    echo "sypctl app:config init"
+    echo "sypctl app:config app.uuid {{app.uuid}}"
+    echo "sypctl app:config app.name {{app.uuid}}"
+    echo "sypctl app:config app.file_name {{app.file_name}}"
+    echo "sypctl app:config app.file_path {{app.file_path}}"
+    echo "sypctl app:config version.uuid {{app.latest_version.uuid}}"
+    echo "sypctl app:config version.name {{app.latest_version.version}}"
+    echo "sypctl app:config version.backup_path /data/backup/"
+    echo "sypctl app:deploy"
+}
+
 function fun_print_toolkit_list() {
     echo "工具安装:"
     echo "$ sypctl toolkit [toolkit-name] [args]"
@@ -691,15 +703,23 @@ function fun_update_rc_local() {
 }
 
 function fun_agent_job_guard() {
+    if [[ $(find agent/jobs/ -name '*.todo' | wc -l) -eq 0 ]]; then
+        echo '无任务待处理'
+        exit 1
+    fi
+
     for filepath in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
         mv ${filepath} ${filepath}-running
-        bash agent/jobs/sypctl-job-${job_uuid}.sh > agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
+        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')}" > agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
+        bash agent/jobs/sypctl-job-${job_uuid}.sh >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
+        echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')}" >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
+        echo '' >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
+        echo '提交部署状态至服务器' >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1
         sypctl bundle exec rake agent:job uuid=${job_uuid} >> agent/jobs/sypctl-job-${job_uuid}.sh-output 2>&1 
         rm -f ${filepath}-running
     done
 }
-
 
 function fun_toolkit_caller() {
     if [[ -z "$2" || "$2" = "help" ]]; then
@@ -725,8 +745,10 @@ function fun_service_caller() {
     fi
 
     test -d /etc/sypctl/ || sudo mkdir -p /etc/sypctl/
-    support_commands=(render list start stop status restart monitor)
-    if [[ "${support_commands[@]}" =~ "$2" ]]; then
+    support_commands=(render list start stop status restart monitor edit)
+    if [[ "$2" = "edit" ]]; then
+        vim /etc/sypctl/services.json
+    elif [[ "${support_commands[@]}" =~ "$2" ]]; then
         SYPCTL_HOME=${SYPCTL_HOME} ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
     else
         echo "Error - unknown command: $2, support: ${support_commands[@]}"
@@ -754,6 +776,20 @@ function fun_agent_caller() {
         ;;
         *)
             echo "Error - unknown command: $@"
+        ;;
+    esac
+}
+
+function fun_app_caller() {
+    case "$1" in
+        app:config)
+            sypctl bundle exec rake app:config "key=$2" "value=$3"
+        ;;
+        app:deploy)
+            sypctl bundle exec rake app:deploy
+        ;;
+        *)
+            fun_print_app_command_help
         ;;
     esac
 }
