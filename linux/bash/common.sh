@@ -710,12 +710,12 @@ function fun_agent_job_guard() {
     fi
 
     for filepath in $(ls agent/jobs/*.todo); do
-        echo "Bash 进程 ID: $$"
         job_uuid=$(cat $filepath)
         folder_path=$(dirname $filepath)
-        echo "job_uuid: ${job_uuid}"
-        mv ${filepath} ${folder_path}/${job_uuid}.running
         output_path=agent/jobs/sypctl-job-${job_uuid}.sh-output
+        mv ${filepath} ${folder_path}/${job_uuid}.running
+        echo "Bash 进程 ID: $$" > ${output_path} 2>&1
+        echo "任务 UUID: ${job_uuid}" > ${output_path} 2>&1
         echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" > ${output_path} 2>&1
         bash agent/jobs/sypctl-job-${job_uuid}.sh >> ${output_path} 2>&1
         echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
