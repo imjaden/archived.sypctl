@@ -711,7 +711,7 @@ function fun_agent_job_guard() {
 
     for filepath in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
-        mv ${filepath} ${filepath}-running
+        mv ${filepath} ${filepath}.running
         output_path=agent/jobs/sypctl-job-${job_uuid}.sh-output
         echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" > ${output_path} 2>&1
         bash agent/jobs/sypctl-job-${job_uuid}.sh >> ${output_path} 2>&1
@@ -719,17 +719,17 @@ function fun_agent_job_guard() {
         echo '' >> ${output_path} 2>&1
         echo '提交部署状态至服务器' >> ${output_path} 2>&1
         sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
-        mv ${filepath}-running ${job_uuid}-done
+        mv ${filepath}.running ${job_uuid}.done
     done
 }
 
 function fun_agent_job_doing() {
-    if [[ $(find agent/jobs/ -name '*-running' | wc -l) -eq 0 ]]; then
+    if [[ $(find agent/jobs/ -name '*.running' | wc -l) -eq 0 ]]; then
         echo '无在执行的任务'
         exit 1
     fi
 
-    for filepath in $(ls agent/jobs/*-running); do
+    for filepath in $(ls agent/jobs/*.running); do
         job_uuid=$(cat $filepath)
         echo "任务UUID: ${job_uuid}"
         echo "任务配置: ${SYPCTL_HOME}/agent/jobs/sypctl-job-${job_uuid}.json"

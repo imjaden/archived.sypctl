@@ -150,7 +150,7 @@ def post_to_server_submitor
         hsh["jobs"].each do |job_hsh|
           job_json_path = agent_root_join("jobs/sypctl-job-#{job_hsh['uuid']}.json")
           job_command_path = agent_root_join("jobs/sypctl-job-#{job_hsh['uuid']}.sh")
-          job_todo_path = agent_root_join("jobs/#{Time.now.strftime('%y%m%d%H%M%S')}.todo")
+          job_todo_path = agent_root_join("jobs/#{job_hsh['uuid']}.todo")
           File.open(job_json_path, "w:utf-8") { |f| f.puts(job_hsh.to_json) }
 
           `command -v dos2unix > /dev/null 2>&1 || sudo yum install -y dos2unix`
