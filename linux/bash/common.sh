@@ -703,6 +703,9 @@ function fun_update_rc_local() {
     }
 }
 
+#
+# 代理执行服务器端分发的任务脚本
+#
 function fun_agent_job_guard() {
     if [[ $(find agent/jobs/ -name '*.todo' | wc -l) -eq 0 ]]; then
         echo '无任务待处理'

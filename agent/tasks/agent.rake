@@ -28,10 +28,10 @@ namespace :agent do
     job_command_path = agent_root_join("jobs/sypctl-job-#{ENV['uuid']}.sh")
     job_output_path = agent_root_join("jobs/sypctl-job-#{ENV['uuid']}.sh-output")
 
-    job_hsh = JSON.parse(IO.read(job_json_path))
-    job_hsh['state'] = 'done'
-    job_hsh['output'] = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
-    post_to_server_job(job_hsh)
+    job_hash = JSON.parse(IO.read(job_json_path))
+    job_hash['state'] = 'done'
+    job_hash['output'] = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+    post_to_server_job(job_hash)
   end
 
   desc 'print aget regisiter info'
