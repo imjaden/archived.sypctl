@@ -110,7 +110,7 @@ namespace :app do
     check_file_md5('下载', local_version_path, config['version']['md5'])
     
     target_file_path = File.join(config['app']['file_path'], config['app']['file_name'])
-    delete_file_if_exists('部署', target_file_path, config['app']['file_path'])
+    delete_file_if_exists('部署', target_file_path, (config['version.backup_path'] || []).dig(0))
 
     unless File.exists?(config['app']['file_path'])
       FileUtils.mkdir_p(config['app']['file_path'])

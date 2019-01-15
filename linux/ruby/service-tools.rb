@@ -260,9 +260,18 @@ class Service
     end
 
     def kill_process_by_pid(pid_path, try_time = 1)
-      return false if try_time > 3
+      if try_time > 3
+        puts "中止尝试 Kill 进程 #{pid_path}"
+        return false 
+      end
+
       state, message = process_status_by_pid(pid_path)
       return false unless state
+
+      if try_time > 1
+        puts "查看进程(#{File.read(pid_path)})详情:"
+        puts `ps aux | grep #{File.read(pid_path)}`
+      end
       
       puts "#{message}, 第#{try_time}次尝试 KILL 进程, #{pid_path}"
       run_command("cat #{pid_path} | xargs kill -KILL > /dev/null 2>&1")

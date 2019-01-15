@@ -785,9 +785,13 @@ function fun_agent_caller() {
             fun_init_agent "$2" "$3"
         ;;
         agent:task)
-            [[ "$2" = "service" ]] && sypctl service monitor
-            fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
-            [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
+            if [[ "$2" = "doing" ]]; then
+                fun_agent_job_doing
+            else
+                [[ "$2" = "service" ]] && sypctl service monitor
+                fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
+                [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
+            fi
         ;;
         agent:jobs)
             fun_agent_job_${2:-guard}
