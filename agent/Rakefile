@@ -5,7 +5,7 @@ ENV["SYPCTL-VERSION"] = File.read("../version") rescue "unknown"
 ENV['RUBY-VERSION'] = `ruby -v`.strip
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
 ENV["SYPCTL-API"] = "http://sypctl.com"
-# ENV["SYPCTL-API"] = "http://localhost:8085"
+ENV["SYPCTL-API"] = "http://localhost:8085"
 
 
 $LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])

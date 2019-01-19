@@ -715,12 +715,25 @@ function fun_agent_job_guard() {
     for filepath in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
         folder_path=$(dirname $filepath)
-        output_path=agent/jobs/sypctl-job-${job_uuid}.sh-output
+        bash_path=agent/jobs/sypctl-job-${job_uuid}.sh
+        output_path=${bash_path}-output
         mv ${filepath} ${folder_path}/${job_uuid}.running
-        echo "Bash 进程 ID: $$" > ${output_path} 2>&1
-        echo "任务 UUID: ${job_uuid}" > ${output_path} 2>&1
-        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" > ${output_path} 2>&1
-        bash agent/jobs/sypctl-job-${job_uuid}.sh >> ${output_path} 2>&1
+        echo "Bash 进程 ID: $$" >> ${output_path} 2>&1
+        echo "任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
+        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
+        if [[ -f ${bash_path} ]]; then
+            while read bash_line; do
+                if [[ -n ${bash_line} ]]; then
+                    echo "\$ ${bash_line} ${job_uuid}" >> ${output_path} 2>&1
+                    ${bash_line} ${job_uuid} >> ${output_path} 2>&1
+                    echo "" >> ${output_path} 2>&1
+                fi
+            done < ${bash_path}
+        else
+            echo "脚本不存在：${bash_path}" >> ${output_path} 2>&1
+        fi
+
+        bash ${bash_path} >> ${output_path} 2>&1
         echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
         echo '' >> ${output_path} 2>&1
         echo '提交部署状态至服务器' >> ${output_path} 2>&1
