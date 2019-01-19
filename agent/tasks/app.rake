@@ -156,6 +156,7 @@ namespace :app do
   desc "app version config"
   task :config do
     key, value, job_uuid = ENV['key'], ENV['value'], ENV['uuid']
+    job_uuid ||= value
     sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}")
     config_path = File.join(sandbox_path, 'config.json')
 

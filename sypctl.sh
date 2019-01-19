@@ -116,7 +116,11 @@ case "$1" in
         fun_app_caller 'help'
     ;;
     app:*)
-        fun_app_caller $@
+        echo $1
+        echo $2
+        echo $3
+        echo $4
+        fun_app_caller "$1" "$2" "$3" "$4"
     ;;
     agent*)
         fun_agent_caller $@

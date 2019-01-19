@@ -830,7 +830,10 @@ function fun_app_caller() {
     mkdir -p agent/jobs
     case "$1" in
         app:config)
-            fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=$2" "value=$3" "uuid=$4"
+            key=$(echo $2 | sed 's/ //g')
+            value=$(echo $3 | sed 's/ //g')
+            uuid=$(echo $4 | sed 's/ //g')
+            fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=${key}" "value=${value}" "uuid=${uuid}"
         ;;
         *)
             fun_print_app_command_help
