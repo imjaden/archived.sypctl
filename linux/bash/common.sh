@@ -729,7 +729,7 @@ function fun_agent_job_guard() {
         if [[ -f ${bash_path} ]]; then
             while read bash_line; do
                 if [[ -n ${bash_line} ]]; then
-                    echo "\$ ${bash_line} ${job_uuid}" >> ${output_path} 2>&1
+                    echo "${timestamp2} - \$ ${bash_line} ${job_uuid}" >> ${output_path} 2>&1
                     ${bash_line} ${job_uuid} >> ${output_path}.bundle 2>&1
                     echo "${timestamp2} - " >> ${output_path} 2>&1
                 fi
