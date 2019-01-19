@@ -712,12 +712,15 @@ function fun_agent_job_guard() {
         exit 1
     fi
 
-    for file_path in $(ls agent/jobs/*.todo); do
-        job_uuid=$(cat $filepath)
-        folder_path=$(dirname $filepath)
+    for todo_job_tag in $(ls agent/jobs/*.todo); do
+        job_uuid=$(cat $todo_job_tag)
         bash_path=agent/jobs/${job_uuid}/job.sh
         output_path=agent/jobs/${job_uuid}/job.output
-        mv ${file_path} ${folder_path}/${job_uuid}.running
+        doing_job_tag="${todo_job_tag%.*}.doing"
+        done_job_tag="${todo_job_tag%.*}.done"
+        
+        mv ${todo_job_tag}  ${doing_job_tag}
+
         echo "Bash 进程 ID: $$" >> ${output_path} 2>&1
         echo "任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
         echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
@@ -738,7 +741,8 @@ function fun_agent_job_guard() {
         echo '' >> ${output_path} 2>&1
         echo '提交部署状态至服务器' >> ${output_path} 2>&1
         sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
-        mv ${folder_path}/${job_uuid}.running ${folder_path}/${job_uuid}.done
+
+        mv ${doing_job_tag}  ${done_job_tag}
     done
 }
 

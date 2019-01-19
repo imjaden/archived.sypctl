@@ -147,6 +147,7 @@ def post_to_server_submitor
           post_to_server_job(job_hsh)
         end
 
+        `command -v dos2unix > /dev/null 2>&1 || sudo yum install -y dos2unix`
         hsh["jobs"].each do |job_hsh|
           job_path = agent_root_join("jobs/#{job_hsh['uuid']}")
           FileUtils.mkdir_p(job_path) unless File.exists?(job_path)
@@ -154,15 +155,10 @@ def post_to_server_submitor
           job_command_path = File.join(job_path, 'job.sh')
           job_todo_path = agent_root_join("jobs/#{job_hsh['uuid']}.todo")
           File.open(job_json_path, "w:utf-8") { |f| f.puts(job_hsh.to_json) }
+          File.open(job_command_path, "w:utf-8") { |f| f.puts(job_hsh['command']) }
+          File.open(job_todo_path, "w:utf-8") { |f| f.puts(job_hsh['uuid']) }
 
-          `command -v dos2unix > /dev/null 2>&1 || sudo yum install -y dos2unix`
-          `echo "#{job_hsh['command']}" > #{job_command_path}`
-          `echo "#{job_hsh['uuid']}" > #{job_todo_path}`
           `dos2unix #{job_command_path}`
-
-          # job_hsh['state'] = 'done'
-          # job_hsh['output'] = `test -f .sypctl-command-output && cat .sypctl-command-output || echo '无输出'`
-          # post_to_server_job(job_hsh)
         end
       end
       file.puts(agent_hsh.to_json)
