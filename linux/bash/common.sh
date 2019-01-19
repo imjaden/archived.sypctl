@@ -712,12 +712,12 @@ function fun_agent_job_guard() {
         exit 1
     fi
 
-    for filepath in $(ls agent/jobs/*.todo); do
+    for file_path in $(ls agent/jobs/*.todo); do
         job_uuid=$(cat $filepath)
         folder_path=$(dirname $filepath)
-        bash_path=agent/jobs/sypctl-job-${job_uuid}.sh
-        output_path=${bash_path}-output
-        mv ${filepath} ${folder_path}/${job_uuid}.running
+        bash_path=agent/jobs/${job_uuid}/job.sh
+        output_path=agent/jobs/${job_uuid}/job.output
+        mv ${file_path} ${folder_path}/${job_uuid}.running
         echo "Bash 进程 ID: $$" >> ${output_path} 2>&1
         echo "任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
         echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
@@ -793,6 +793,7 @@ function fun_service_caller() {
 }
 
 function fun_agent_caller() {
+    mkdir -p agent/jobs
     case "$1" in
         agent)
             fun_print_init_agent_command_help
@@ -822,9 +823,10 @@ function fun_agent_caller() {
 }
 
 function fun_app_caller() {
+    mkdir -p agent/jobs
     case "$1" in
         app:config)
-            fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=$2" "value=$3"
+            fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=$2" "value=$3" "uuid=$4"
         ;;
         *)
             fun_print_app_command_help

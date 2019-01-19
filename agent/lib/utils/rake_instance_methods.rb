@@ -148,8 +148,10 @@ def post_to_server_submitor
         end
 
         hsh["jobs"].each do |job_hsh|
-          job_json_path = agent_root_join("jobs/sypctl-job-#{job_hsh['uuid']}.json")
-          job_command_path = agent_root_join("jobs/sypctl-job-#{job_hsh['uuid']}.sh")
+          job_path = agent_root_join("jobs/#{job_hsh['uuid']}")
+          FileUtils.mkdir_p(job_path) unless File.exists?(job_path)
+          job_json_path = File.join(job_path, 'job.json')
+          job_command_path = File.join(job_path, 'job.sh')
           job_todo_path = agent_root_join("jobs/#{job_hsh['uuid']}.todo")
           File.open(job_json_path, "w:utf-8") { |f| f.puts(job_hsh.to_json) }
 

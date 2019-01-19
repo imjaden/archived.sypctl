@@ -13,7 +13,7 @@ namespace :app do
   def execute_job_logger(info, job_uuid = nil)
     message = "#{_timestamp} - #{info}"
     if job_uuid
-      output_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/sypctl-job-${job_uuid}.sh-output")
+      output_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/sypctl-job-#{job_uuid}.sh-output")
       File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
     else
       puts message
@@ -66,20 +66,21 @@ namespace :app do
     execute_job_logger("下载用时: #{Time.now - btime}s", job_uuid)
   end
 
-  def delete_file_if_exists(label, path, backup_path = nil)    
+  def delete_file_if_exists(label, path, backup_path = nil, job_uuid)    
     return unless File.exists?(path)
     if backup_path && File.exists?(backup_path)
       backup_file_path = File.join(backup_path, Time.now.strftime('%y%m%d%H%M%S') + '-' + File.basename(path))
       FileUtils.mv(path, backup_file_path)
-      execute_job_logger "#{label}预检: 移动文件 #{path} 至 #{backup_file_path}"
+      execute_job_logger("#{label}预检: 移动文件 #{path} 至 #{backup_file_path}", job_uuid)
     else
       FileUtils.rm_rf(path)
-      execute_job_logger "#{label}预检: 删除已存在文件 #{path}" 
+      execute_job_logger("#{label}预检: 删除已存在文件 #{path}" , job_uuid)
     end
   end
 
   
-  def deploy_app(tmp_path, config_path, job_uuid)
+  def deploy_app(sandbox_path, job_uuid)
+    config_path = File.join(sandbox_path, 'config.json')
     config = JSON.parse(File.read(config_path)) rescue {}
 
     execute_job_logger("Bundle 进程 ID: #{Process.pid}", job_uuid)
@@ -89,11 +90,6 @@ namespace :app do
       exit 1
     end
 
-    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/tmp-#{config['init']}")
-    config_path = File.join(sandbox_path, 'config.json')
-    FileUtils.mv(tmp_path, sandbox_path)
-    execute_job_logger("部署准备: 创建任务沙盒目录 #{File.basename(sandbox_path)}", job_uuid)
-    
     data = get_api_info('应用', "#{ENV['SYPCTL-API']}/api/v1/app?uuid=#{config['app.uuid']}", job_uuid)
     exit 1 unless data
 
@@ -123,12 +119,12 @@ namespace :app do
     url = "#{ENV['SYPCTL-API']}#{config['version']['download_path']}"
     local_version_path = File.join(sandbox_path, config['version']['file_name'])
 
-    delete_file_if_exists('下载', local_version_path)
+    delete_file_if_exists('下载', local_version_path, job_uuid)
     download_version_file(url, local_version_path, job_uuid)
     check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
     
     target_file_path = File.join(config['app']['file_path'], config['app']['file_name'])
-    delete_file_if_exists('部署', target_file_path, (config['version.backup_path'] || []).dig(0))
+    delete_file_if_exists('部署', target_file_path, (config['version.backup_path'] || []).dig(0), job_uuid)
 
     unless File.exists?(config['app']['file_path'])
       FileUtils.mkdir_p(config['app']['file_path'])
@@ -152,11 +148,6 @@ namespace :app do
       end
     end
 
-    archive_name = job_uuid ? "job-#{job_uuid}" : "version-#{config['version']['uuid']}"
-    archive_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{archive_name}")
-    FileUtils.rm_rf(archive_path) if File.exists?(archive_path)
-    FileUtils.mv(sandbox_path, archive_path)
-
     execute_job_logger("部署归档: 清理沙盒目录 #{sandbox_path}", job_uuid)
     execute_job_logger("部署归档: 归档存储目录 #{archive_path}", job_uuid)
     execute_job_logger('部署完成!', job_uuid)
@@ -164,24 +155,22 @@ namespace :app do
 
   desc "app version config"
   task :config do
-    tmp_path = File.join(ENV['RAKE_ROOT_PATH'], 'jobs/app-deploy-tmp')
-    config_path = File.join(tmp_path, 'config.json')
+    key, value, job_uuid = ENV['key'], ENV['value'], ENV['uuid']
+    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}")
+    config_path = File.join(sandbox_path, 'config.json')
 
     execute_job_logger "Bundle 进程 ID: #{Process.pid}"
-    key, value = ENV['key'], ENV['value']
     if key == 'deploy'
       config = JSON.parse(File.read(config_path)) rescue {}
-      deploy_app(tmp_path, config_path, value)
+      deploy_app(sandbox_path, job_uuid)
     else
       if key == 'init'
-        value ||= 'random-' + SecureRandom.uuid.gsub('-', '')
-        FileUtils.rm_rf(tmp_path) if File.exists?(tmp_path)
-        FileUtils.mkdir_p(tmp_path)
-        execute_job_logger"初始化部署, 临时分配 UUID: #{value}"
+        FileUtils.rm_rf(sandbox_path) if File.exists?(sandbox_path)
+        FileUtils.mkdir_p(sandbox_path)
+        execute_job_logger("初始化部署, 任务 UUID: #{job_uuid}", job_uuid)
       else
-        value ||= 'unset'
-        FileUtils.mkdir_p(tmp_path) unless File.exists?(tmp_path)
-        execute_job_logger "初始化配置, #{key}: #{value}"
+        FileUtils.mkdir_p(sandbox_path) unless File.exists?(sandbox_path)
+        execute_job_logger("初始化配置, #{key}: #{value}", job_uuid)
       end
 
       config = JSON.parse(File.read(config_path)) rescue {}
