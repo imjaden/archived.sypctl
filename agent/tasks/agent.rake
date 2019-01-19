@@ -24,9 +24,9 @@ namespace :agent do
       exit
     end
 
-    job_json_path = agent_root_join("jobs/sypctl-job-#{ENV['uuid']}.json")
-    job_command_path = agent_root_join("jobs/sypctl-job-#{ENV['uuid']}.sh")
-    job_output_path = agent_root_join("jobs/sypctl-job-#{ENV['uuid']}.sh-output")
+    job_json_path = agent_root_join("jobs/#{ENV['uuid']}/job.json")
+    job_command_path = agent_root_join("jobs/#{ENV['uuid']}/job.sh")
+    job_output_path = agent_root_join("jobs/#{ENV['uuid']}/job.output")
 
     job_hash = JSON.parse(IO.read(job_json_path))
     job_hash['state'] = 'done'

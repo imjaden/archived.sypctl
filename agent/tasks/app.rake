@@ -13,7 +13,7 @@ namespace :app do
   def execute_job_logger(info, job_uuid = nil)
     message = "#{_timestamp} - #{info}"
     if job_uuid
-      output_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/sypctl-job-#{job_uuid}.sh-output")
+      output_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}.output")
       File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
     else
       puts message
@@ -164,14 +164,7 @@ namespace :app do
       config = JSON.parse(File.read(config_path)) rescue {}
       deploy_app(sandbox_path, job_uuid)
     else
-      if key == 'init'
-        FileUtils.rm_rf(sandbox_path) if File.exists?(sandbox_path)
-        FileUtils.mkdir_p(sandbox_path)
-        execute_job_logger("初始化部署, 任务 UUID: #{job_uuid}", job_uuid)
-      else
-        FileUtils.mkdir_p(sandbox_path) unless File.exists?(sandbox_path)
-        execute_job_logger("初始化配置, #{key}: #{value}", job_uuid)
-      end
+      execute_job_logger("初始化配置, #{key}: #{value}", job_uuid)
 
       config = JSON.parse(File.read(config_path)) rescue {}
       if key == 'version.backup_path'

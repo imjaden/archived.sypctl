@@ -718,7 +718,7 @@ function fun_agent_job_guard() {
         output_path=agent/jobs/${job_uuid}/job.output
         doing_job_tag="${todo_job_tag%.*}.doing"
         done_job_tag="${todo_job_tag%.*}.done"
-        
+
         mv ${todo_job_tag}  ${doing_job_tag}
 
         echo "Bash 进程 ID: $$" >> ${output_path} 2>&1
