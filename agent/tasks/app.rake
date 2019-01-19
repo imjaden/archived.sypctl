@@ -13,8 +13,13 @@ namespace :app do
   def execute_job_logger(info, job_uuid = nil)
     message = "#{_timestamp} - #{info}"
     if job_uuid
-      output_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}.output")
+      output_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}/job.output")
       File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
+
+      sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}")
+      job_output_path = File.join(sandbox_path, 'job.output')
+      job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+      post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
     else
       puts message
     end
@@ -101,7 +106,7 @@ namespace :app do
     execute_job_logger("    - 文件名称: #{data['file_name']}", job_uuid)
     execute_job_logger("    - 部署目录: #{data['file_path']}", job_uuid)
 
-    data = get_api_info('版本', "#{ENV['SYPCTL-API']}/api/v1/app/version?uuid=#{config['version.uuid']}")
+    data = get_api_info('版本', "#{ENV['SYPCTL-API']}/api/v1/app/version?uuid=#{config['version.uuid']}", job_uuid)
     exit 1 unless data
 
     config['version'] = data
@@ -133,7 +138,7 @@ namespace :app do
     FileUtils.cp(local_version_path, target_file_path)
     execute_job_logger("部署状态: 拷贝#{File.exists?(target_file_path) ? '成功' : 失败} #{target_file_path}", job_uuid)
 
-    check_file_md5('部署', target_file_path, config['version']['md5'])
+    check_file_md5('部署', target_file_path, config['version']['md5'], job_uuid)
 
     if config['version.backup_path']
       config['version.backup_path'].each do |backup_path|
@@ -149,14 +154,13 @@ namespace :app do
     end
 
     execute_job_logger("部署归档: 清理沙盒目录 #{sandbox_path}", job_uuid)
-    execute_job_logger("部署归档: 归档存储目录 #{archive_path}", job_uuid)
     execute_job_logger('部署完成!', job_uuid)
   end
 
   desc "app version config"
   task :config do
     key, value, job_uuid = ENV['key'], ENV['value'], ENV['uuid']
-    job_uuid ||= value
+    job_uuid = value if job_uuid.empty?
     sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}")
     config_path = File.join(sandbox_path, 'config.json')
 

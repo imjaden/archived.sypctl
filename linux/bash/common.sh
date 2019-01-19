@@ -4,6 +4,7 @@ VERSION=$(test -f version && cat version || echo 'unkown')
 current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
+timestamp2=$(date +'%y-%m-%d %H:%M:%S')
 
 test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
 test -f .env-files && while read filepath; do
@@ -721,25 +722,25 @@ function fun_agent_job_guard() {
 
         mv ${todo_job_tag}  ${doing_job_tag}
 
-        echo "Bash 进程 ID: $$" >> ${output_path} 2>&1
-        echo "任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
-        echo "部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
+        echo "${timestamp2} - Bash 进程 ID: $$" >> ${output_path} 2>&1
+        echo "${timestamp2} - 任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
+        echo "${timestamp2} - 部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
+
         if [[ -f ${bash_path} ]]; then
             while read bash_line; do
                 if [[ -n ${bash_line} ]]; then
                     echo "\$ ${bash_line} ${job_uuid}" >> ${output_path} 2>&1
-                    ${bash_line} ${job_uuid} >> ${output_path} 2>&1
-                    echo "" >> ${output_path} 2>&1
+                    ${bash_line} ${job_uuid} >> ${output_path}.bundle 2>&1
+                    echo "${timestamp2} - " >> ${output_path} 2>&1
                 fi
             done < ${bash_path}
         else
-            echo "脚本不存在：${bash_path}" >> ${output_path} 2>&1
+            echo "${timestamp2} - 脚本不存在：${bash_path}" >> ${output_path} 2>&1
         fi
 
-        bash ${bash_path} >> ${output_path} 2>&1
-        echo "部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
-        echo '' >> ${output_path} 2>&1
-        echo '提交部署状态至服务器' >> ${output_path} 2>&1
+        echo "${timestamp2} - 部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
+        echo "${timestamp2} - " >> ${output_path} 2>&1
+        echo "${timestamp2} - 提交部署状态至服务器" >> ${output_path} 2>&1
         sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
 
         mv ${doing_job_tag}  ${done_job_tag}
@@ -830,10 +831,7 @@ function fun_app_caller() {
     mkdir -p agent/jobs
     case "$1" in
         app:config)
-            key=$(echo $2 | sed 's/ //g')
-            value=$(echo $3 | sed 's/ //g')
-            uuid=$(echo $4 | sed 's/ //g')
-            fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=${key}" "value=${value}" "uuid=${uuid}"
+            fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=$2" "value=$3" "uuid=$4"
         ;;
         *)
             fun_print_app_command_help

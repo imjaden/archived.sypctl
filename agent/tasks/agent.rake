@@ -24,14 +24,14 @@ namespace :agent do
       exit
     end
 
-    job_json_path = agent_root_join("jobs/#{ENV['uuid']}/job.json")
-    job_command_path = agent_root_join("jobs/#{ENV['uuid']}/job.sh")
-    job_output_path = agent_root_join("jobs/#{ENV['uuid']}/job.output")
-
-    job_hash = JSON.parse(IO.read(job_json_path))
-    job_hash['state'] = 'done'
-    job_hash['output'] = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
-    post_to_server_job(job_hash)
+    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{ENV['uuid']}")
+    job_json_path = File.join(sandbox_path, 'job.json')
+    job_output_path = File.join(sandbox_path, 'job.output')
+    job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+    options = JSON.parse(File.read(job_json_path))
+    options['state'] = 'done'
+    options['output'] = job_output
+    post_to_server_job(options)
   end
 
   desc 'print aget regisiter info'

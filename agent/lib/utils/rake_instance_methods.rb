@@ -155,8 +155,14 @@ def post_to_server_submitor
           job_command_path = File.join(job_path, 'job.sh')
           job_todo_path = agent_root_join("jobs/#{job_hsh['uuid']}.todo")
           File.open(job_json_path, "w:utf-8") { |f| f.puts(job_hsh.to_json) }
-          File.open(job_command_path, "w:utf-8") { |f| f.puts(job_hsh['command']) }
           File.open(job_todo_path, "w:utf-8") { |f| f.puts(job_hsh['uuid']) }
+
+          brackets = job_hsh['command'].scan(/(".*?")/) || []
+          brackets.flatten.each do |bracket|
+            job_hsh['command'].sub!(bracket, bracket.gsub(/\s|"|\\"/, ''))
+          end
+
+          File.open(job_command_path, "w:utf-8") { |f| f.puts(job_hsh['command']) }
 
           `dos2unix #{job_command_path}`
         end
