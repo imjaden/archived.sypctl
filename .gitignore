@@ -33,6 +33,7 @@ agent/config/deploy_tasks.sh
 agent/logs/
 agent/tmp/
 agent/jobs/
+agent/file-backups/
 agent/db/*.json
 agent/db/records-*
 agent/monitor/
