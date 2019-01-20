@@ -14,8 +14,8 @@
 # 完整示例：
 #
 # ```
-# tomcat_home="/usr/java_env/apache-tomcat-8.0.43"
-# cmd_type="startup"
+# tomcat_home="/usr/local/src/tomcatAdmin"
+# cmd_type="install"
 #
 # bash tomcat-tools.sh "${tomcat_home}" "${cmd_type}"
 # ```
@@ -45,7 +45,7 @@ case "${cmd_type}" in
                 printf "$two_cols_table_format" "Tomcat package" "downloading..."
 
                 mkdir -p linux/packages
-                package_name="$(basename $redis_package)"
+                package_name="$(basename $tomcat_package)"
                 if [[ -f linux/packages/${package_name} ]]; then
                   tar jtvf packages/${package_name} > /dev/null 2>&1
                   if [[ $? -gt 0 ]]; then

@@ -133,27 +133,6 @@ function fun_prompt_vncserver_already_installed() {
     return 0
 }
 
-function check_install_defenders_include() {
-    test -f .install-defender || fun_user_expect_to_install_package_guides
-    if [[ $(grep "$1" .install-defender | wc -l) -eq 0 ]]; then
-       return 404
-    else
-       return 0
-    fi
-}
-
-function fun_user_expect_to_install_package_guides() {
-    true > .install-defender
-    supported_packages=(Nginx Redis Zookeeper VNC Report SaaSImage SaaSBackup SYPSuperAdmin SYPAdmin SYPAPI)
-    for package in ${supported_packages[@]}; do
-        read -p "Do you agree with the install ${package}? y/n: " user_input
-        if [[ "${user_input}" = 'y' ]]; then
-            echo "${package}"
-            echo ${package} >> .install-defender
-        fi
-    done
-}
-
 function fun_print_sypctl_help() {
     echo "Usage: sypctl <command> [args]"
     echo 
@@ -415,23 +394,44 @@ function fun_generate_sshkey_when_not_exist() {
     cat ~/.ssh/id_rsa.pub
 }
 
+function fun_user_expect_to_install_package_guides() {
+    supported_packages=(Nginx Redis Zookeeper VNC ActiveMQ Report SYPSuperAdmin SYPAdmin SYPAPI)
+
+    test -f .install-defender && while read package; do
+        each "already installed: ${package}"
+    done < .install-defender
+    echo ""
+    for package in ${supported_packages[@]}; do
+        if [[ $(grep "${package}" .install-defender | wc -l) -eq 0 ]]; then
+            read -p "install ${package}? y/n: " user_input
+            if [[ "${user_input}" = 'y' ]]; then
+                echo "${package}"
+                echo ${package} >> .install-defender
+            fi
+        fi
+    done
+}
+
+function check_install_defenders_include() {
+    test -f .install-defender || touch .install-defender
+    if [[ $(grep "$1" .install-defender | wc -l) -eq 0 ]]; then
+       return 404
+    else
+       return 0
+    fi
+}
+
 function fun_deploy_service_guides() {
     mkdir -p ./logs
     bash linux/bash/packages-tools.sh state
+
+    fun_user_expect_to_install_package_guides
+
     fun_print_table_header "Components State" "Component" "DeployedState"
 
     test -f .env-files && printf "$two_cols_table_format" ".env-files" "Deployed" || {
         cp linux/config/saasrc .env-files
         printf "$two_cols_table_format" ".env-files" "Deployed Successfully"
-    }
-
-    test -d /data || mkdir -p /data
-    check_install_defenders_include "SaaSImage" && {
-        fun_deploy_file_folder /data/saas_images
-    }
-
-    check_install_defenders_include "SaaSBackup" && {
-        fun_deploy_file_folder /data/saas_backups
     }
 
     check_install_defenders_include "Report" && {
@@ -475,6 +475,11 @@ function fun_deploy_service_guides() {
     check_install_defenders_include "SYPAdmin" && {
         root_path=/usr/local/src/tomcatAdmin
         bash linux/bash/tomcat-tools.sh ${root_path} install 8083
+    }
+
+    check_install_defenders_include "ActiveMQ" && {
+        root_path=/usr/local/src/activeMQ
+        bash linux/bash/activemq-tools.sh ${root_path} install
     }
 
     check_install_defenders_include "Zookeeper" && {

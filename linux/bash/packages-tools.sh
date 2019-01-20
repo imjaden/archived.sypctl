@@ -8,7 +8,7 @@
 #
 
 source linux/bash/common.sh
-package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u192-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.4.12.tar.gz)
+package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u192-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.4.12.tar.gz apache-activemq-5.15.5.tar.gz)
 
 fun_download_package_when_not_exists() {
   package_name="$1"

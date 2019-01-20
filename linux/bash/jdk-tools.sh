@@ -56,7 +56,7 @@ case "$1" in
 
         bash $0 install:jdk:force
     ;;
-    install:jdk:force)
+    jdk:install:force)
         jdk_package=linux/packages/jdk-8u192-linux-x64.tar.gz
         jdk_install_path=/usr/local/src
         jdk_version=jdk1.8.0_192
