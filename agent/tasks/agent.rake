@@ -36,14 +36,18 @@ namespace :agent do
 
   desc 'print aget regisiter info'
   task info: :environment do
-    print_agent_info
+    print_agent_regisitered_info
   end
 
-  desc 'print agent submitor log'
+  desc 'print agent will register info'
+  task render: :environment do
+    print_agent_will_regisiter_info
+  end
+
+  desc 'print agent submitted log'
   task log: :environment do
     print_agent_log
   end
-
   desc 'print device uuid'
   task device_uuid: :environment do 
     platform = `uname -s`.strip

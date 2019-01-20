@@ -187,6 +187,7 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:task guard     代理守护者，注册、提交功能"
     echo "sypctl agent:task doing     查看在执行的部署任务信息"
     echo "sypctl agent:task info      查看注册信息"
+    echo "sypctl agent:task render    查看将要注册的信息"
     echo "sypctl agent:task log       查看提交日志"
     echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
     echo "sypctl agent:jobs guard     服务器端任务的监护者"

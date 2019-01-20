@@ -24,7 +24,7 @@ def password
   File.read(password_tmp_path).strip
 end
 
-def print_agent_info(print_or_not = true)
+def print_agent_regisitered_info(print_or_not = true)
   puts agent_json_path if print_or_not
   if File.exists?(agent_json_path)
     data_hash = JSON.parse(File.read(agent_json_path))
@@ -34,6 +34,19 @@ def print_agent_info(print_or_not = true)
     puts "该主机未注册，请执行命令 \`sypctl agent:task guard\`" if print_or_not
   end
   data_hash
+end
+
+def print_agent_will_regisiter_info(print_or_not = true)
+  puts 
+  puts "该主机 UUID: " + Utils::Device.uuid(false)
+
+  if File.exists?(agent_json_path)
+    data_hash = JSON.parse(File.read(agent_json_path))
+    puts "已注册 UUID: " + data_hash['uuid']
+  else
+    data_hash = {}
+    puts "该主机未注册，请执行命令 \`sypctl agent:task guard\`"
+  end
 end
 
 def print_agent_log
