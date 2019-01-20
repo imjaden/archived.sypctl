@@ -4,7 +4,7 @@ require 'fileutils'
 require 'lib/utils/device.rb'
 
 def httparty_post_headers
-  @headers ||= {'Content-Type' => 'application/json', 'User-Agent' => "sypctl #{ENV['SYPCTL-VERSION']};#{ENV['RUBY-VERSION']}"}
+  @headers ||= {'Content-Type' => 'application/json', 'User-Agent' => "sypctl #{ENV['SYPCTL_VERSION']};#{ENV['RUBY_VERSION']}"}
 end
 
 def agent_root_join(path)
@@ -72,7 +72,7 @@ def agent_device_state_info
     uuid: agent_hsh['uuid'],
     whoami: Utils::Device.whoami,
     api_token: agent_hsh['api_token'],
-    version: ENV['SYPCTL-VERSION'],
+    version: ENV['SYPCTL_VERSION'],
     memory_usage: Utils::Device.memory_usage,
     memory_usage_description: Utils::Device.memory_usage_description.to_json,
     cpu_usage: Utils::Device.cpu_usage,
@@ -83,7 +83,7 @@ def agent_device_state_info
 end
 
 def post_to_server_register
-  url = "#{ENV['SYPCTL-API']}/api/v1/register"
+  url = "#{ENV['SYPCTL_API']}/api/v1/register"
   params = {device: agent_device_init_info(false)}
    
   init_uuid_path = agent_root_join("init-uuid")
@@ -112,7 +112,7 @@ def post_to_server_register
 end
 
 def post_to_server_job(options)
-  url = "#{ENV['SYPCTL-API']}/api/v1/job"
+  url = "#{ENV['SYPCTL_API']}/api/v1/job"
   params = {job: options}
   response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
 
@@ -124,7 +124,7 @@ def post_to_server_job(options)
 end
 
 def post_to_server_submitor
-  url = "#{ENV['SYPCTL-API']}/api/v1/receiver"
+  url = "#{ENV['SYPCTL_API']}/api/v1/receiver"
   params = {device: agent_device_state_info}
   response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
   
@@ -173,9 +173,9 @@ def post_to_server_submitor
 end
 
 def post_service_to_server_submitor
-  url = "#{ENV['SYPCTL-API']}/api/v1/service"
+  url = "#{ENV['SYPCTL_API']}/api/v1/service"
   service_path = "/etc/sypctl/services.json"
-  status_data_path = "/etc/sypctl/status.output"
+  status_data_path = "/etc/sypctl/services.output"
 
   monitor_content, total_count, stopped_count = "file not exists", -1, -1
   if File.exists?(status_data_path)

@@ -8,12 +8,12 @@ class AssetHandler < Sinatra::Base
     enable :logging, :static, :sessions
     enable :method_override
     enable :coffeescript
-
+    
     set :root,  ENV['APP_ROOT_PATH']
     set :views, ENV['VIEW_PATH']
-    set :public_folder, ENV['APP_ROOT_PATH'] + '/server'
-    set :js_dir,  ENV['APP_ROOT_PATH'] +  '/server'
-    set :css_dir, ENV['APP_ROOT_PATH'] + '/server'
+    set :public_folder, ENV['APP_ROOT_PATH'] + '/server/assets'
+    set :js_dir,  ENV['APP_ROOT_PATH'] +  '/server/assets/javascripts'
+    set :css_dir, ENV['APP_ROOT_PATH'] + '/server/assets/stylesheets'
 
     set :haml, layout_engine: :haml, layout: :'server/layout'
     set :cssengine, 'css'

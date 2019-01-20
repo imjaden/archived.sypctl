@@ -1,0 +1,59 @@
+.row#vueApp{style: "margin-left:-12px;margin-right:-12px;"}
+  %ol.breadcrumb
+    %li 运筹在握
+    %li= "#{ENV['APP_RUNNER']}@#{ENV['HOSTNAME']}(#{ENV['PLATFORM_OS']})"
+    %li{style: 'float: right'}
+      %a{'data-toggle' => 'modal', 'data-target' => '#loginModal'} 登录
+
+  .col-sm-3
+    %ol.list-group
+      %li.list-group-item.disabled 服务列表
+      %li.list-group-item{'v-for' => '(sideMenu, index) in records', ':class' => '{active: sideMenu === record}', ':key' => 'sideMenu.id', '@click' => 'clickSideMenu(sideMenu)'}
+        {{ sideMenu.title }}
+
+  .col-sm-9{style: "min-height:500px;max-height:1000px;overflow:scroll;"}
+    %a{'@click' => 'displayInfoModal(record)'} 数据说明
+    %table.table.table-condensed.table-bordered.smart-table
+      %thead
+        %tr
+          %th{'v-for' => '(head, th_index) in record.headings', ':style' => '"width:" + record.width[th_index]', 'v-text' => 'head'}
+      %tbody
+        %tr{'v-for' => '(rows, row_index) in record.rows'}
+          %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  record.width[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
+
+  .modal.fade#slideInfo{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+    .modal-dialog{role: "document"}
+      .modal-content
+        .modal-header
+          %button.close{"aria-label" => "Close", "data-dismiss" => "modal", type: "button"}
+            %span{"aria-hidden" => "true"} ×
+          %h4.modal-title 标题
+        .modal-body{style: 'padding: 10px;'}
+          加载中...
+        .modal-footer
+          %span.mtime{style: 'float:left; color: darkgray;'}
+          %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}  关闭
+
+  .modal.fade#loginModal
+    .modal-dialog{style: 'width: 450px;'}
+      .modal-content
+        .modal-header
+          %button.close{'type' => 'button', 'data-dismiss' => 'modal', 'aria-label' => 'Close'}
+            %span{'aria-hidden' => 'true'} &times;
+          %h4.modal-title 登录
+        .modal-body{style: 'width: 450px;'}
+          %form#loginForm{'@submit' => 'checkForm', method: "post", action: '/login', role: "form", style: 'width: 400px;'}
+            .input-group
+              .input-group-addon
+                %span.glyphicon.glyphicon-user
+              %input.form-control{name: "username", type: "text", 'v-model.trim' => 'user.username'}/
+            .input-group{style: 'margin-bottom: 10px;'}
+              .input-group-addon
+                %span.glyphicon.glyphicon-eye-close
+              %input.form-control{name: "password", type: "password", 'v-model.trim' => 'user.password'}/
+            .form-group{style: 'margin-bottom: 10px;'}
+              %input.btn.btn-primary{:type => "submit", :value => "登录", style: 'width: 100%;'}/
+            .form-group{style: 'margin-bottom: 10px;text-align: center;'}
+              %p.text-danger{'v-text' => 'user.message'}
+
+%script{src: '/javascripts/index.js', type: 'text/javascript'}

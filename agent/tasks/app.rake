@@ -95,7 +95,7 @@ namespace :app do
       exit 1
     end
 
-    data = get_api_info('应用', "#{ENV['SYPCTL-API']}/api/v1/app?uuid=#{config['app.uuid']}", job_uuid)
+    data = get_api_info('应用', "#{ENV['SYPCTL_API']}/api/v1/app?uuid=#{config['app.uuid']}", job_uuid)
     exit 1 unless data
 
     config['app'] = data
@@ -106,7 +106,7 @@ namespace :app do
     execute_job_logger("    - 文件名称: #{data['file_name']}", job_uuid)
     execute_job_logger("    - 部署目录: #{data['file_path']}", job_uuid)
 
-    data = get_api_info('版本', "#{ENV['SYPCTL-API']}/api/v1/app/version?uuid=#{config['version.uuid']}", job_uuid)
+    data = get_api_info('版本', "#{ENV['SYPCTL_API']}/api/v1/app/version?uuid=#{config['version.uuid']}", job_uuid)
     exit 1 unless data
 
     config['version'] = data
@@ -121,7 +121,7 @@ namespace :app do
     File.open(config_path, 'w:utf-8') { |file| file.puts(config.to_json) }
 
     btime = Time.now
-    url = "#{ENV['SYPCTL-API']}#{config['version']['download_path']}"
+    url = "#{ENV['SYPCTL_API']}#{config['version']['download_path']}"
     local_version_path = File.join(sandbox_path, config['version']['file_name'])
 
     delete_file_if_exists('下载', local_version_path, job_uuid)

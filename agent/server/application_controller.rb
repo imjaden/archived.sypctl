@@ -1,9 +1,11 @@
 # encoding: utf-8
+require "sinatra/cookies"
 require 'sinatra/multi_route'
 
 class ApplicationController < Sinatra::Base
   register Sinatra::Reloader unless ENV['RACK_ENV'].eql?('production')
   register Sinatra::MultiRoute
+  helpers Sinatra::Cookies
 
   use AssetHandler
   use ExceptionHandling
@@ -14,8 +16,8 @@ class ApplicationController < Sinatra::Base
   enable :sessions, :logging, :static, :method_override
   enable :dump_errors, :raise_errors, :show_exceptions unless ENV['RACK_ENV'].eql?('production')
 
-  set :views, ENV['VIEW_PATH']
-  set :layout, :'layout'
+  set :views, File.join(ENV['VIEW_PATH'], 'views')
+  set :layout, :layout
 
   before do
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -36,7 +38,26 @@ class ApplicationController < Sinatra::Base
   end
 
   error do
-    haml :'error', views: ENV['VIEW_PATH']
+    haml :error, views: ENV['VIEW_PATH']
+  end
+
+  get '/', '/monitor' do
+    haml :index, layout: settings.layout
+  end
+
+  get '/data' do
+    file_paths = Dir.glob(app_root_join("monitor/index/*.json"))
+    file_paths = file_paths.sort_by { |path| File.mtime(path) }.reverse
+    data = file_paths.map do |file_path|
+      config = JSON.parse(IO.read(file_path))
+      config["title"] ||= File.basename(file_path, ".json") 
+      config['description'] ||= '文档描述为空'
+      config["headings"] ||= []
+      config["width"] ||= (config["headings"].empty? ? [] : Array.new(config["headings"].length) { "#{100.0/config["headings"].length}%" })
+      config
+    end
+
+    respond_with_json({data: data, message: '获取数据成功'}, 200)
   end
 
   get '/index', '/info' do
@@ -48,14 +69,6 @@ class ApplicationController < Sinatra::Base
     end
   end
 
-  get '/', '/monitor' do
-    @file_paths = Dir.glob(app_root_join("monitor/index/*.json"))
-    @file_paths = @file_paths.sort_by { |path| File.mtime(path) }.reverse
-    # timestamps = @file_paths.map { |path| File.mtime(path) }
-
-    haml :index, layout: settings.layout
-  end
-
   get '/page', '/monitor/page' do
     @page_path = app_root_join("monitor/pages/#{params[:page]}")
 
@@ -64,6 +77,16 @@ class ApplicationController < Sinatra::Base
     else
       "404 - File Not Found!"
     end
+  end
+
+  post '/login' do
+    expect_username = 'sypctl'
+    expect_password = File.read(File.join(ENV['APP_ROOT_PATH'], 'password')).strip
+
+    message = expect_username == params[:username] && expect_password == params[:password] ? '登录成功' : '登录失败，账号或密码错误'
+    set_login_cookie(message)
+
+    respond_with_json({message: message, code: 201}, 201)
   end
 
   protected
@@ -173,5 +196,25 @@ class ApplicationController < Sinatra::Base
     json
   rescue => e
     {code: 500, exception: e.message, message: 'exception'}
+  end
+
+  def set_login_cookie(_cookie_value = '')
+    if _cookie_value == '登录成功'
+      cookies[cookie_name] = _cookie_value
+    else
+      cookies.delete(cookie_name)
+    end
+  end
+
+  def authenticate!
+    return if cookies[cookie_name]
+
+    redirect '/', 302
+  end
+
+  def cookie_name
+    @cookie_name ||= begin
+      "authen-sypctl-agent-#{ENV['SYPCTL_VERSION']}"
+    end
   end
 end

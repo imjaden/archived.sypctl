@@ -2,18 +2,19 @@
 !!! Strict
 %html
   %head
-    %title= "#{ENV['WEB_TITLE']}@#{ENV['HOSTNAME']}"
+    %title= "运筹在握@#{ENV['HOSTNAME']}"
     %meta{'http-equiv' => 'content-type', content: 'text/html', charset: 'UTF-8'}/
     %meta{'http-equiv' => 'X-UA-Compatible', content: 'IE=edge'}/
     %meta{name: 'viewport', content: 'width=device-width, initial-scale=1'}/
     %meta{name: 'renderer', content:'webkit'}/
     %meta{name: 'keywords', content: "sypctl,sypctl-server"}/
     %meta{name: 'description', content: "shengyiplus controll"}/
-    %link{href: ENV['WEB_FAVICON'], rel: 'shortcut icon'}/
-    %link{rel: "stylesheet", href: 'http://p93zhu9fx.bkt.clouddn.com/bootstrap.min.css'}
-    %link{rel: "stylesheet", href: 'http://p93zhu9fx.bkt.clouddn.com/nprogress.css'}
-    %script{type: "text/javascript", src: 'http://p93zhu9fx.bkt.clouddn.com/jquery.min.js'}
-    %script{type: "text/javascript", src: 'http://p93zhu9fx.bkt.clouddn.com/bootstrap.min.js'}
+    %link{href: "/images/favicon.png", rel: 'shortcut icon'}/
+    %link{rel: "stylesheet", href: '/stylesheets/bootstrap.min.css'}
+    %link{rel: "stylesheet", href: '/stylesheets/nprogress.css'}
+    %script{type: "text/javascript", src: '/javascripts/jquery.min.js'}
+    %script{type: "text/javascript", src: '/javascripts/bootstrap.min.js'}
+    %script{type: "text/javascript", src: '/javascripts/vue.js'}
     :css
       .footer {
         font-size: 14px;
@@ -48,6 +49,6 @@
 
     .container#footer
       .row.center
-        .footer &copy; sypctl.ibi.ren
+        .footer &copy; sypctl.com
 
-    %script{type: "text/javascript", src: 'http://p93zhu9fx.bkt.clouddn.com/nprogress.js'}
+    %script{type: "text/javascript", src: '/javascripts/nprogress.js'}

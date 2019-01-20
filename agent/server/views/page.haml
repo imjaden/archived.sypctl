@@ -1,14 +1,9 @@
 .row{style: "margin-left:-12px;margin-right:-12px;"}
   %ol.breadcrumb
-    %li
+    %li 运筹在握
+    %li= "#{ENV['APP_RUNNER']}@#{ENV['HOSTNAME']}(#{ENV['PLATFORM_OS']})"
+    %li{style: 'float:right'}
       %a{href: "javascript:void(0);", onclick: "window.history.back();"} 返回
-    %li
-      = ENV['APP_RUNNER']
-      @
-      = ENV['HOSTNAME']
-      (
-      = ENV['PLATFORM_OS']
-      )
 
   - config = JSON.parse(IO.read(@page_path))
   - heads = config["headings"] || []

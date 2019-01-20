@@ -1,12 +1,10 @@
 #!/usr/bin/env rake
 require 'rubygems'
 
-ENV["SYPCTL-VERSION"] = File.read("../version") rescue "unknown"
-ENV['RUBY-VERSION'] = `ruby -v`.strip
+ENV["SYPCTL_VERSION"] = File.read("../version") rescue "unknown"
+ENV['RUBY_VERSION'] = `ruby -v`.strip
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
-ENV["SYPCTL-API"] = "http://sypctl.com"
-ENV["SYPCTL-API"] = "http://localhost:8085"
-
+ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
 
 $LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])
 $LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/lib/tasks))

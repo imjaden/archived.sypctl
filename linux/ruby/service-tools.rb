@@ -144,7 +144,7 @@ class Service
       puts Terminal::Table.new(headings: table_heads, rows: table_rows)
 
       data = { heads: table_heads, data: table_rows, timestamp: Time.now.strftime("%Y-%m-%d %H:%M:%S") } 
-      File.open("/etc/sypctl/status.output", "w:utf-8") { |file| file.puts(data.to_json) }
+      File.open("/etc/sypctl/services.output", "w:utf-8") { |file| file.puts(data.to_json) }
     end
 
     def stop(target_service = nil)
