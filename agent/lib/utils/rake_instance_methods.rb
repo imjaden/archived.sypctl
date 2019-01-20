@@ -142,7 +142,7 @@ def file_backup_db_hash
   FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
   db_hash_path = File.join(backup_path, 'db.hash')
   db_json_path = File.join(backup_path, 'db.json')
-  db_hash = Digest::MD5.hexdigest(File.read(db_json_path))
+  db_hash = Digest::MD5.hexdigest(JSON.parse(File.read(db_json_path)).to_json)
   File.open(db_hash_path, 'w:utf-8') { |file| file.puts(db_hash) }
   db_hash
 rescue => e
