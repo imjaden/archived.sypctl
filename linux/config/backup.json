@@ -1,0 +1,15 @@
+{
+  "paths": [
+    "/etc/sypctl/services.json",
+    "/etc/redis/redis.conf",
+    "/usr/local/src/zookeeper/conf/zoo.cfg",
+    "/opt/config-saas/saas-api-service.properties",
+    "/opt/config-saas/saas-api-webapp.properties",
+    "/opt/config-saas/sup-admin-jdbc.properties",
+    "/opt/config-saas/sftp.properties",
+    "/usr/local/src/syp-app-server/config/services.json",
+    "/usr/local/src/syp-app-server/config/settings.yaml",
+    "/usr/local/src/syp-app-server/config/sidekiq.yaml",
+    "/usr/local/src/syp-app-server/config/database.yaml"
+  ]
+}

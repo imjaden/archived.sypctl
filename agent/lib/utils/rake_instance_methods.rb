@@ -1,6 +1,7 @@
 # encoding:utf-8
 require 'json'
 require 'fileutils'
+require 'digest/md5'
 require 'lib/utils/device.rb'
 
 def httparty_post_headers
@@ -136,9 +137,21 @@ def post_to_server_job(options)
   puts response.body
 end
 
+def file_backup_db_hash
+  backup_path = agent_root_join('file-backups')
+  FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+  db_hash_path = File.join(backup_path, 'db.hash')
+  db_json_path = File.join(backup_path, 'db.json')
+  db_hash = Digest::MD5.hexdigest(File.read(db_json_path))
+  File.open(db_hash_path, 'w:utf-8') { |file| file.puts(db_hash) }
+  db_hash
+rescue => e
+  e.message
+end
+
 def post_to_server_submitor
   url = "#{ENV['SYPCTL_API']}/api/v1/receiver"
-  params = {device: agent_device_state_info}
+  params = {device: agent_device_state_info, file_backup_db_hash: file_backup_db_hash}
   response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
   
   puts "POST #{url}\n\nparameters:"
@@ -179,6 +192,12 @@ def post_to_server_submitor
 
           `dos2unix #{job_command_path}`
         end
+      end
+      unless hsh["file_backups"].empty?
+        backup_path = agent_root_join('file-backups')
+        FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+        db_json_path = File.join(backup_path, 'db.json')
+        File.open(db_json_path, 'w:utf-8') { |file| file.puts(hsh["file_backups"].to_json) }
       end
       file.puts(agent_hsh.to_json)
     end
