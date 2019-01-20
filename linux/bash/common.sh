@@ -398,7 +398,7 @@ function fun_user_expect_to_install_package_guides() {
     supported_packages=(Nginx Redis Zookeeper VNC ActiveMQ Report SYPSuperAdmin SYPAdmin SYPAPI)
 
     test -f .install-defender && while read package; do
-        each "already installed: ${package}"
+        echo "already installed: ${package}"
     done < .install-defender
     echo ""
     for package in ${supported_packages[@]}; do
