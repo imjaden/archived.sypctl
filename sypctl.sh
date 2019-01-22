@@ -6,10 +6,10 @@
 #
 ########################################
 #
+source linux/bash/common.sh
 export SYPCTL_EXECUTE_PATH="$(pwd)"
 test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
 cd ${SYPCTL_HOME}
-source linux/bash/common.sh
 
 case "$1" in
     version)
@@ -111,6 +111,9 @@ case "$1" in
     ;;
     service)
         fun_service_caller $@
+    ;;
+    backup:file)
+        fun_backup_file_caller $@
     ;;
     app)
         fun_app_caller 'help'

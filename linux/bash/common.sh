@@ -137,16 +137,17 @@ function fun_print_sypctl_help() {
     echo "Usage: sypctl <command> [args]"
     echo 
     echo "常规操作："
-    echo "sypctl help          sypctl 支持的命令参数列表，及已部署服务的信息"
-    echo "sypctl upgrade       更新 sypctl 源码"
-    echo "sypctl env           部署基础环境依赖：JDK/Rbenv/Ruby"
-    echo "sypctl deploy        部署服务引导，并安装部署输入 \`y\` 确认的服务"
-    echo "sypctl deployed      查看已部署服务"
-    echo "sypctl device:update 更新重新提交设备信息"
+    echo "sypctl help              sypctl 支持的命令参数列表，及已部署服务的信息"
+    echo "sypctl upgrade           更新 sypctl 源码"
+    echo "sypctl env               部署基础环境依赖：JDK/Rbenv/Ruby"
+    echo "sypctl deploy            部署服务引导，并安装部署输入 \`y\` 确认的服务"
+    echo "sypctl deployed          查看已部署服务"
+    echo "sypctl device:update     更新重新提交设备信息"
     echo
-    echo "sypctl agent help    #代理# 配置"
-    echo "sypctl toolkit help  #工具# 安装"
-    echo "sypctl service help  #服务# 管理"
+    echo "sypctl agent help        #代理# 配置"
+    echo "sypctl toolkit help      #工具# 安装"
+    echo "sypctl service help      #服务# 管理"
+    echo "sypctl backup:file help  #备份文件# 管理"
     echo
     fun_print_logo
     echo "Current version is $VERSION"
@@ -226,6 +227,13 @@ function fun_print_init_agent_help() {
     echo 
     echo "Current version is $VERSION"
     echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+}
+
+function fun_print_sypctl_backup_file_help() {
+    echo "sypctl backup:file help     帮助说明"
+    echo "sypctl backup:file list     查看备份列表"
+    echo "sypctl backup:file render   查看元信息"
+    echo "sypctl backup:file execute  执行备份操作"
 }
 
 #
@@ -797,7 +805,21 @@ function fun_service_caller() {
     if [[ "$2" = "edit" ]]; then
         vim /etc/sypctl/services.json
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
-        SYPCTL_HOME=${SYPCTL_HOME} ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
+        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
+    else
+        echo "Error - unknown command: $2, support: ${support_commands[@]}"
+    fi
+}
+
+function fun_backup_file_caller() {
+    if [[ "${2}" = "help" ]]; then
+        fun_print_sypctl_backup_file_help
+        exit 1
+    fi
+
+    support_commands=(list render execute)
+    if [[ "${support_commands[@]}" =~ "$2" ]]; then
+        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/backup-file-tools.rb "--$2" "${3:-all}"
     else
         echo "Error - unknown command: $2, support: ${support_commands[@]}"
     fi
