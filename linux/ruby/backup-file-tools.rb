@@ -62,6 +62,7 @@ class BackupFile
       @synced_hash = File.exists?(@synced_hash_path) ? File.read(@synced_hash_path).strip : "file-not-exist"
 
       FileUtils.mkdir_p(@archived_path) unless File.exists?(@archived_path)
+      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
     end
 
     def render
@@ -99,7 +100,7 @@ class BackupFile
           backup_file: File.new(file['file_path'], 'rb')
         }
 
-        url = "#{ENV['SYPCTL_API_CUSTOM']}/api/v1/upload/file_backup"
+        url = "#{ENV['SYPCTL_API']}/api/v1/upload/file_backup"
         res = RestClient.post(url, options).force_encoding('UTF-8')
         puts "#{res}, #{archive_file_name}"
 
@@ -116,7 +117,7 @@ class BackupFile
     
       synced_hash = Digest::MD5.hexdigest(@synced_json.to_json)
       if @synced_hash != synced_hash
-        url = "#{ENV['SYPCTL_API_CUSTOM']}/api/v1/update/file_backup"
+        url = "#{ENV['SYPCTL_API']}/api/v1/update/file_backup"
         options = {
           device_uuid: Utils::Device.uuid,
           file_backup_config: @db_json.to_json,
