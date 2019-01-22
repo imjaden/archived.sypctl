@@ -105,6 +105,7 @@ class BackupFile
 
         @synced_json[file['uuid']] ||= {synced: false}.merge(file)
         @synced_json[file['uuid']][:md5]     = file_md5
+        @synced_json[file['uuid']][:archive_file_name] = archive_file_name
         @synced_json[file['uuid']][:message] = res
         @synced_json[file['uuid']][:synced]  = res.include?('上传成功')
         @synced_json[file['uuid']][:device_uuid] = Utils::Device.uuid
@@ -115,10 +116,11 @@ class BackupFile
     
       synced_hash = Digest::MD5.hexdigest(@synced_json.to_json)
       if @synced_hash != synced_hash
-        url = "#{ENV['SYPCTL_API_CUSTOM']}/api/v1/update/file_backup_list"
+        url = "#{ENV['SYPCTL_API_CUSTOM']}/api/v1/update/file_backup"
         options = {
           device_uuid: Utils::Device.uuid,
-          file_backup_list: @synced_json.to_json
+          file_backup_config: @db_json.to_json,
+          file_backup_monitor: @synced_json.to_json
         }
         res = RestClient.post(url, options).force_encoding('UTF-8')
         puts "synced_hash now: #{synced_hash}"

@@ -221,18 +221,12 @@ module Utils
       def uuid(use_cache = true)
         uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, "device-uuid")
 
-        puts uuid_tmp_path
         if use_cache && File.exists?(uuid_tmp_path)
           device_uuid = File.read(uuid_tmp_path).strip
           
-          if device_uuid.empty?
-         puts 'two'
-            File.remove(uuid_tmp_path)
-          else
-            return device_uuid
-          end
+          return device_uuid unless device_uuid.empty?
+          File.remove(uuid_tmp_path)
         end
-         puts 'three'
 
         device_uuid = klass.device_uuid
         device_uuid = "empty-#{SecureRandom.uuid}" if device_uuid.empty?
