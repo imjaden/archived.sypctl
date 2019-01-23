@@ -13,6 +13,8 @@ require 'timeout'
 require 'optparse'
 require 'fileutils'
 require 'terminal-table'
+require File.expand_path('../../../agent/lib/utils/http', __FILE__)
+require File.expand_path('../../../agent/lib/utils/device', __FILE__)
 
 options = {}
 option_parser = OptionParser.new do |opts|
@@ -46,6 +48,12 @@ option_parser = OptionParser.new do |opts|
   opts.on('-m', "--monitor all", '监控列表中的服务，未运行则启动') do |value|
     options[:monitor] = value
   end
+  opts.on('-p', "--post_to_server", ' 提交监控服务配置档至服务器') do |value|
+    options[:post_to_server] = value
+  end
+  opts.on('-g', "--guard", ' 守护监控服务配置，功能同 post_to_server') do |value|
+    options[:guard] = value
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -55,17 +63,20 @@ class Service
     def options(options)
       @options = options
 
-      service_path = "/etc/sypctl/services.json"
-      unless File.exists?(service_path)
-        puts "Error: 配置档不存在，请创建并配置 /etc/sypctl/services.json\n退出操作"
+      @service_config_path = "/etc/sypctl/services.json"
+      @service_output_path = "/etc/sypctl/services.output"
+      unless File.exists?(@service_config_path)
+        puts "警告：本机暂未同步监控服务元信息\n退出操作"
         exit 1
       end
 
-      @data_hash = JSON.parse(File.read(service_path))
-      @services = @data_hash['services']
-      @hosts = @data_hash['hosts'] || {}
-      @config = @data_hash['config'] || {}
-      @extra = @data_hash['extra'] || {}
+      @data_hash = JSON.parse(File.read(@service_config_path))
+      @services  = @data_hash['services']
+      @hosts     = @data_hash['hosts'] || {}
+      @config    = @data_hash['config'] || {}
+      @extra     = @data_hash['extra'] || {}
+
+      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
     end
 
     def render
@@ -201,6 +212,35 @@ class Service
         puts errors
       end
     end
+
+    # #service# 
+    # 提交监控服务配置档至服务器
+    def post_to_server
+      output_content, total_count, stopped_count = "FileNotExist", -1, -1
+      if File.exists?(@service_output_path)
+        output_content = File.read(@service_output_path)
+        output_array = JSON.parse(output_content)["data"]
+        total_count = output_array.count
+        stopped_count = output_array.select { |arr| arr.last.include?("未运行") }.count
+      end
+
+      options = {
+        uuid: Sypctl::Device.uuid,
+        service: {
+          uuid: Sypctl::Device.uuid,
+          hostname: `hostname`.strip,
+          config: File.exists?(@service_config_path) ? File.read(@service_config_path) : "FileNotExist",
+          monitor: output_content,
+          total_count: total_count,
+          stopped_count: stopped_count
+        }
+      }
+
+      url = "#{ENV['SYPCTL_API']}/api/v1/service"
+      Sypctl::Http.post(url, options, {}, {print_log: false})
+    end
+
+    alias_method :guard, :post_to_server
 
     private
 

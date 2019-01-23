@@ -198,13 +198,13 @@ function fun_print_toolkit_list() {
 
 function fun_print_sypctl_service_help() {
     echo "服务管理:"
-    echo "sypctl service [args]"
-    echo "               list    查看管理的服务列表"
-    echo "               start   启动服务列表中的应用"
-    echo "               status  检查服务列表应用的运行状态"
-    echo "               stop    关闭服务列表中的应用"
-    echo "               restart 重启服务列表中的应用"
-    echo "               monitor 监控列表中的服务，未运行则启动"
+    echo "sypctl service list    查看管理的服务列表"
+    echo "sypctl service start   启动服务列表中的应用"
+    echo "sypctl service status  检查服务列表应用的运行状态"
+    echo "sypctl service stop    关闭服务列表中的应用"
+    echo "sypctl service restart 重启服务列表中的应用"
+    echo "sypctl service monitor 监控列表中的服务，未运行则启动"
+    echo "sypctl service guard   守护监控服务配置"
 }
 
 function fun_print_logo() {
@@ -234,6 +234,7 @@ function fun_print_sypctl_backup_file_help() {
     echo "sypctl backup:file list     查看备份列表"
     echo "sypctl backup:file render   查看元信息"
     echo "sypctl backup:file execute  执行备份操作"
+    echo "sypctl backup:file guard    守护备份操作，功能同 execute"
 }
 
 #
@@ -302,7 +303,7 @@ function fun_sypctl_upgrade() {
 
     title "\$ cd agent && bundle install"
     cd agent
-    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
+    mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
     rm -f .bundle-done
     bundle install
     if [[ $? -eq 0 ]]; then
@@ -722,15 +723,15 @@ function fun_update_rc_local() {
 # 代理执行服务器端分发的任务脚本
 #
 function fun_agent_job_guard() {
-    if [[ $(find agent/jobs/ -name '*.todo' | wc -l) -eq 0 ]]; then
+    if [[ $(find agent/db/jobs/ -name '*.todo' | wc -l) -eq 0 ]]; then
         echo '无任务待处理'
         exit 1
     fi
 
-    for todo_job_tag in $(ls agent/jobs/*.todo); do
+    for todo_job_tag in $(ls agent/db/jobs/*.todo); do
         job_uuid=$(cat $todo_job_tag)
-        bash_path=agent/jobs/${job_uuid}/job.sh
-        output_path=agent/jobs/${job_uuid}/job.output
+        bash_path=agent/db/jobs/${job_uuid}/job.sh
+        output_path=agent/db/jobs/${job_uuid}/job.output
         doing_job_tag="${todo_job_tag%.*}.doing"
         done_job_tag="${todo_job_tag%.*}.done"
 
@@ -762,17 +763,17 @@ function fun_agent_job_guard() {
 }
 
 function fun_agent_job_doing() {
-    if [[ $(find agent/jobs/ -name '*.running' | wc -l) -eq 0 ]]; then
+    if [[ $(find agent/db/jobs/ -name '*.running' | wc -l) -eq 0 ]]; then
         echo '无在执行的任务'
         exit 1
     fi
 
-    for filepath in $(ls agent/jobs/*.running); do
+    for filepath in $(ls agent/db/jobs/*.running); do
         job_uuid=$(cat $filepath)
         echo "任务UUID: ${job_uuid}"
-        echo "任务配置: ${SYPCTL_HOME}/agent/jobs/sypctl-job-${job_uuid}.json"
-        echo "部署执行: ${SYPCTL_HOME}/agent/jobs/sypctl-job-${job_uuid}.sh"
-        echo "执行日志: ${SYPCTL_HOME}/agent/jobs/sypctl-job-${job_uuid}.sh-output"
+        echo "任务配置: ${SYPCTL_HOME}/agent/db/jobs/sypctl-job-${job_uuid}.json"
+        echo "部署执行: ${SYPCTL_HOME}/agent/db/jobs/sypctl-job-${job_uuid}.sh"
+        echo "执行日志: ${SYPCTL_HOME}/agent/db/jobs/sypctl-job-${job_uuid}.sh-output"
         echo ""
     done
 }
@@ -801,7 +802,7 @@ function fun_service_caller() {
     fi
 
     test -d /etc/sypctl/ || sudo mkdir -p /etc/sypctl/
-    support_commands=(render list start stop status restart monitor edit)
+    support_commands=(render list start stop status restart monitor edit guard)
     if [[ "$2" = "edit" ]]; then
         vim /etc/sypctl/services.json
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
@@ -817,7 +818,7 @@ function fun_backup_file_caller() {
         exit 1
     fi
 
-    support_commands=(list render execute)
+    support_commands=(list render execute guard)
     if [[ "${support_commands[@]}" =~ "$2" ]]; then
         SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/backup-file-tools.rb "--$2" "${3:-all}"
     else
@@ -826,7 +827,7 @@ function fun_backup_file_caller() {
 }
 
 function fun_agent_caller() {
-    mkdir -p agent/jobs
+    mkdir -p agent/db/jobs
     case "$1" in
         agent)
             fun_print_init_agent_command_help

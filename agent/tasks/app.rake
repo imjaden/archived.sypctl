@@ -1,6 +1,5 @@
 # encoding: utf-8
 require 'json'
-require 'httparty'
 require 'fileutils'
 require 'digest/md5'
 require 'securerandom'
@@ -13,10 +12,10 @@ namespace :app do
   def execute_job_logger(info, job_uuid = nil)
     message = "#{_timestamp} - #{info}"
     if job_uuid
-      output_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}/job.output")
+      output_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}/job.output")
       File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
 
-      sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}")
+      sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
       job_output_path = File.join(sandbox_path, 'job.output')
       job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
       post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
@@ -41,32 +40,25 @@ namespace :app do
   end
 
   def get_api_info(label, url, job_uuid)
-    res = HTTParty.get(url)
-    if res.code != 200
-      execute_job_logger("查询异常: 获取#{label}信息失败 - #{res.message}", job_uuid)
+    response = Sypctl::Http.get(url)
+    if response['code'] != 200
+      execute_job_logger("查询异常: 获取#{label}信息失败 - #{response['hash']['message']}", job_uuid)
       execute_job_logger("- 请求链接: #{url}", job_uuid)
-      execute_job_logger("- 查询描述: #{res.message}", job_uuid)
+      execute_job_logger("- 查询描述: #{response['hash']['message']}", job_uuid)
       execute_job_logger("退出部署操作", job_uuid)
       return false
     end
     execute_job_logger("查询成功: 获取应用信息", job_uuid)
-    JSON.parse(res.body)['data']
+    response['hash']['data']
   end
 
   def download_version_file(url, path, job_uuid)
-    res, btime, ptime = nil, Time.now, Time.now
     execute_job_logger("下载文件: 链接 #{url}", job_uuid)
-    File.open(path, 'w:utf-8') do |file|
-      execute_job_logger('下载预告: 每十秒打印报告', job_uuid)
-      res = HTTParty.get(url, stream_body: true) do |fragment|
-        file.write(fragment.force_encoding('utf-8'))
-        if Time.now - ptime > 10
-          execute_job_logger("已下载文件大小 #{File.exists?(path) ? File.size(path).number_to_human_size : '0'}", job_uuid)
-          ptime = Time.now
-        end
-      end
-    end
-    execute_job_logger("下载状态: #{res.success? ? '成功' : '失败'}", job_uuid)
+
+    btime = Time.now
+    response = Sypctl::Http.download_version_file(url, path, job_uuid)
+
+    execute_job_logger("下载状态: #{response.inspect}", job_uuid)
     execute_job_logger("下载报告: #{File.size(path).number_to_human_size}", job_uuid) if File.exists?(path)
     execute_job_logger("下载用时: #{Time.now - btime}s", job_uuid)
   end
@@ -161,7 +153,7 @@ namespace :app do
   task :config do
     key, value, job_uuid = ENV['key'], ENV['value'], ENV['uuid']
     job_uuid = value if job_uuid.empty?
-    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{job_uuid}")
+    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
     config_path = File.join(sandbox_path, 'config.json')
 
     execute_job_logger "Bundle 进程 ID: #{Process.pid}"

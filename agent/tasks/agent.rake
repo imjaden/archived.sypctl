@@ -12,11 +12,6 @@ namespace :agent do
     post_to_server_submitor
   end
 
-  desc "submit service content and status data to server"
-  task service: :environment do
-    post_service_to_server_submitor
-  end
-
   desc 'agent submit job execute status'
   task job: :environment do
     if ENV['uuid'].to_s.empty?
@@ -24,7 +19,7 @@ namespace :agent do
       exit
     end
 
-    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "jobs/#{ENV['uuid']}")
+    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{ENV['uuid']}")
     job_json_path = File.join(sandbox_path, 'job.json')
     job_output_path = File.join(sandbox_path, 'job.output')
     job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"

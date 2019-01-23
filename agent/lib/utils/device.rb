@@ -1,9 +1,8 @@
 # encoding: utf-8
-# version: 0.0.8
 require 'json'
 require 'securerandom'
 
-module Utils
+module Sypctl
   class Darwin
     class << self
       def whoami
@@ -209,7 +208,7 @@ module Utils
 
       def klass
         platform = `uname -s`.strip
-        ['Utils', platform].inject(Object) { |obj, klass| obj.const_get(klass) }
+        ['Sypctl', platform].inject(Object) { |obj, klass| obj.const_get(klass) }
       end
 
       def whoami

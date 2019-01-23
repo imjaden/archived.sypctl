@@ -7,9 +7,9 @@ if defined? Encoding
 end
 
 gem 'rake', '~> 12.3.0'
-gem 'httparty', '~> 0.13.7'
 gem 'rest-client', '~> 2.0.2'
 gem 'terminal-table', '~> 1.8.0'
+gem 'httparty', '~> 0.13.7' # todo: remove
 
 if File.exists?("local-sypctl-server")
   gem 'sinatra', '~> 2.0.0'

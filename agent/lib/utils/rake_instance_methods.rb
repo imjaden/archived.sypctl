@@ -2,15 +2,13 @@
 require 'json'
 require 'fileutils'
 require 'digest/md5'
+require 'lib/utils/http.rb'
 require 'lib/utils/device.rb'
-
-def httparty_post_headers
-  @headers ||= {'Content-Type' => 'application/json', 'User-Agent' => "sypctl #{ENV['SYPCTL_VERSION']};#{ENV['RUBY_VERSION']}"}
-end
 
 def agent_root_join(path)
   File.join(ENV["RAKE_ROOT_PATH"], path)
 end
+
 #
 # agent instance methods
 #
@@ -39,7 +37,7 @@ end
 
 def print_agent_will_regisiter_info(print_or_not = true)
   puts 
-  puts "该主机 UUID: " + Utils::Device.uuid(false)
+  puts "该主机 UUID: " + Sypctl::Device.uuid(false)
 
   if File.exists?(agent_json_path)
     data_hash = JSON.parse(File.read(agent_json_path))
@@ -63,36 +61,36 @@ end
 
 def agent_device_init_info(use_cache = true)
   {
-    uuid: Utils::Device.uuid(use_cache),
-    hostname: Utils::Device.hostname,
+    uuid: Sypctl::Device.uuid(use_cache),
+    hostname: Sypctl::Device.hostname,
     username: 'sypagent',
     password: password,
-    os_type: Utils::Device.os_type,
-    os_version: Utils::Device.os_version,
-    lan_ip: Utils::Device.lan_ip,
-    wan_ip: Utils::Device.wan_ip,
-    memory: Utils::Device.memory,
-    memory_description: Utils::Device.memory_usage_description.to_json,
-    cpu: Utils::Device.cpu,
-    cpu_description: Utils::Device.cpu_usage_description.to_json,
-    disk: Utils::Device.disk,
-    disk_description: Utils::Device.disk_usage_description.to_json
+    os_type: Sypctl::Device.os_type,
+    os_version: Sypctl::Device.os_version,
+    lan_ip: Sypctl::Device.lan_ip,
+    wan_ip: Sypctl::Device.wan_ip,
+    memory: Sypctl::Device.memory,
+    memory_description: Sypctl::Device.memory_usage_description.to_json,
+    cpu: Sypctl::Device.cpu,
+    cpu_description: Sypctl::Device.cpu_usage_description.to_json,
+    disk: Sypctl::Device.disk,
+    disk_description: Sypctl::Device.disk_usage_description.to_json
   }
 end
 
 def agent_device_state_info
-  agent_hsh = JSON.parse(File.read(agent_json_path))
+  agent_hash = JSON.parse(File.read(agent_json_path))
   {
-    uuid: agent_hsh['uuid'],
-    whoami: Utils::Device.whoami,
-    api_token: agent_hsh['api_token'],
+    uuid: agent_hash['uuid'],
+    whoami: Sypctl::Device.whoami,
+    api_token: agent_hash['api_token'],
     version: ENV['SYPCTL_VERSION'],
-    memory_usage: Utils::Device.memory_usage,
-    memory_usage_description: Utils::Device.memory_usage_description.to_json,
-    cpu_usage: Utils::Device.cpu_usage,
-    cpu_usage_description: Utils::Device.cpu_usage_description.to_json,
-    disk_usage: Utils::Device.disk_usage,
-    disk_usage_description: Utils::Device.disk_usage_description.to_json
+    memory_usage: Sypctl::Device.memory_usage,
+    memory_usage_description: Sypctl::Device.memory_usage_description.to_json,
+    cpu_usage: Sypctl::Device.cpu_usage,
+    cpu_usage_description: Sypctl::Device.cpu_usage_description.to_json,
+    disk_usage: Sypctl::Device.disk_usage,
+    disk_usage_description: Sypctl::Device.disk_usage_description.to_json
   }
 end
 
@@ -108,18 +106,11 @@ def post_to_server_register
   human_name_path = agent_root_join("human-name")
   params[:device][:human_name] = File.read(human_name_path).strip if File.exists?(human_name_path)
   
-  response = HTTParty.post(url, body: params.to_json, headers:httparty_post_headers)
+  response = Sypctl::Http.post(url, params)
 
-  puts "POST #{url}\n\nparameters:"
-  puts JSON.pretty_generate(params)
-  puts "\nresponse:"
-  puts response.code
-  puts response.body
-
-  if response.code == 201
-    hsh = JSON.parse(response.body)
-    hsh[:synced] = true
-    File.open(agent_json_path, "w:utf-8") { |file| file.puts(hsh.to_json) }
+  if response['code'] == 201
+    response['hash']['synced'] = true
+    File.open(agent_json_path, "w:utf-8") { |file| file.puts(response['hash'].to_json) }
     FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
     FileUtils.rm_f(human_name_path) if File.exists?(human_name_path)
   end
@@ -128,20 +119,16 @@ end
 def post_to_server_job(options)
   url = "#{ENV['SYPCTL_API']}/api/v1/job"
   params = {job: options}
-  response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
-
-  puts "POST #{url}\n\nparameters:"
-  puts JSON.pretty_generate(params)
-  puts "\nresponse:"
-  puts response.code
-  puts response.body
+  response = Sypctl::Http.post(url, params)
 end
 
 def file_backup_db_hash
-  backup_path = agent_root_join('file-backups')
+  backup_path = agent_root_join('db/file-backups')
   FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
   db_hash_path = File.join(backup_path, 'db.hash')
   db_json_path = File.join(backup_path, 'db.json')
+  return 'FileNotExist' unless File.exists?(db_json_path)
+
   db_hash = Digest::MD5.hexdigest(JSON.parse(File.read(db_json_path)).to_json)
   File.open(db_hash_path, 'w:utf-8') { |file| file.puts(db_hash) }
   db_hash
@@ -152,58 +139,57 @@ end
 def post_to_server_submitor
   url = "#{ENV['SYPCTL_API']}/api/v1/receiver"
   params = {device: agent_device_state_info, file_backup_db_hash: file_backup_db_hash}
-  response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
-  
-  puts "POST #{url}\n\nparameters:"
-  puts JSON.pretty_generate(params)
-  puts "\nresponse:"
-  puts response.code
-  puts response.body
+  response = Sypctl::Http.post(url, params)
 
-  if response.code == 201
-    hsh = JSON.parse(response.body)
+  if response['code'] == 201
     File.open(record_list_path, "a+:utf-8") do |file|
-      agent_hsh = agent_device_state_info
-      agent_hsh[:server_record_id] = hsh["id"]
-      unless hsh["jobs"].empty?
+      agent_hash = agent_device_state_info
+      agent_hash[:server_record_id] = response['hash']['id']
+      unless response['hash']['jobs'].empty?
         # 执行部署脚本前，先置任务状态为进行中，
         # 否则部署脚本中有提交操作时，会再次获取到部署任务
-        hsh["jobs"].each do |job_hsh|
-          job_hsh['state'] = 'dealing'
-          post_to_server_job(job_hsh)
+        response["jobs"].each do |job_hash|
+          job_hash['state'] = 'dealing'
+          post_to_server_job(job_hash)
         end
 
         `command -v dos2unix > /dev/null 2>&1 || sudo yum install -y dos2unix`
-        hsh["jobs"].each do |job_hsh|
-          job_path = agent_root_join("jobs/#{job_hsh['uuid']}")
+        response['hash']['jobs'].each do |job_hash|
+          job_path = agent_root_join("db/jobs/#{job_hash['uuid']}")
           FileUtils.mkdir_p(job_path) unless File.exists?(job_path)
           job_json_path = File.join(job_path, 'job.json')
           job_command_path = File.join(job_path, 'job.sh')
-          job_todo_path = agent_root_join("jobs/#{job_hsh['uuid']}.todo")
-          File.open(job_json_path, "w:utf-8") { |f| f.puts(job_hsh.to_json) }
-          File.open(job_todo_path, "w:utf-8") { |f| f.puts(job_hsh['uuid']) }
+          job_todo_path = agent_root_join("db/jobs/#{job_hash['uuid']}.todo")
+          File.open(job_json_path, "w:utf-8") { |f| f.puts(job_hash.to_json) }
+          File.open(job_todo_path, "w:utf-8") { |f| f.puts(job_hash['uuid']) }
 
-          brackets = job_hsh['command'].scan(/(".*?")/) || []
+          brackets = job_hash['command'].scan(/(".*?")/) || []
           brackets.flatten.each do |bracket|
-            job_hsh['command'].sub!(bracket, bracket.gsub(/\s|"|\\"/, ''))
+            job_hash['command'].sub!(bracket, bracket.gsub(/\s|"|\\"/, ''))
           end
 
-          File.open(job_command_path, "w:utf-8") { |f| f.puts(job_hsh['command']) }
+          File.open(job_command_path, "w:utf-8") { |f| f.puts(job_hash['command']) }
 
           `dos2unix #{job_command_path}`
         end
       end
-      unless hsh["file_backups"].empty?
-        backup_path = agent_root_join('file-backups')
+
+      unless response['hash']['file_backups'].empty?
+        backup_path = agent_root_join('db/file-backups')
         FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+        db_hash_path = File.join(backup_path, 'db.hash')
         db_json_path = File.join(backup_path, 'db.json')
-        File.open(db_json_path, 'w:utf-8') { |file| file.puts(hsh["file_backups"].to_json) }
+        db_hash = Digest::MD5.hexdigest(response['hash']['file_backups'].to_json)
+        File.open(db_hash_path, 'w:utf-8') { |file| file.puts(db_hash) }
+        File.open(db_json_path, 'w:utf-8') { |file| file.puts(response['hash']['file_backups'].to_json) }
       end
-      file.puts(agent_hsh.to_json)
+      file.puts(agent_hash.to_json)
     end
   end
 end
 
+# #service# 
+# 提交监控服务配置档至服务器
 def post_service_to_server_submitor
   url = "#{ENV['SYPCTL_API']}/api/v1/service"
   service_path = "/etc/sypctl/services.json"
@@ -223,20 +209,14 @@ def post_service_to_server_submitor
     service: {
       uuid: uuid,
       hostname: `hostname`.strip,
-      config: File.exists?(service_path) ? File.read(service_path) : "file not exists",
+      config: File.exists?(service_path) ? File.read(service_path) : "FileNotExist",
       monitor: monitor_content,
       total_count: total_count,
       stopped_count: stopped_count
     }
   }
 
-  response = HTTParty.post(url, body: params.to_json, headers: httparty_post_headers)
-  
-  puts "POST #{url}\n\nparameters:"
-  puts JSON.pretty_generate(params)
-  puts "\nresponse:"
-  puts response.code
-  puts response.body
+  Sypctl::Http.post(url, params)
 end
 
 #

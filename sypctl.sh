@@ -67,9 +67,10 @@ case "$1" in
         fun_update_rc_local
     ;;
     crontab:jobs)
-        bash $0 agent:task guard
-        bash $0 agent:task service
-        bash $0 agent:jobs guard
+        bash $0 agent:task  guard
+        bash $0 agent:jobs  guard
+        bash $0 service     guard
+        bash $0 backup:file guard
     ;;
     rc.local)
         fun_update_rc_local
