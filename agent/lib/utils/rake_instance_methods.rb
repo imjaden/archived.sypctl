@@ -148,7 +148,7 @@ def post_to_server_submitor
       unless response['hash']['jobs'].empty?
         # 执行部署脚本前，先置任务状态为进行中，
         # 否则部署脚本中有提交操作时，会再次获取到部署任务
-        response["jobs"].each do |job_hash|
+        response['hash']['jobs'].each do |job_hash|
           job_hash['state'] = 'dealing'
           post_to_server_job(job_hash)
         end
