@@ -171,6 +171,15 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:task log       查看提交日志"
     echo "sypctl agent:task device    对比设备信息与已注册信息（调整硬件时使用）"
     echo "sypctl agent:jobs guard     服务器端任务的监护者"
+    echo
+    echo "代理端服务:"
+    echo "sypctl agent:server help    帮助说明"
+    echo "sypctl agent:server deploy  部署引导"
+    echo "sypctl agent:server start   启动服务"
+    echo "sypctl agent:server stop    关闭服务"
+    echo "sypctl agent:server restart 重启服务"
+    echo "sypctl agent:server status  服务状态"
+    echo "sypctl agent:server remove  移除部署"
 }
 
 function fun_print_app_command_help() {
@@ -407,18 +416,24 @@ function fun_user_expect_to_install_package_guides() {
     supported_packages=(Nginx Redis Zookeeper VNC ActiveMQ Report SYPSuperAdmin SYPAdmin SYPAPI)
 
     test -f .install-defender && while read package; do
-        echo "already installed: ${package}"
+        echo "已安装: ${package}"
     done < .install-defender
     echo ""
     for package in ${supported_packages[@]}; do
         if [[ $(grep "${package}" .install-defender | wc -l) -eq 0 ]]; then
-            read -p "install ${package}? y/n: " user_input
+            read -p "是否安装 ${package}? y/n: " user_input
             if [[ "${user_input}" = 'y' ]]; then
-                echo "${package}"
                 echo ${package} >> .install-defender
             fi
         fi
     done
+
+    if [[ ! -f agent/local-sypctl-server ]]; then
+        read -p "是否启动代理端服务? y/n: " user_input
+        if [[ "${user_input}" = 'y' ]]; then
+            touch agent/local-sypctl-server
+        fi
+    fi
 }
 
 function check_install_defenders_include() {
@@ -890,9 +905,7 @@ function fun_etl_tiny_tds() {
 #
 function fun_agent_server_daemon() {
     cd agent
-    test -f ~/.bash_profile && {
-        readlink -f ~/.bash_profile > env-files
-    }
+    test -f ~/.bash_profile && readlink -f ~/.bash_profile > env-files
 
     test -f env-files || touch env-files
     test -f app-port || echo 8086 > app-port

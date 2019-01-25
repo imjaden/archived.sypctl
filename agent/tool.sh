@@ -26,19 +26,35 @@ unicorn_pid_file=tmp/pids/unicorn.pid
 
 cd "${app_root_path}" || exit 1
 function title() { printf "\n%s\n\n" "$1"; }
+function check_deploy_tate() {
+    if [[ ! -f local-sypctl-server ]]; then
+        echo
+        echo "提示：本地未部署代理端服务"
+        echo
+        echo "部署服务请执行："
+        echo "\$ sypctl agent:server deploy"
+        echo
+        echo "查看命令请执行："
+        echo "\$ sypctl agent:server help"
+        echo
+        exit 1
+    fi
+}
 case "$1" in
+    check)
+    ;;
     deploy)
         if [[ -f local-sypctl-server ]]; then
             bash $0 state
         else
-            read -p "确定部署 agent server? y/n: " user_input
+            read -p "确定部署代理端服务? y/n: " user_input
             if [[ "${user_input}" = 'y' ]]; then
                 echo ${timestamp} > local-sypctl-server
              
-                read -p "请输入 agent server 服务端口号，默认 8086: " user_input
+                read -p "请输入代理端服务端口号，默认 8086: " user_input
                 echo ${user_input:-8086} > app-port
 
-                read -p "请输入 agent server 进程数量，默认 1: " user_input
+                read -p "请输入代理端服务进程数量，默认 1: " user_input
                 echo ${user_input:-1} > app-worker-processes
 
                 if [[ -f ~/.bash_profile ]]; then
@@ -46,13 +62,13 @@ case "$1" in
                     echo "${env_path}" > env-files
                 fi
 
-                title "$ bundle install"
+                title "$ 部署预检"
                 bash $0 bundle
 
-                title "$ start agent server"
+                title "$ 启动服务"
                 bash $0 process:defender
 
-                title "$ agent server state"
+                title "$ 服务状态"
                 bash $0 state
             else
                 echo "退出部署引导！"
@@ -62,32 +78,40 @@ case "$1" in
     bundle)
         bundle install --local > /dev/null 2>&1
         if [[ $? -eq 0 ]]; then
-            echo -e 'bundle install --local successfully'
+            echo -e '启动预检测成功'
         else
-            bundle install
+            echo -e '启动预检测异常，重检...'
+            bundle install > /dev/null 2>&1
+            echo -e '启动预重检完成'
         fi
     ;;
     start)
+        check_deploy_tate
+
         mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
-        command_text="bundle exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D"
-        echo "\$ ${command_text}"
-        ${command_text}
+        bash $0 bundle
+        
+        bundle exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D
         if [[ $? -eq 0 ]]; then
-            echo "start agent server successfully"
+            echo "启动代理服务成功"
         else
-            echo "start agent server failed"
+            echo "启动代理服务失败"
         fi
     ;;
     stop)
+        check_deploy_tate
+
         if [[ -f ${unicorn_pid_file} ]]; then
             cat ${unicorn_pid_file} | xargs kill -9
             rm -f ${unicorn_pid_file}
-            echo "stop agent server successfully"
+            echo "启动代理服务成功"
         else
-            echo "stop agent server failed"
+            echo "启动代理服务失败"
         fi
     ;;
     restart)
+        check_deploy_tate
+
         bash $0 stop
         bash $0 start
 
@@ -95,31 +119,28 @@ case "$1" in
         bash $0 state
     ;;
     restart:hot)
+        check_deploy_tate
+
         cat "${unicorn_pid_file}" | xargs -I pid kill -USR2 pid
     ;;
-    state)
-        if [[ -f local-sypctl-server ]]; then
-            echo "本地已部署 sypctl agent server"
-            test -f app-port && echo "agent server port: $(cat app-port)" || echo "agent server port: no config"
-            test -f app-worker-processes && echo "worker processes: $(cat app-worker-processes)" || echo "worker processes: no config"
-            
-            if [[ -f ${unicorn_pid_file} ]]; then
-                pid=$(cat ${unicorn_pid_file})
-                /bin/ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
-                if [[ $? -eq 0 ]]; then
-                    echo "agent server is running($pid)"
-                else
-                    rm -f ${unicorn_pid_file}
-                    echo "agent server is stoped"
-                fi
+    state|status)
+        check_deploy_tate
+
+        echo "本地已部署代理端服务："
+        test -f app-port && echo "代理服务端口号: $(cat app-port)" || echo "代理端服务端口号: NoConfig"
+        test -f app-worker-processes && echo "代理端服务进程: $(cat app-worker-processes)" || echo "代理端服务进程: NoConfig"
+        
+        if [[ -f ${unicorn_pid_file} ]]; then
+            pid=$(cat ${unicorn_pid_file})
+            /bin/ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
+            if [[ $? -eq 0 ]]; then
+                echo "代理服务进程ID: $pid"
             else
-                echo "agent server is stoped"
+                rm -f ${unicorn_pid_file}
+                echo "代理服务进程ID: 未运行"
             fi
         else
-            echo "本地未部署 sypctl agent server"
-            echo 
-            bash $0 help
-            exit 1
+            echo "代理服务进程已关闭"
         fi
     ;;
     process:defender|daemon)
@@ -127,40 +148,40 @@ case "$1" in
             pid=$(cat ${unicorn_pid_file})
             /bin/ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
             if [[ $? -eq 0 ]]; then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') agent server is running($pid)"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 代理服务端口号: $(cat app-port)"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 代理端服务进程: $(cat app-worker-processes)"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 代理服务进程ID: $pid"
             else
                 rm -f ${unicorn_pid_file}
-                echo "$(date '+%Y-%m-%d %H:%M:%S') starting agent server..."
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 启动代理服务..."
                 bash $0 start
             fi
         else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') starting agent server..."
+            echo "$(date '+%Y-%m-%d %H:%M:%S') 启动代理服务..."
             bash $0 start
         fi
     ;;
     remove)
-        if [[ -f local-sypctl-server ]]; then
-            read -p "确定移除 agent server? y/n: " user_input
-            if [[ "${user_input}" = 'y' ]]; then
-                bash $0 stop
-                rm -f local-sypctl-server
-                rm -f app-port
-                rm -f app-worker-processes
-                bash $0 bundle > /dev/null 2>&1
-                echo "移除 agent server 成功"
-                echo
-                bash $0 help
-            else
-                bash $0 state
-            fi
+        check_deploy_tate
+
+        read -p "确定移除代理端服务? y/n: " user_input
+        if [[ "${user_input}" = 'y' ]]; then
+            bash $0 stop
+            rm -f local-sypctl-server
+            rm -f app-port
+            rm -f app-worker-processes
+            bash $0 bundle
+            echo "移除代理端服务成功"
+            echo
+            bash $0 help
         else
-            title "本地未部署 agent server，未执行移除操作"
+            bash $0 state
         fi
     ;;
     help)
         echo "Usage: sypctl agent:server <command>"
         echo 
-        commands=(help deploy start stop restart state remove)
+        commands=(help deploy start stop restart status remove)
         for cmd in ${commands[@]}; do
             echo "sypctl agent:server ${cmd}"
         done
