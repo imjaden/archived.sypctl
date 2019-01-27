@@ -219,6 +219,44 @@ def post_service_to_server_submitor
   Sypctl::Http.post(url, params)
 end
 
+# 更新代理端本机信息
+def refresh_agent_system_meta
+  options = {
+    uuid: Sypctl::Device.uuid(true),
+    hostname: Sypctl::Device.hostname,
+    os_type: Sypctl::Device.os_type,
+    os_version: Sypctl::Device.os_version,
+    lan_ip: Sypctl::Device.lan_ip,
+    wan_ip: Sypctl::Device.wan_ip,
+    memory: Sypctl::Device.memory,
+    memory_description: Sypctl::Device.memory_usage_description,
+    cpu: Sypctl::Device.cpu,
+    cpu_description: Sypctl::Device.cpu_usage_description,
+    disk: Sypctl::Device.disk,
+    disk_description: Sypctl::Device.disk_usage_description,
+    whoami: Sypctl::Device.whoami,
+    version: ENV['SYPCTL_VERSION']
+  }
+  File.open(agent_root_join('db/system.json'), 'w:utf-8') { |file| file.puts(options.to_json) }
+
+  config = {
+    headings: ['键名', '键值'],
+    width: ['20%', '80%'],
+    rows: [
+      ['UUID', options[:uuid]],
+      ['主机名', options[:hostname]],
+      ['内网IP', options[:lan_ip]],
+      ['主机名', options[:hostname]],
+      ['系统', [options[:os_version], options[:os_version]].join(' ')],
+      ['内存', options[:memory]],
+      ['磁盘', options[:disk]],
+      ['运行账号', options[:whoami]],
+      ['代理版本', options[:version]]
+    ]
+  }
+  File.open(agent_root_join('monitor/index/系统运行状态.json'), 'w:utf-8') { |file| file.puts(config.to_json) }
+end
+
 #
 # syoctl instance methods
 #

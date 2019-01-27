@@ -19,15 +19,21 @@ fun_download_package_when_not_exists() {
   fi
 }
 case $1 in
+    list)
+        fun_print_table_header "Packages List" "PackageName" "Version"
+        for package_name in ${package_names[@]}; do
+          package=${package_name%-*}
+          printf "$two_cols_table_format" "${package}" "${package_name}"
+        done
+      fun_print_table_footer
+    ;;
     check|deploy)
-        fun_print_table_header "Packages State" "PackageName" "Download/Integrity"
+        fun_print_table_header "Packages Integrity State" "PackageName" "Download|Integrity"
         mkdir -p linux/packages
         for package_name in ${package_names[@]}; do
             if [[ -f linux/packages/${package_name} ]]; then
-              tar jtvf packages/${package_name} > /dev/null 2>&1
-              if [[ $? -gt 0 ]]; then
-                  rm -f linux/packages/${package_name}
-              fi
+              tar -jtvf linux/packages/${package_name} > /dev/null 2>&1
+              test $? -gt 0 && rm -f linux/packages/${package_name}
             fi
 
             fun_download_package_when_not_exists ${package_name}
@@ -37,19 +43,25 @@ case $1 in
         bash $0 state
     ;;
     state|status)
-      fun_print_table_header "Packages State" "PackageName" "Download/Integrity"
-      for package_name in ${package_names[@]}; do
-          fun_download_package_when_not_exists ${package_name}
+        fun_print_table_header "Packages Download State" "PackageName" "Download|Integrity"
+        for package_name in ${package_names[@]}; do
+            fun_download_package_when_not_exists ${package_name}
 
-          test -f linux/packages/${package_name}
-          download_state=$([[ $? -eq 0 ]] && echo 'true' || echo 'false')
-          tar jtvf linux/packages/${package_name} > /dev/null 2>&1
-          integrity_state=$([[ $? -eq 0 ]] && echo 'true' || echo 'false')
+            test -f linux/packages/${package_name}
+            download_state=$([[ $? -eq 0 ]] && echo 'true' || echo 'false')
+            tar jtvf linux/packages/${package_name} > /dev/null 2>&1
+            integrity_state=$([[ $? -eq 0 ]] && echo 'true' || echo 'false')
 
-          printf "$two_cols_table_format" "${package_name}" "${download_state}|${integrity_state}"
-      done
+            printf "$two_cols_table_format" "${package_name}" "${download_state}|${integrity_state}"
+        done
+        fun_print_table_footer
     ;;
     *)
-        bash $0 state
+        echo "安装包管理:"
+        echo "sypctl package help         帮助说明"
+        echo "sypctl package list         安装包列表"
+        echo "sypctl package deploy       下载安装包"
+        echo "sypctl package check        查检安装包一致性(文件哈希)"
+        echo "sypctl package status       安装包安装状态"
     ;;
 esac

@@ -5,6 +5,7 @@ require 'sinatra/multi_route'
 class ApplicationController < Sinatra::Base
   register Sinatra::Reloader unless ENV['RACK_ENV'].eql?('production')
   register Sinatra::MultiRoute
+  register Sinatra::Flash
   helpers Sinatra::Cookies
 
   use AssetHandler
@@ -18,6 +19,38 @@ class ApplicationController < Sinatra::Base
 
   set :views, File.join(ENV['VIEW_PATH'], 'views')
   set :layout, :layout
+
+  # sprockets
+  set :sprockets, Sprockets::Environment.new(root) { |env| env.logger = Logger.new(STDOUT) }
+  set :precompile, [ /\w+\.(?!js|css).+/, /dist.(css|js)$/ ]
+  set :assets_prefix, 'assets'
+  set :assets_path, File.join(root, 'public', assets_prefix)
+
+  configure do
+    set :digest_assets,   false
+    set :manifest_assets, false
+
+    sprockets.cache = Sprockets::Cache::FileStore.new('./tmp')
+    sprockets.register_compressor 'application/javascript', :uglify, Sprockets::UglifierCompressor.new(harmony: true)
+    sprockets.js_compressor = :uglify
+    sprockets.css_compressor = YUI::CssCompressor.new
+
+    sprockets.append_path(File.join(ENV['VIEW_PATH'], 'assets/stylesheets'))
+    sprockets.append_path(File.join(ENV['VIEW_PATH'], 'assets/javascripts'))
+
+    sprockets.context_class.instance_eval do
+      include AssetSprocketsHelpers
+    end
+  end
+  
+  helpers do
+    include AssetSprocketsHelpers
+
+    def flash_message
+      return if !defined?(flash) || flash.empty?
+      return flash.to_json
+    end
+  end
 
   before do
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -39,6 +72,11 @@ class ApplicationController < Sinatra::Base
 
   error do
     haml :error, views: ENV['VIEW_PATH']
+  end
+
+  get "/assets/*" do
+    env['PATH_INFO'].sub!(%r{^/assets}, '')
+    settings.sprockets.call(env)
   end
 
   get '/', '/monitor' do
@@ -87,6 +125,17 @@ class ApplicationController < Sinatra::Base
     set_login_cookie(message)
 
     respond_with_json({message: message, code: 201}, 201)
+  end
+
+  get '/logout' do
+    set_login_cookie(nil)
+
+    flash[:success] = '登出成功'
+    redirect to('/')
+  end
+
+  get '/ping' do
+    'pong'
   end
 
   protected
@@ -209,6 +258,7 @@ class ApplicationController < Sinatra::Base
   def authenticate!
     return if cookies[cookie_name]
 
+    flash[:warning] = '身份验证失败，请登录'
     redirect '/', 302
   end
 

@@ -125,6 +125,9 @@ case "$1" in
     agent*)
         fun_agent_caller $@
     ;;
+    package)
+        bash linux/bash/packages-tools.sh $2
+    ;;
     *)
         fun_print_sypctl_help
     ;;

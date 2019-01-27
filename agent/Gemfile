@@ -9,15 +9,20 @@ end
 gem 'rake', '~> 12.3.0'
 gem 'rest-client', '~> 2.0.2'
 gem 'terminal-table', '~> 1.8.0'
+
 gem 'httparty', '~> 0.13.7' # todo: remove
 
 if File.exists?("local-sypctl-server")
   gem 'sinatra', '~> 2.0.0'
+  gem 'sinatra-flash', '~> 0.3.0'
   gem 'sinatra-contrib', '~> 2.0.0'
   gem 'unicorn', '~> 5.0.1'
   gem 'unicorn-worker-killer', '~> 0.4.4'
   gem 'json', '~> 1.8.3'
   gem 'haml', '~> 4.0.7'
+  gem "sprockets" , '~>3.7.2'
+  gem "uglifier", '~> 4.1.20'
+  gem 'yui-compressor', '~> 0.12.0'
 end
 
 if `uname -s`.strip == 'Darwin'

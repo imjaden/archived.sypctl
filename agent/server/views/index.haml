@@ -1,4 +1,4 @@
-.row#vueApp{style: "margin-left:-12px;margin-right:-12px;"}
+.row#indexVueApp{style: "margin-left:-12px;margin-right:-12px;"}
   %ol.breadcrumb
     %li 运筹在握
     %li= "#{ENV['APP_RUNNER']}@#{ENV['HOSTNAME']}(#{ENV['PLATFORM_OS']})"
@@ -11,7 +11,7 @@
       %li.list-group-item{'v-for' => '(sideMenu, index) in records', ':class' => '{active: sideMenu === record}', ':key' => 'sideMenu.id', '@click' => 'clickSideMenu(sideMenu)'}
         {{ sideMenu.title }}
 
-  .col-sm-9{style: "min-height:500px;max-height:1000px;overflow:scroll;"}
+  .col-sm-9{':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
     %a{'@click' => 'displayInfoModal(record)'} 数据说明
     %table.table.table-condensed.table-bordered.smart-table
       %thead
@@ -55,5 +55,3 @@
               %input.btn.btn-primary{:type => "submit", :value => "登录", style: 'width: 100%;'}/
             .form-group{style: 'margin-bottom: 10px;text-align: center;'}
               %p.text-danger{'v-text' => 'user.message'}
-
-%script{src: '/javascripts/index.js', type: 'text/javascript'}

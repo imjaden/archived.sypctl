@@ -10,38 +10,9 @@
     %meta{name: 'keywords', content: "sypctl,sypctl-server"}/
     %meta{name: 'description', content: "shengyiplus controll"}/
     %link{href: "/images/favicon.png", rel: 'shortcut icon'}/
-    %link{rel: "stylesheet", href: '/stylesheets/bootstrap.min.css'}
-    %link{rel: "stylesheet", href: '/stylesheets/nprogress.css'}
-    %script{type: "text/javascript", src: '/javascripts/jquery.min.js'}
-    %script{type: "text/javascript", src: '/javascripts/bootstrap.min.js'}
-    %script{type: "text/javascript", src: '/javascripts/vue.js'}
-    :css
-      .footer {
-        font-size: 14px;
-        line-height: 20px;
-        color: #808080;
-        font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
-        bottom: 0px;
-        top: expression(document.body.clientHeight-this.style.pixelHeight+document.body.scrollTop); 
-      }
-      .center {
-        width: 100%;
-        margin: 0 auto;
-        text-align: center;
-        float: left; 
-      }
-      .smart-table { table-layout: fixed; }
-      .smart-table td, .smart-table th {
-        word-break:keep-all;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      }
-      .smart-table td:hover, .smart-table th:hover {
-        text-overflow:inherit;
-        overflow:visible;
-      }
-  %body{style: 'background:#f0f0f0;'}
+    %link{href: asset_path('application.css'), rel:"stylesheet"}
+
+  %body
     .container#main
       .row
         .col-sm-12
@@ -51,4 +22,20 @@
       .row.center
         .footer &copy; sypctl.com
 
-    %script{type: "text/javascript", src: '/javascripts/nprogress.js'}
+    .system-notify.top-right
+    
+    %script{src: asset_path('application.js')}
+    :javascript
+      let flashString = '#{flash_message}',
+          flash = {}
+      if(flashString.length) {
+        try {
+          flash = JSON.parse(flashString)
+          Object.keys(flash).forEach(function(key) { 
+            window.App.addNotify(flash[key], key)
+          })
+        } catch(e) {
+          window.App.addInfoNotify(flashString)
+        }
+      }
+    

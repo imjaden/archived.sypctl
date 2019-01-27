@@ -10,6 +10,7 @@ namespace :agent do
     post_to_server_register unless agent_json_hash["synced"]
 
     post_to_server_submitor
+    refresh_agent_system_meta
   end
 
   desc 'agent submit job execute status'

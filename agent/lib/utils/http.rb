@@ -19,6 +19,9 @@ module Sypctl
           puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
         end
         {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
+      rescue => e
+        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        {'code' => 500, 'body' => e.message, 'hash' => {}}
       end
 
       def get(url, headers = {}, external_options = {print_log: false})
@@ -29,6 +32,9 @@ module Sypctl
           puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
         end
         {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
+      rescue => e
+        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        {'code' => 500, 'body' => e.message, 'hash' => {}}
       end
 
       def download_version_file(url, path, job_uuid)

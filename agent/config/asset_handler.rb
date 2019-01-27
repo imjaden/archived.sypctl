@@ -41,3 +41,13 @@ class ExceptionHandling
     [500, { 'Content-Type' => 'application/json' }, [hash.to_json]]
   end
 end
+
+module AssetSprocketsHelpers
+  def asset_path(source)
+    "/assets/" + settings.sprockets.find_asset(source).digest_path
+  rescue => e
+    puts "source: " + source
+    puts e.message
+    source
+  end
+end

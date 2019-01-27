@@ -1,0 +1,61 @@
+/*
+= require 'bootstrap.min.css' 
+= require 'nprogress.css'
+= require_self
+*/
+
+html, body {
+  background: #f0f0f0;
+}
+.system-notify,
+.visit-menus {
+  /*z-index: 9999;*/
+  font-size: 14px;
+  position: fixed;
+  filter: alpha(Opacity=85);
+  -moz-opacity: 0.85;
+  opacity: 0.85;
+
+}
+.visit-menus {
+  width: 250px;
+}
+.visit-menus ul {
+  height: 450px;
+  overflow: scroll;
+}
+.top-right {
+  right: 0px;
+  top: 50px;
+}
+.system-notify .alert { 
+  width: 250px;
+}
+.system-notify .alert small { 
+  color: darkgray;
+}
+.footer {
+  font-size: 14px;
+  line-height: 20px;
+  color: #808080;
+  font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,serif;
+  bottom: 0px;
+  top: expression(document.body.clientHeight-this.style.pixelHeight+document.body.scrollTop); 
+}
+.center {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  float: left; 
+}
+.smart-table { table-layout: fixed; }
+.smart-table td, .smart-table th {
+  word-break:keep-all;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.smart-table td:hover, .smart-table th:hover {
+  text-overflow:inherit;
+  overflow:visible;
+}

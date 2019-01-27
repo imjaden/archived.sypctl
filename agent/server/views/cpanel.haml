@@ -1,7 +1,9 @@
-.row#vueApp{style: "margin-left:-12px;margin-right:-12px;"}
+.row#cpanelVueApp{style: "margin-left:-12px;margin-right:-12px;"}
   %ol.breadcrumb
     %li 运筹在握
     %li 管理中心
+    %li{style: 'float: right'}
+      %a{href: '/logout'} 登出
 
   .col-sm-3
     %ol.list-group
@@ -9,7 +11,5 @@
       %li.list-group-item{'v-for' => '(sideMenu, index) in menus', ':class' => '{active: sideMenu === menu}', ':key' => 'sideMenu.id', '@click' => 'clickSideMenu(sideMenu)'}
         {{ sideMenu.label }}
 
-  .col-sm-9{style: "min-height:500px;max-height:1000px;overflow:scroll;"}
+  .col-sm-9{':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
     %pre{'v-text' => 'JSON.stringify(data, null, 4)'}
-
-%script{src: '/javascripts/cpanel.js', type: 'text/javascript'}

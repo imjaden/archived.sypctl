@@ -92,21 +92,19 @@ case "$1" in
         bash $0 bundle
         
         bundle exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D
-        if [[ $? -eq 0 ]]; then
-            echo "启动代理服务成功"
-        else
-            echo "启动代理服务失败"
-        fi
+        test  $? -eq 0 && echo "启动代理服务成功" || echo "启动代理服务失败"
+
+        curl http://127.0.0.1:${app_port}/ > /dev/null 2>&1
     ;;
     stop)
         check_deploy_tate
 
         if [[ -f ${unicorn_pid_file} ]]; then
-            cat ${unicorn_pid_file} | xargs kill -9
+            cat ${unicorn_pid_file} | xargs kill -9 > /dev/null 2>&1
             rm -f ${unicorn_pid_file}
-            echo "启动代理服务成功"
-        else
-            echo "启动代理服务失败"
+            echo "关闭代理服务成功"
+        else 
+            echo "代理服务未启动"
         fi
     ;;
     restart)

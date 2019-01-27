@@ -144,7 +144,8 @@ function fun_print_sypctl_help() {
     echo "sypctl deployed          查看已部署服务"
     echo "sypctl device:update     更新重新提交设备信息"
     echo
-    echo "sypctl agent help        #代理# 配置"
+    echo "sypctl agent   help      #代理# 配置"
+    echo "sypctl package help      #安装包# 管理"
     echo "sypctl toolkit help      #工具# 安装"
     echo "sypctl service help      #服务# 管理"
     echo "sypctl backup:file help  #备份文件# 管理"
