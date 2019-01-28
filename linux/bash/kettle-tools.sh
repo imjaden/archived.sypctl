@@ -4,6 +4,9 @@
 #  
 #  Kettle Tool
 #
+# https://community.hitachivantara.com/docs/DOC-1009855
+# 
+#
 ########################################
 
 source linux/bash/common.sh

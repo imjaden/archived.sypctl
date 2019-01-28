@@ -8,7 +8,7 @@ old_pid = "#{pid_file}.oldbin"
 # Nuke workers after 30 seconds instead of 60 seconds (the default)
 timeout(30)
 
-filepath = "#{app_path}/app-worker-processes"
+filepath = "#{app_path}/.config/app-workers"
 processes_count = File.read(filepath).strip.to_i rescue 1
 processes_count = processes_count > 0 ? processes_count : 1
 worker_processes(processes_count) # increase or decrease

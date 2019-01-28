@@ -252,36 +252,37 @@ function fun_print_sypctl_backup_file_help() {
 # 自定义初始化 agent 配置
 #
 function fun_init_agent() {
+    test -d agent/.conifg || mkdir -p agent/.conifg
     case "$1" in
         uuid)
             test -n "$2" && {
-                echo "$2" > agent/init-uuid
+                echo "$2" > agent/.conifg/init-uuid
                 rm -f agent/db/agent.json
             } || sypctl agent:init help
         ;;
         title)
             test -n "$2" && {
-                echo "$2" > agent/web-title
+                echo "$2" > agent/.conifg/web-title
             } || sypctl agent:init help
         ;;
         favicon)
             test -n "$2" && {
-                echo "$2" > agent/web-favicon
+                echo "$2" > agent/.conifg/web-favicon
             } || sypctl agent:init help
         ;;
         human_name)
             test -n "$2" && {
-                echo "$2" > agent/human-name
+                echo "$2" > agent/.conifg/human-name
                 rm -f agent/db/agent.json
                 sypctl agent:task guard
                 sypctl agent:task info
             } || sypctl agent:init help
         ;;
         list)
-            echo "uuid       : $([[ -f agent/init-uuid ]] && cat agent/init-uuid || echo 'not-set')"
-            echo "human_name : $([[ -f agent/human_name ]] && cat agent/human_name || echo 'not-set')"
-            echo "title      : $([[ -f agent/web-title ]] && cat agent/web-title || echo 'not-set')"
-            echo "favicon    : $([[ -f agent/web-favicon ]] && cat agent/web-favicon || echo 'not-set')"
+            echo "uuid       : $([[ -f agent/.conifg/init-uuid ]] && cat agent/.conifg/init-uuid || echo 'NotConfig')"
+            echo "human_name : $([[ -f agent/.conifg/human_name ]] && cat agent/.conifg/human_name || echo 'NotConfig')"
+            echo "title      : $([[ -f agent/.conifg/web-title ]] && cat agent/.conifg/web-title || echo 'NotConfig')"
+            echo "favicon    : $([[ -f agent/.conifg/web-favicon ]] && cat agent/.conifg/web-favicon || echo 'NotConfig')"
         ;;
         help)
             fun_print_init_agent_help
@@ -314,14 +315,14 @@ function fun_sypctl_upgrade() {
 
     title "\$ cd agent && bundle install"
     cd agent
-    mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
-    rm -f .bundle-done
+    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
+    rm -f .config/bundle-done
     bundle install
     if [[ $? -eq 0 ]]; then
       echo "$ bundle install --local successfully"
-      echo ${timestamp} > .bundle-done
+      echo ${timestamp} > .config/bundle-done
     fi
-    test -f local-sypctl-server && bash tool.sh restart
+    test -f .config/local-server && bash tool.sh restart
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
@@ -354,12 +355,12 @@ function fun_sypctl_upgrade() {
 function fun_update_device() {
     echo "\$ cd agent"
     cd agent
-    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
+    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs,.config}
     echo "\$ bundle install ..."
     bundle install
     if [[ $? -eq 0 ]]; then
       echo "\$ bundle install --local successfully"
-      echo ${timestamp} > .bundle-done
+      echo ${timestamp} > .config/bundle-done
     fi
 
     echo "\$ bundle exec rake agent:device"
@@ -430,10 +431,10 @@ function fun_user_expect_to_install_package_guides() {
         fi
     done
 
-    if [[ ! -f agent/local-sypctl-server ]]; then
+    if [[ ! -f agent/.config/local-server ]]; then
         read -p "是否启动代理端服务? y/n: " user_input
         if [[ "${user_input}" = 'y' ]]; then
-            touch agent/local-sypctl-server
+            echo ${timestamp} > agent/.config/local-server
         fi
     fi
 }
@@ -587,11 +588,11 @@ function fun_execute_bundle_rake() {
     echo "$ $@ ..."
 
     cd agent
-    test -f .bundle-done || {
+    test -f .config/bundle-done || {
         bundle install
         if [[ $? -eq 0 ]]; then
           echo "$ bundle install --local successfully"
-          echo ${timestamp} > .bundle-done
+          echo ${timestamp} > .config/bundle-done
         fi
     }
 
@@ -624,18 +625,15 @@ function fun_execute_bundle_rake_without_logger() {
     echo "$ $@ ..."
 
     cd agent
-    test -f .bundle-done || {
+    test -f .config/bundle-done || {
         bundle install
         if [[ $? -eq 0 ]]; then
           echo "$ bundle install --local successfully"
-          echo ${timestamp} > .bundle-done
+          echo ${timestamp} > .config/bundle-done
         fi
     }
 
-    test -f local-sypctl-server && {
-        bash tool.sh process:defender
-    }
-
+    test -f .config/local-server && bash tool.sh process:defender
     $@
 }
 
@@ -907,10 +905,10 @@ function fun_etl_tiny_tds() {
 #
 function fun_agent_server_daemon() {
     cd agent
-    test -f ~/.bash_profile && readlink -f ~/.bash_profile > env-files
-
-    test -f env-files || touch env-files
-    test -f app-port || echo 8086 > app-port
+    
+    test -f ~/.bash_profile && readlink -f ~/.bash_profile > .config/env-files
+    test -f .config/env-files || touch .config/env-files
+    test -f .config/app-port || echo 8086 > .config/app-port
 
     bash tool.sh process:defender
 }

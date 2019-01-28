@@ -17,17 +17,17 @@ test -f env-files && while read filepath; do
 done < env-files
 cd ${app_root_path}
 
-test -f app-port && app_default_port=$(cat app-port) || app_default_port=8086
+test -d .config || mkdir .config
+test -f .config/app-port && app_default_port=$(cat .config/app-port) || app_default_port=8086
 app_port=${2:-${app_default_port}}
 app_env=${3:-'production'}
 
 unicorn_config_file=config/unicorn.rb
 unicorn_pid_file=tmp/pids/unicorn.pid
 
-cd "${app_root_path}" || exit 1
 function title() { printf "\n%s\n\n" "$1"; }
 function check_deploy_tate() {
-    if [[ ! -f local-sypctl-server ]]; then
+    if [[ ! -f .config/local-server ]]; then
         echo
         echo "提示：本地未部署代理端服务"
         echo
@@ -40,26 +40,25 @@ function check_deploy_tate() {
         exit 1
     fi
 }
+
 case "$1" in
-    check)
-    ;;
     deploy)
-        if [[ -f local-sypctl-server ]]; then
+        if [[ -f .config/local-server ]]; then
             bash $0 state
         else
             read -p "确定部署代理端服务? y/n: " user_input
             if [[ "${user_input}" = 'y' ]]; then
-                echo ${timestamp} > local-sypctl-server
+                echo $(date +'%Y%m%d%H%M%S') > .config/local-server
              
                 read -p "请输入代理端服务端口号，默认 8086: " user_input
-                echo ${user_input:-8086} > app-port
+                echo ${user_input:-8086} > .config/app-port
 
                 read -p "请输入代理端服务进程数量，默认 1: " user_input
-                echo ${user_input:-1} > app-worker-processes
+                echo ${user_input:-1} > .config/app-workers
 
                 if [[ -f ~/.bash_profile ]]; then
                     [[ $(uname -s) = "Darwin" ]] && env_path=$(greadlink -f ~/.bash_profile) || env_path=$(readlink -f ~/.bash_profile)
-                    echo "${env_path}" > env-files
+                    echo "${env_path}" > .config/env-files
                 fi
 
                 title "$ 部署预检"
@@ -125,8 +124,8 @@ case "$1" in
         check_deploy_tate
 
         echo "本地已部署代理端服务："
-        test -f app-port && echo "代理服务端口号: $(cat app-port)" || echo "代理端服务端口号: NoConfig"
-        test -f app-worker-processes && echo "代理端服务进程: $(cat app-worker-processes)" || echo "代理端服务进程: NoConfig"
+        test -f .config/app-port && echo "代理服务端口号: $(cat .config/app-port)" || echo "代理端服务端口号: NoConfig"
+        test -f .config/app-workers && echo "代理端服务进程: $(cat .config/app-workers)" || echo "代理端服务进程: NoConfig"
         
         if [[ -f ${unicorn_pid_file} ]]; then
             pid=$(cat ${unicorn_pid_file})
@@ -144,7 +143,7 @@ case "$1" in
     process:defender|daemon)
         if [[ -f ${unicorn_pid_file} ]]; then
             pid=$(cat ${unicorn_pid_file})
-            /bin/ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
+            ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
             if [[ $? -eq 0 ]]; then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') 代理服务端口号: $(cat app-port)"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') 代理端服务进程: $(cat app-worker-processes)"
@@ -165,9 +164,7 @@ case "$1" in
         read -p "确定移除代理端服务? y/n: " user_input
         if [[ "${user_input}" = 'y' ]]; then
             bash $0 stop
-            rm -f local-sypctl-server
-            rm -f app-port
-            rm -f app-worker-processes
+            rm -f .config/local-server
             bash $0 bundle
             echo "移除代理端服务成功"
             echo

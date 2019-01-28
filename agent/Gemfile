@@ -12,7 +12,7 @@ gem 'terminal-table', '~> 1.8.0'
 
 gem 'httparty', '~> 0.13.7' # todo: remove
 
-if File.exists?("local-sypctl-server")
+if File.exists?(".config/local-server")
   gem 'sinatra', '~> 2.0.0'
   gem 'sinatra-flash', '~> 0.3.0'
   gem 'sinatra-contrib', '~> 2.0.0'

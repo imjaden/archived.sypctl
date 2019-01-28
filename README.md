@@ -49,8 +49,9 @@ For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
 
 ## 待完善功能
 
-- 检测端口 8080-8086/6379/3306/2888 的进程状态
+- 检测业务服务(8080-8086)/redis(6379)/mysql(3306)/zookeeper(2888)/activeMQ(8161/61616)/vnc(5901) 端口的进程状态
 - 安装 mysql、修改默认配置（sql_mode/charset）、更新 root 密码及远程登录
 - 安装 redis、修改默认配置（支持外网访问/daemon 模式启动/pidpath/默认密码）
 - 安装 kettle、支持指定版本
 - 预览安装列表及安装路径
+- 安装 vnc、支持添加账号

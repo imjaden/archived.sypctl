@@ -246,7 +246,6 @@ def refresh_agent_system_meta
       ['UUID', options[:uuid]],
       ['主机名', options[:hostname]],
       ['内网IP', options[:lan_ip]],
-      ['主机名', options[:hostname]],
       ['系统', [options[:os_version], options[:os_version]].join(' ')],
       ['内存', options[:memory]],
       ['磁盘', options[:disk]],

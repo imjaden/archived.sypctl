@@ -16,17 +16,11 @@ etl/db
 etl/logs
 etl/tmp
 
-agent/env-files
-agent/execute-path
+agent/.config
 agent/human-name
-agent/web-title
-agent/web-favicon
 agent/init-uuid
 agent/device-uuid
 agent/password
-agent/local-sypctl-server
-agent/app-port
-agent/app-worker-processes
 agent/config/id_rsa_pub.list
 agent/config/server.list
 agent/config/deploy_tasks.sh

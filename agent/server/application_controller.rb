@@ -119,7 +119,7 @@ class ApplicationController < Sinatra::Base
 
   post '/login' do
     expect_username = 'sypctl'
-    expect_password = File.read(File.join(ENV['APP_ROOT_PATH'], 'password')).strip
+    expect_password = File.read(File.join(ENV['APP_ROOT_PATH'], '.config/password')).strip
 
     message = expect_username == params[:username] && expect_password == params[:password] ? '登录成功' : '登录失败，账号或密码错误'
     set_login_cookie(message)
