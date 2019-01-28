@@ -11,5 +11,30 @@
       %li.list-group-item{'v-for' => '(sideMenu, index) in menus', ':class' => '{active: sideMenu === menu}', ':key' => 'sideMenu.id', '@click' => 'clickSideMenu(sideMenu)'}
         {{ sideMenu.label }}
 
-  .col-sm-9{':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+  .col-sm-9{'v-if' => 'menu.id == "regisiter" || menu.id == "service_output"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    %table.table.table-condensed.table-bordered.smart-table
+      %caption{'v-text' => 'data.timestamp'}
+      %thead
+        %tr
+          %th{'v-for' => '(head, th_index) in data.heads', ':style' => '"width:" + data.width[th_index]', 'v-text' => 'head'}
+      %tbody
+        %tr{'v-for' => '(rows, row_index) in data.rows'}
+          %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  data.width[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
+
+  .col-sm-9{'v-if' => 'menu.id == "service"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
     %pre{'v-text' => 'JSON.stringify(data, null, 4)'}
+  .col-sm-9{'v-if' => 'menu.id == "backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    %pre{'v-text' => 'JSON.stringify(data, null, 4)'}
+
+  .modal.fade#slideInfo{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+    .modal-dialog{role: "document"}
+      .modal-content
+        .modal-header
+          %button.close{"aria-label" => "Close", "data-dismiss" => "modal", type: "button"}
+            %span{"aria-hidden" => "true"} ×
+          %h4.modal-title 标题
+        .modal-body{style: 'padding: 10px;'}
+          加载中...
+        .modal-footer
+          %span.mtime{style: 'float:left; color: darkgray;'}
+          %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}  关闭

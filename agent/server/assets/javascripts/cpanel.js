@@ -31,6 +31,7 @@ if(document.getElementById('cpanelVueApp')) {
       },
       getData() {
         let that = this;
+        if(!that.menu || !that.menu.id) {return false;}
         $.ajax({
           type: 'get',
           url: '/cpanel/data/' + that.menu.id,
@@ -38,7 +39,25 @@ if(document.getElementById('cpanelVueApp')) {
         }).done(function(res, status, xhr) {
           console.log(res)
           if(res.code === 200) {
-            that.data = res.data
+            if(that.menu.id == 'regisiter') {
+              let keys = ['uuid', 'human_name', 'hostname', 'username', 'password', 'os_type', 'os_version', 'api_token', 'memory', 'cpu', 'disk', 'lan_ip', 'wan_ip', 'request_agent', 'synced', 'created_at', 'updated_at'],
+                  table_rows = {heads: ['键名', '键值'], width: ['20%', '80%'], rows: [], timestamp: res.data.data.updated_at };
+              
+              table_rows.rows = keys.map(function(key) { return [key, res.data.data[key]]; });
+              that.data = table_rows
+              console.log(table_rows)
+              console.log(that.data)
+            } else if(that.menu.id == 'service_output') {
+              let data = res.data.data;
+              that.data = {
+                heads: data.heads,
+                rows: data.data,
+                width: ['30%', '20%', '10%', '10%', '30%'],
+                timestamp: data.timestamp
+              }
+            } else {
+              that.data = res.data
+            }
           } else {
             alert(res.message)
           }
