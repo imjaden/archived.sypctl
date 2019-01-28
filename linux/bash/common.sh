@@ -196,14 +196,15 @@ function fun_print_app_command_help() {
 }
 
 function fun_print_toolkit_list() {
-    echo "工具安装:"
+    echo "工具安装:($(pwd))"
     echo "$ sypctl toolkit [toolkit-name] [args]"
+    echo
     for tookit in $(ls linux/bash/*-tools.sh); do
         tookit=${tookit##*/}
         tookit=${tookit%-*}
-    echo "                 ${tookit} [args]"
+    echo "sypctl toolkit ${tookit} [args]"
     done
-    echo "当前路径: $(pwd)"
+    echo
 }
 
 function fun_print_sypctl_service_help() {
