@@ -174,13 +174,14 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:jobs guard     服务器端任务的监护者"
     echo
     echo "代理端服务:"
-    echo "sypctl agent:server help    帮助说明"
-    echo "sypctl agent:server deploy  部署引导"
-    echo "sypctl agent:server start   启动服务"
-    echo "sypctl agent:server stop    关闭服务"
-    echo "sypctl agent:server restart 重启服务"
-    echo "sypctl agent:server status  服务状态"
-    echo "sypctl agent:server remove  移除部署"
+    echo "sypctl agent:server help         帮助说明"
+    echo "sypctl agent:server deploy       部署引导"
+    echo "sypctl agent:server deploy:force 强制重新部署"
+    echo "sypctl agent:server start        启动服务"
+    echo "sypctl agent:server stop         关闭服务"
+    echo "sypctl agent:server restart      重启服务"
+    echo "sypctl agent:server status       服务状态"
+    echo "sypctl agent:server remove       移除部署"
 }
 
 function fun_print_app_command_help() {

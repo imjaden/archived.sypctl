@@ -74,8 +74,8 @@ class ApplicationController < Sinatra::Base
     haml :error, views: ENV['VIEW_PATH']
   end
 
-  get "/assets/*" do
-    env['PATH_INFO'].sub!(%r{^/assets}, '')
+  get "/sypctl-assets/*" do
+    env['PATH_INFO'].sub!(%r{^/sypctl-assets}, '')
     settings.sprockets.call(env)
   end
 

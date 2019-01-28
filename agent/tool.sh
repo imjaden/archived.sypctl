@@ -42,6 +42,10 @@ function check_deploy_tate() {
 }
 
 case "$1" in
+    deploy:force)
+        rm -fr .config/local-server
+        bash $0 deploy
+    ;;
     deploy)
         if [[ -f .config/local-server ]]; then
             bash $0 state
@@ -60,6 +64,13 @@ case "$1" in
                     [[ $(uname -s) = "Darwin" ]] && env_path=$(greadlink -f ~/.bash_profile) || env_path=$(readlink -f ~/.bash_profile)
                     echo "${env_path}" > .config/env-files
                 fi
+
+                password=""
+                for n in 1 2 3 4 5 6; do
+                    password="${password}$(($RANDOM%10))"
+                done
+                echo ${password} > .config/password
+                read -p "代理端服务账号: sypctl/${password}"
 
                 title "$ 部署预检"
                 bash $0 bundle
@@ -145,8 +156,8 @@ case "$1" in
             pid=$(cat ${unicorn_pid_file})
             ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
             if [[ $? -eq 0 ]]; then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') 代理服务端口号: $(cat app-port)"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') 代理端服务进程: $(cat app-worker-processes)"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 代理服务端口号: $(cat .config/app-port)"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') 代理端服务进程: $(cat .config/app-workers)"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') 代理服务进程ID: $pid"
             else
                 rm -f ${unicorn_pid_file}

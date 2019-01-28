@@ -16,7 +16,7 @@ def agent_json_path; agent_root_join("db/agent.json"); end
 def record_list_path; agent_root_join("db/records-#{Time.now.strftime('%y%m%d')}.list"); end
 
 def password
-  password_tmp_path = agent_root_join("password")
+  password_tmp_path = agent_root_join(".config/password")
   unless File.exists?(password_tmp_path)
     File.open(password_tmp_path, "w:utf-8") { |file| file.puts((0..9).to_a.sample(6).join) }
   end
