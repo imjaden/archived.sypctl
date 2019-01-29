@@ -11,30 +11,50 @@
       %li.list-group-item{'v-for' => '(sideMenu, index) in menus', ':class' => '{active: sideMenu === menu}', ':key' => 'sideMenu.id', '@click' => 'clickSideMenu(sideMenu)'}
         {{ sideMenu.label }}
 
-  .col-sm-9{'v-if' => 'menu.id == "regisiter" || menu.id == "service_output"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+  .col-sm-9{'v-if' => 'menu.id == "register"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
     %table.table.table-condensed.table-bordered.smart-table
-      %caption{'v-text' => 'data.timestamp'}
+      %caption{'v-text' => 'registerData.timestamp'}
       %thead
         %tr
-          %th{'v-for' => '(head, th_index) in data.heads', ':style' => '"width:" + data.width[th_index]', 'v-text' => 'head'}
+          %th{'v-for' => '(head, th_index) in registerData.heads', ':style' => '"width:" + registerData.widths[th_index]', 'v-text' => 'head'}
       %tbody
-        %tr{'v-for' => '(rows, row_index) in data.rows'}
-          %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  data.width[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
+        %tr{'v-for' => '(rows, row_index) in registerData.rows'}
+          %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  registerData.widths[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
 
   .col-sm-9{'v-if' => 'menu.id == "service"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
-    %pre{'v-text' => 'JSON.stringify(data, null, 4)'}
-  .col-sm-9{'v-if' => 'menu.id == "backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
-    %pre{'v-text' => 'JSON.stringify(data, null, 4)'}
+    %table.table.table-condensed.table-bordered.smart-table
+      %caption
+        更新时间 {{ serviceData.table.timestamp }}，<a @click='displayModal'>查看监控服务配置明细</a>
+      %thead
+        %tr
+          %th{'v-for' => '(head, th_index) in serviceData.table.heads', ':style' => '"width:" + serviceData.table.widths[th_index]', 'v-text' => 'head'}
+      %tbody
+        %tr{'v-for' => '(rows, row_index) in serviceData.table.rows'}
+          %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  serviceData.table.widths[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
 
-  .modal.fade#slideInfo{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+  .col-sm-9{'v-if' => 'menu.id == "backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    %pre{'v-text' => 'JSON.stringify(backupData, null, 4)'}
+
+  .col-sm-9{'v-if' => 'menu.id == "packages"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    %table.table.table-condensed.table-bordered.smart-table
+      %caption
+        更新时间 {{ packagesData.timestamp }}, 支持的安装包状态:
+      %thead
+        %tr
+          %th{'v-for' => '(head, th_index) in packagesData.heads', ':style' => '"width:" + packagesData.widths[th_index]', 'v-text' => 'head'}
+      %tbody
+        %tr{'v-for' => '(rows, row_index) in packagesData.rows'}
+          %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  packagesData.widths[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
+
+  .modal.fade#infoModal{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
     .modal-dialog{role: "document"}
       .modal-content
         .modal-header
           %button.close{"aria-label" => "Close", "data-dismiss" => "modal", type: "button"}
             %span{"aria-hidden" => "true"} ×
-          %h4.modal-title 标题
+          %h4.modal-title{'v-text' => 'modal.title'}
         .modal-body{style: 'padding: 10px;'}
-          加载中...
+          %textarea.form-control{'v-model' => 'modal.body', rows: 20, readonly: true}
         .modal-footer
           %span.mtime{style: 'float:left; color: darkgray;'}
           %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}  关闭

@@ -19,6 +19,11 @@ fun_download_package_when_not_exists() {
   fi
 }
 case $1 in
+    files)
+        for package_name in ${package_names[@]}; do
+          echo ${package_name}
+        done
+    ;;
     list)
         fun_print_table_header "Packages List" "PackageName" "Version"
         for package_name in ${package_names[@]}; do
@@ -59,6 +64,7 @@ case $1 in
     *)
         echo "安装包管理:"
         echo "sypctl package help         帮助说明"
+        echo "sypctl package files        安装包文件"
         echo "sypctl package list         安装包列表"
         echo "sypctl package deploy       下载安装包"
         echo "sypctl package check        查检安装包一致性(文件哈希)"

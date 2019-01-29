@@ -34,6 +34,7 @@ ENV['STARTUP']            = Time.now.to_s
 ENV['UNICORN_PID_PATH'] ||= %(#{root_path}/tmp/pids/unicorn.pid)
 
 require 'lib/core_ext/string.rb'
+require 'lib/core_ext/numberic.rb'
 require 'config/asset_handler'
 require 'application_controller.rb'
 require 'cpanel_controller.rb'
