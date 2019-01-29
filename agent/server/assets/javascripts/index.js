@@ -31,7 +31,7 @@ if(document.getElementById('indexVueApp')) {
           let that = this;
           $.ajax({
             type: 'post',
-            url: '/login',  
+            url: '/sypctl/login',  
             contentType: 'application/json',
             dataType: 'json',
             processData: false,
@@ -39,7 +39,7 @@ if(document.getElementById('indexVueApp')) {
           }).done(function(res, status, xhr) {
             $(".text-danger").html(res.message)
             if(res.code === 201 && res.message == '登录成功') {
-              window.location.href = '/cpanel'
+              window.location.href = '/sypctl/cpanel'
             }
           }).fail(function(xhr, status, error) {
           }).always(function(res, status, xhr) {
@@ -51,7 +51,7 @@ if(document.getElementById('indexVueApp')) {
         let that = this;
         $.ajax({
           type: 'get',
-          url: '/data',
+          url: '/sypctl/data',
           contentType: 'application/json'
         }).done(function(res, status, xhr) {
           console.log(res)

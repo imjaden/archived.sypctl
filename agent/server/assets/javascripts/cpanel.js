@@ -34,7 +34,7 @@ if(document.getElementById('cpanelVueApp')) {
         if(!that.menu || !that.menu.id) {return false;}
         $.ajax({
           type: 'get',
-          url: '/cpanel/data/' + that.menu.id,
+          url: '/sypctl/cpanel/data/' + that.menu.id,
           contentType: 'application/json'
         }).done(function(res, status, xhr) {
           console.log(res)

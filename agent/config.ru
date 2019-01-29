@@ -12,7 +12,9 @@ use Unicorn::WorkerKiller::Oom, (192*(1024**2)), (256*(1024**2))
 
 {
   '/' => 'ApplicationController',
-  '/cpanel' => 'Cpanel::ApplicationController'
+  '/cpanel' => 'Cpanel::ApplicationController',
+  '/sypctl' => 'ApplicationController',
+  '/sypctl/cpanel' => 'Cpanel::ApplicationController'
 }.each_pair do |path, mod|
   map(path) { run mod.constantize }
 end

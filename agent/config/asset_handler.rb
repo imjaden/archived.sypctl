@@ -44,7 +44,7 @@ end
 
 module AssetSprocketsHelpers
   def asset_path(source)
-    "/sypctl-assets/" + settings.sprockets.find_asset(source).digest_path
+    "/sypctl/assets/" + settings.sprockets.find_asset(source).digest_path
   rescue => e
     puts "source: " + source
     puts e.message

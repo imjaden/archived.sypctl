@@ -74,8 +74,8 @@ class ApplicationController < Sinatra::Base
     haml :error, views: ENV['VIEW_PATH']
   end
 
-  get "/sypctl-assets/*" do
-    env['PATH_INFO'].sub!(%r{^/sypctl-assets}, '')
+  get "/assets/*" do
+    env['PATH_INFO'].sub!(%r{^/assets}, '')
     settings.sprockets.call(env)
   end
 
@@ -118,13 +118,19 @@ class ApplicationController < Sinatra::Base
   end
 
   post '/login' do
-    expect_username = 'sypctl'
-    expect_password = File.read(File.join(ENV['APP_ROOT_PATH'], '.config/password')).strip
+    password_path = File.join(ENV['APP_ROOT_PATH'], '.config/password')
+    if File.exists?(password_path)
 
-    message = expect_username == params[:username] && expect_password == params[:password] ? '登录成功' : '登录失败，账号或密码错误'
-    set_login_cookie(message)
+      expect_username = 'sypctl'
+      expect_password = File.read(password_path).strip
 
-    respond_with_json({message: message, code: 201}, 201)
+      message = expect_username == params[:username] && expect_password == params[:password] ? '登录成功' : '登录失败，账号或密码错误'
+      set_login_cookie(message)
+
+      respond_with_json({message: message, code: 201}, 201)
+    else
+      respond_with_json({message: '登录信息未初始化', code: 201}, 201)
+    end
   end
 
   get '/logout' do
