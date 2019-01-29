@@ -137,7 +137,7 @@ class ApplicationController < Sinatra::Base
     set_login_cookie(nil)
 
     flash[:success] = '登出成功'
-    redirect to('/')
+    respond_with_json({message: '登出成功', code: 200}, 200)
   end
 
   get '/ping' do
@@ -265,7 +265,7 @@ class ApplicationController < Sinatra::Base
     return if cookies[cookie_name]
 
     flash[:warning] = '身份验证失败，请登录'
-    redirect '/', 302
+    redirect '/sypctl', 302
   end
 
   def cookie_name

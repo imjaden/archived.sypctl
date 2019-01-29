@@ -114,6 +114,16 @@ if(document.getElementById('cpanelVueApp')) {
           this.modal.body = JSON.stringify(this.serviceData.config, null, 4)
           console.log(this.serviceData.config)
         }
+      },
+      logout() {
+        if(!confirm('确认登出？')) { return false }
+        $.ajax({
+          type: 'get',
+          url: '/sypctl/logout',
+          contentType: 'application/json'
+        }).done(function(res, status, xhr) {
+          window.location.href = '/sypctl'
+        })
       }
     }
   })
