@@ -868,10 +868,10 @@ function fun_agent_caller() {
             fi
         ;;
         agent:jobs)
-            fun_agent_job_${2:-guard}
+            fun_agent_job_${sub_type:-guard}
         ;;
         agent:server)
-            fun_agent_server "$2" "$3"
+            fun_agent_server "$sub_type" $@
         ;;
         *)
             echo "Error - unknown command: $@"
