@@ -27,8 +27,9 @@ zk_home="${1:-$ZK_HOME}"
 cmd_type="${2:-start}"
 option="${3:-use-header}"
 
-zk_package=linux/packages/zookeeper-3.4.12.tar.gz
-zk_version=zookeeper-3.4.12
+zookeeper_package=linux/packages/zookeeper-3.4.12.tar.gz
+zookeeper_hash=f43cca610c2e041c71ec7687cddbd0c3
+zookeeper_version=zookeeper-3.4.12
 
 case "${cmd_type}" in
     check)
@@ -40,29 +41,36 @@ case "${cmd_type}" in
             exit 2
         fi
 
-        rm -fr ~/tools/${zk_version} 
+        rm -fr ~/tools/${zookeeper_version} 
         test -d ~/tools || mkdir -p ~/tools
-        if [[ ! -f ${zk_package} ]]; then
+        if [[ ! -f ${zookeeper_package} ]]; then
             printf "$two_cols_table_format" "Zookeeper Package" "Not Found"
             printf "$two_cols_table_format" "Zookeeper package" "Downloading..."
 
             mkdir -p linux/packages
-            package_name="$(basename $zk_package)"
-            if [[ -f linux/packages/${package_name} ]]; then
-              tar jtvf packages/${package_name} > /dev/null 2>&1
-              if [[ $? -gt 0 ]]; then
-                  rm -f linux/packages/${package_name}
-              fi
+            package_name="$(basename $zookeeper_package)"
+            if [[ -f ${zookeeper_package} ]]; then  
+                # @过期算法
+                # tar jtvf packages/${package_name} > /dev/null 2>&1
+                # if [[ $? -gt 0 ]]; then
+                #     rm -f linux/packages/${package_name}
+                # fi
+                #
+                # @手工校正文件哈希
+                current_hash=todo
+                command -v md5 > /dev/null && current_hash=$(md5 -q ${zookeeper_package})
+                command -v md5sum > /dev/null && current_hash=$(md5sum ${zookeeper_package} | cut -d ' ' -f 1)
+                test "${zookeeper_hash}" != "${current_hash}" && rm -f ${zookeeper_package}
             fi
 
-            if [[ ! -f linux/packages/${package_name} ]]; then
+            if [[ ! -f ${zookeeper_package} ]]; then
                 wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
                 printf "$two_cols_table_format" "Zookeeper package" "Downloaded"
             fi
         fi
-        tar -xzvf ${zk_package} -C ~/tools
+        tar -xzvf ${zookeeper_package} -C ~/tools
 
-        cp -r ~/tools/${zk_version} ${zk_home}
+        cp -r ~/tools/${zookeeper_version} ${zk_home}
         cp linux/config/zoo.cfg ${zk_home}/conf
         mkdir -p /usr/local/src/zookeeper/{data,log}
 
@@ -75,7 +83,7 @@ case "${cmd_type}" in
     install)
         zk_install_path=/usr/local/src
 
-        if [[ ! -f ${zk_package} ]]; then
+        if [[ ! -f ${zookeeper_package} ]]; then
             printf "$two_cols_table_format" "Zookeeper" "Tar Package Not Found"
             exit 2
         fi
@@ -85,8 +93,8 @@ case "${cmd_type}" in
             exit 2
         fi
 
-        tar -xzvf ${zk_package} -C ${zk_install_path}
-        mv ${zk_install_path}/${zk_version} ${zk_install_path}/zookeeper
+        tar -xzvf ${zookeeper_package} -C ${zk_install_path}
+        mv ${zk_install_path}/${zookeeper_version} ${zk_install_path}/zookeeper
         mkdir -p /usr/local/src/zookeeper/{data,log}
     ;;
     start|startup)

@@ -47,6 +47,22 @@ For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
 - [服务管理](linux/ruby/service-tools.md)
 - 备份文件管理
 
+## Nginx 挂载
+
+```
+server {
+  server_name server.com;
+
+  location /sypctl {
+    proxy_pass         http://127.0.0.1:8086/;
+    proxy_redirect     off;
+    proxy_set_header   Host $host;
+  }
+}
+
+# server.com/sypctl
+```
+
 ## 待完善功能
 
 - 检测业务服务(8080-8086)/redis(6379)/mysql(3306)/zookeeper(2888)/activeMQ(8161/61616)/vnc(5901) 端口的进程状态

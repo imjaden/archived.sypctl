@@ -34,10 +34,7 @@ case "$1" in
         }
 
         case "${os_platform}" in
-            CentOS6)
-                sudo yum install -y java-devel
-            ;;
-            CentOS7)
+            CentOS*)
                 sudo yum install -y java-devel
             ;;
             Ubuntu16)
@@ -56,19 +53,30 @@ case "$1" in
 
         bash $0 install:jdk:force
     ;;
-    jdk:install:force)
+    install:jdk:force)
         jdk_package=linux/packages/jdk-8u192-linux-x64.tar.gz
+        jdk_hash=6f1961691877db56bf124d6f50478956
         jdk_install_path=/usr/local/src
         jdk_version=jdk1.8.0_192
         package_name="$(basename $jdk_package)"
 
         # 校正 tar.gz 文件的完整性(是否可以正常解压)
         # 不完整则删除
+        #
+        # @过期算法
+        # if [[ -f ${jdk_package} ]]; then
+        #   tar jtvf ${jdk_package} > /dev/null 2>&1
+        #   [[ $? -gt 0 ]] && rm -f ${jdk_package}
+        # fi
+        # 
+        # @手工校正文件哈希
         if [[ -f ${jdk_package} ]]; then
-          tar jtvf ${jdk_package} > /dev/null 2>&1
-          [[ $? -gt 0 ]] && rm -f ${jdk_package}
+            current_hash=todo
+            command -v md5 > /dev/null && current_hash=$(md5 -q ${jdk_package})
+            command -v md5sum > /dev/null && current_hash=$(md5sum ${jdk_package} | cut -d ' ' -f 1)
+            test "${jdk_hash}" != "${current_hash}" && rm -f ${jdk_package}
         fi
-
+        
         # 不存在则下载
         if [[ ! -f ${jdk_package} ]]; then
             if [[ "${format}" = "table" ]]; then
@@ -118,8 +126,8 @@ case "$1" in
         logger
         logger "Usage:"
         logger "\$ sypctl toolkit jdk install:jdk"
-        logger "\$ sypctl toolkit jdk install:javac"
         logger "\$ sypctl toolkit jdk install:jdk:force"
+        logger "\$ sypctl toolkit jdk install:javac"
     ;;
 esac
 

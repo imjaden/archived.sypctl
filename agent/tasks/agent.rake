@@ -5,9 +5,8 @@ require 'securerandom'
 namespace :agent do
   desc "submit self info to server every 5 minutes"
   task guard: :environment do
-    post_to_server_register unless File.exists?(agent_json_path)
-    agent_json_hash = JSON.parse(IO.read(agent_json_path))
-    post_to_server_register unless agent_json_hash["synced"]
+    agent_json_hash = JSON.parse(IO.read(agent_json_path)) rescue {}
+    post_to_server_register if !agent_json_hash['synced'] || ENV['FORCE_SYNC_AGENT_INFO'] == 'true'
 
     post_to_server_submitor
     refresh_agent_system_meta

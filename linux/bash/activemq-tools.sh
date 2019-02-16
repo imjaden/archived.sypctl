@@ -33,6 +33,7 @@ case "${cmd_type}" in
         fi
 
         activemq_package=linux/packages/apache-activemq-5.15.5.tar.gz
+        activemq_hash=1e907d255bc2b5761ebc0de53c538d8c
         activemq_version=apache-activemq-5.15.5
 
         if [[ ! -d ~/tools/${activemq_version} ]]; then
@@ -43,14 +44,21 @@ case "${cmd_type}" in
 
                 mkdir -p linux/packages
                 package_name="$(basename $activemq_package)"
-                if [[ -f linux/packages/${package_name} ]]; then
-                  tar jtvf packages/${package_name} > /dev/null 2>&1
-                  if [[ $? -gt 0 ]]; then
-                      rm -f linux/packages/${package_name}
-                  fi
+                if [[ -f ${activemq_package} ]]; then
+                    # @过期算法
+                    # tar jtvf packages/${package_name} > /dev/null 2>&1
+                    # if [[ $? -gt 0 ]]; then
+                    #     rm -f linux/packages/${package_name}
+                    # fi
+                    #
+                    # @手工校正文件哈希
+                    current_hash=todo
+                    command -v md5 > /dev/null && current_hash=$(md5 -q ${activemq_package})
+                    command -v md5sum > /dev/null && current_hash=$(md5sum ${activemq_package} | cut -d ' ' -f 1)
+                    test "${activemq_hash}" != "${current_hash}" && rm -f ${activemq_package}
                 fi
 
-                if [[ ! -f linux/packages/${package_name} ]]; then
+                if [[ ! -f ${activemq_package} ]]; then
                     wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
                     printf "$two_cols_table_format" "activemq package" "downloaded"
                 fi

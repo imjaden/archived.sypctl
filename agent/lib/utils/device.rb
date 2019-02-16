@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'json'
+require 'fileutils'
 require 'securerandom'
 
 module Sypctl
@@ -218,13 +219,14 @@ module Sypctl
       end
 
       def uuid(use_cache = true)
-        uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, "device-uuid")
+        uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, ".config/device-uuid")
 
+        use_cache = true if `uname -s`.strip == 'Darwin'
         if use_cache && File.exists?(uuid_tmp_path)
           device_uuid = File.read(uuid_tmp_path).strip
           
           return device_uuid unless device_uuid.empty?
-          File.remove(uuid_tmp_path)
+          FileUtils.rm_f(uuid_tmp_path)
         end
 
         device_uuid = klass.device_uuid

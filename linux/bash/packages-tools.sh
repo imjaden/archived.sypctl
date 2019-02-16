@@ -8,7 +8,7 @@
 #
 
 source linux/bash/common.sh
-package_names=(nginx-1.11.3.tar.gz apache-tomcat-8.5.24.tar.gz jdk-8u192-linux-x64.tar.gz redis-stable.tar.gz zookeeper-3.4.12.tar.gz apache-activemq-5.15.5.tar.gz)
+package_list=(nginx-1.11.3.tar.gz@18275c1daa39c5fac12e56c34907d45b apache-tomcat-8.5.24.tar.gz@b21bf4f2293b2e4a33989a2d4f890d5a jdk-8u192-linux-x64.tar.gz@6f1961691877db56bf124d6f50478956 redis-stable.tar.gz@e8fc9b766679196ee70b12d82d4dad0b zookeeper-3.4.12.tar.gz@f43cca610c2e041c71ec7687cddbd0c3 apache-activemq-5.15.5.tar.gz@1e907d255bc2b5761ebc0de53c538d8c)
 
 fun_download_package_when_not_exists() {
   package_name="$1"
@@ -20,25 +20,36 @@ fun_download_package_when_not_exists() {
 }
 case $1 in
     files)
-        for package_name in ${package_names[@]}; do
-          echo ${package_name}
+        fun_print_table_header "Packages List" "PackageName" "FileHash"
+        for package_info in ${package_list[@]}; do
+            package_name=$(echo $package_info | cut -d @ -f 1)
+            package_hash=$(echo $package_info | cut -d @ -f 2)
+            printf "$two_cols_table_format" "${package_name}" "${package_hash}"
         done
+        fun_print_table_footer
     ;;
     list)
         fun_print_table_header "Packages List" "PackageName" "Version"
-        for package_name in ${package_names[@]}; do
-          package=${package_name%-*}
-          printf "$two_cols_table_format" "${package}" "${package_name}"
+        for package_info in ${package_list[@]}; do
+            package_name=$(echo $package_info | cut -d @ -f 1)
+            package_hash=$(echo $package_info | cut -d @ -f 2)
+            package=${package_name%-*}
+            printf "$two_cols_table_format" "${package}" "${package_name}"
         done
       fun_print_table_footer
     ;;
     check|deploy)
         fun_print_table_header "Packages Integrity State" "PackageName" "Download|Integrity"
         mkdir -p linux/packages
-        for package_name in ${package_names[@]}; do
+        for package_info in ${package_list[@]}; do
+            package_name=$(echo $package_info | cut -d @ -f 1)
+            package_hash=$(echo $package_info | cut -d @ -f 2)
             if [[ -f linux/packages/${package_name} ]]; then
-              tar -jtvf linux/packages/${package_name} > /dev/null 2>&1
-              test $? -gt 0 && rm -f linux/packages/${package_name}
+              current_hash=todo
+              command -v md5 > /dev/null && current_hash=$(md5 -q linux/packages/${package_name})
+              command -v md5sum > /dev/null && current_hash=$(md5sum linux/packages/${package_name} | cut -d ' ' -f 1)
+
+              test "${package_hash}" != "${current_hash}" && rm -f linux/packages/${package_name}
             fi
 
             fun_download_package_when_not_exists ${package_name}
@@ -49,13 +60,19 @@ case $1 in
     ;;
     state|status)
         fun_print_table_header "Packages Download State" "PackageName" "Download|Integrity"
-        for package_name in ${package_names[@]}; do
+        for package_info in ${package_list[@]}; do
+            package_name=$(echo $package_info | cut -d @ -f 1)
+            package_hash=$(echo $package_info | cut -d @ -f 2)
             fun_download_package_when_not_exists ${package_name}
 
             test -f linux/packages/${package_name}
             download_state=$([[ $? -eq 0 ]] && echo 'true' || echo 'false')
-            tar jtvf linux/packages/${package_name} > /dev/null 2>&1
-            integrity_state=$([[ $? -eq 0 ]] && echo 'true' || echo 'false')
+
+            current_hash=todo
+            command -v md5 > /dev/null && current_hash=$(md5 -q linux/packages/${package_name})
+            command -v md5sum > /dev/null && current_hash=$(md5sum linux/packages/${package_name} | cut -d ' ' -f 1)
+            test "${package_hash}" != "${current_hash}" && rm -f linux/packages/${package_name}
+            integrity_state=$(test "${package_hash}" = "${current_hash}" && echo 'true' || echo 'false')
 
             printf "$two_cols_table_format" "${package_name}" "${download_state}|${integrity_state}"
         done

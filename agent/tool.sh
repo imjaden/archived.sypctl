@@ -70,16 +70,20 @@ case "$1" in
                     password="${password}$(($RANDOM%10))"
                 done
                 echo ${password} > .config/password
-                read -p "代理端服务账号: sypctl/${password}"
+                echo sypagent    > .config/username
+                read -p "代理端服务账号: sypagent/${password}"
 
-                title "$ 部署预检"
+                title "$ 预检部署配置"
                 bash $0 bundle
 
                 title "$ 启动服务"
                 bash $0 process:defender
 
-                title "$ 服务状态"
+                title "$ 服务动态状态"
                 bash $0 state
+
+                title "$ 提交配置信息"
+                sypctl agent:task guard FORCE_SYNC_AGENT_INFO=true
             else
                 echo "退出部署引导！"
             fi
@@ -94,6 +98,10 @@ case "$1" in
             bundle install > /dev/null 2>&1
             echo -e '启动预重检完成'
         fi
+    ;;
+    start:dev)
+        echo "\$ bundle exec unicorn -p ${app_port}"
+        bundle exec unicorn -p ${app_port}
     ;;
     start)
         check_deploy_tate

@@ -253,37 +253,37 @@ function fun_print_sypctl_backup_file_help() {
 # 自定义初始化 agent 配置
 #
 function fun_init_agent() {
-    test -d agent/.conifg || mkdir -p agent/.conifg
+    test -d agent/.config || mkdir -p agent/.config
     case "$1" in
         uuid)
             test -n "$2" && {
-                echo "$2" > agent/.conifg/init-uuid
+                echo "$2" > agent/.config/init-uuid
                 rm -f agent/db/agent.json
             } || sypctl agent:init help
         ;;
         title)
             test -n "$2" && {
-                echo "$2" > agent/.conifg/web-title
+                echo "$2" > agent/.config/web-title
             } || sypctl agent:init help
         ;;
         favicon)
             test -n "$2" && {
-                echo "$2" > agent/.conifg/web-favicon
+                echo "$2" > agent/.config/web-favicon
             } || sypctl agent:init help
         ;;
         human_name)
             test -n "$2" && {
-                echo "$2" > agent/.conifg/human-name
+                echo "$2" > agent/.config/human-name
                 rm -f agent/db/agent.json
                 sypctl agent:task guard
                 sypctl agent:task info
             } || sypctl agent:init help
         ;;
         list)
-            echo "uuid       : $([[ -f agent/.conifg/init-uuid ]] && cat agent/.conifg/init-uuid || echo 'NotConfig')"
-            echo "human_name : $([[ -f agent/.conifg/human_name ]] && cat agent/.conifg/human_name || echo 'NotConfig')"
-            echo "title      : $([[ -f agent/.conifg/web-title ]] && cat agent/.conifg/web-title || echo 'NotConfig')"
-            echo "favicon    : $([[ -f agent/.conifg/web-favicon ]] && cat agent/.conifg/web-favicon || echo 'NotConfig')"
+            echo "uuid       : $([[ -f agent/.config/init-uuid ]] && cat agent/.config/init-uuid || echo 'NotConfig')"
+            echo "human_name : $([[ -f agent/.config/human_name ]] && cat agent/.config/human_name || echo 'NotConfig')"
+            echo "title      : $([[ -f agent/.config/web-title ]] && cat agent/.config/web-title || echo 'NotConfig')"
+            echo "favicon    : $([[ -f agent/.config/web-favicon ]] && cat agent/.config/web-favicon || echo 'NotConfig')"
         ;;
         help)
             fun_print_init_agent_help
@@ -627,10 +627,12 @@ function fun_execute_bundle_rake_without_logger() {
 
     cd agent
     test -f .config/bundle-done || {
-        bundle install
+        bundle install --local > /dev/null
         if [[ $? -eq 0 ]]; then
-          echo "$ bundle install --local successfully"
-          echo ${timestamp} > .config/bundle-done
+            echo "$ bundle install --local successfully"
+            echo ${timestamp} > .config/bundle-done
+        else
+            bundle install > /dev/null
         fi
     }
 
@@ -844,20 +846,25 @@ function fun_backup_file_caller() {
 
 function fun_agent_caller() {
     mkdir -p agent/db/jobs
-    case "$1" in
+    
+    main_type="$1"
+    shift
+    sub_type="$1"
+    shift
+    case "${main_type}" in
         agent)
             fun_print_init_agent_command_help
         ;;
         agent:init)
-            fun_init_agent "$2" "$3"
+            fun_init_agent "${sub_type}" "$@"
         ;;
         agent:task)
-            if [[ "$2" = "doing" ]]; then
+            if [[ "${sub_type}" = "doing" ]]; then
                 fun_agent_job_doing
             else
-                [[ "$2" = "service" ]] && sypctl service monitor
-                fun_execute_bundle_rake_without_logger bundle exec rake agent:$2
-                [[ "$2" = "info" ]] && fun_print_crontab_and_rclocal
+                [[ "${sub_type}" = "service" ]] && sypctl service monitor
+                fun_execute_bundle_rake_without_logger bundle exec rake agent:${sub_type} $@
+                [[ "${sub_type}" = "info" ]] && fun_print_crontab_and_rclocal
             fi
         ;;
         agent:jobs)

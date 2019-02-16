@@ -36,6 +36,7 @@ case "${cmd_type}" in
         fi
 
         tomcat_package=linux/packages/apache-tomcat-8.5.24.tar.gz
+        tomcat_hash=b21bf4f2293b2e4a33989a2d4f890d5a
         tomcat_version=apache-tomcat-8.5.24
 
         if [[ ! -d ~/tools/${tomcat_version} ]]; then
@@ -46,14 +47,21 @@ case "${cmd_type}" in
 
                 mkdir -p linux/packages
                 package_name="$(basename $tomcat_package)"
-                if [[ -f linux/packages/${package_name} ]]; then
-                  tar jtvf packages/${package_name} > /dev/null 2>&1
-                  if [[ $? -gt 0 ]]; then
-                      rm -f linux/packages/${package_name}
-                  fi
+                if [[ -f ${tomcat_package} ]]; then    
+                    # @过期算法
+                    # tar jtvf packages/${package_name} > /dev/null 2>&1
+                    # if [[ $? -gt 0 ]]; then
+                    #     rm -f linux/packages/${package_name}
+                    # fi
+                    #
+                    # @手工校正文件哈希
+                    current_hash=todo
+                    command -v md5 > /dev/null && current_hash=$(md5 -q ${tomcat_package})
+                    command -v md5sum > /dev/null && current_hash=$(md5sum ${tomcat_package} | cut -d ' ' -f 1)
+                    test "${tomcat_hash}" != "${current_hash}" && rm -f ${tomcat_package}
                 fi
 
-                if [[ ! -f linux/packages/${package_name} ]]; then
+                if [[ ! -f ${tomcat_package} ]]; then
                     wget -q -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}"
                     printf "$two_cols_table_format" "Tomcat package" "downloaded"
                 fi

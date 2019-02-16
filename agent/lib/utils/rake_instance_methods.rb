@@ -15,12 +15,14 @@ end
 def agent_json_path; agent_root_join("db/agent.json"); end
 def record_list_path; agent_root_join("db/records-#{Time.now.strftime('%y%m%d')}.list"); end
 
-def password
-  password_tmp_path = agent_root_join(".config/password")
-  unless File.exists?(password_tmp_path)
-    File.open(password_tmp_path, "w:utf-8") { |file| file.puts((0..9).to_a.sample(6).join) }
-  end
-  File.read(password_tmp_path).strip
+def generate_username_and_password
+  password_path = agent_root_join(".config/password")
+  username_path = agent_root_join(".config/username")
+  
+  File.open(username_path, "w:utf-8") { |file| file.puts('sypagent') } unless File.exists?(username_path)
+  File.open(password_path, "w:utf-8") { |file| file.puts((0..9).to_a.sample(6).join) } unless File.exists?(password_path)
+
+  [username_path, password_path].map { |path| File.read(path).strip }
 end
 
 def print_agent_regisitered_info(print_or_not = true)
@@ -60,10 +62,11 @@ def print_agent_log
 end
 
 def agent_device_init_info(use_cache = true)
+  username, password = generate_username_and_password
   {
     uuid: Sypctl::Device.uuid(use_cache),
     hostname: Sypctl::Device.hostname,
-    username: 'sypagent',
+    username: username,
     password: password,
     os_type: Sypctl::Device.os_type,
     os_version: Sypctl::Device.os_version,
@@ -94,25 +97,30 @@ def agent_device_state_info
   }
 end
 
-def post_to_server_register
+def post_to_server_register()
   url = "#{ENV['SYPCTL_API']}/api/v1/register"
   params = {device: agent_device_init_info(false)}
    
-  init_uuid_path = agent_root_join("init-uuid")
+  init_uuid_path = agent_root_join(".config/init-uuid")
   if File.exists?(init_uuid_path)
     init_uuid = File.read(init_uuid_path).strip
-    params[:uuid] = init_uuid if init_uuid.length >= 10
+    if init_uuid.length >= 10
+      params[:uuid] = init_uuid
+      params[:device][:uuid] = init_uuid
+    end
   end
-  human_name_path = agent_root_join("human-name")
+  human_name_path = agent_root_join(".config/human-name")
   params[:device][:human_name] = File.read(human_name_path).strip if File.exists?(human_name_path)
-  
   response = Sypctl::Http.post(url, params)
 
   if response['code'] == 201
     response['hash']['synced'] = true
     File.open(agent_json_path, "w:utf-8") { |file| file.puts(response['hash'].to_json) }
-    FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
+    # FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
     FileUtils.rm_f(human_name_path) if File.exists?(human_name_path)
+
+    uuid_path = agent_root_join(".config/device-uuid")
+    File.open(uuid_path, 'w:utf-8') { |file| file.puts(response['hash']['uuid']) }
   end
 end
 

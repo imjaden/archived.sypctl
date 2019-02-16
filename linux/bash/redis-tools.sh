@@ -28,6 +28,7 @@ case "$1" in
     ;;
     install:force)
         redis_package=linux/packages/redis-stable.tar.gz
+        redis_hash=e8fc9b766679196ee70b12d82d4dad0b
         redis_install_path=/usr/local/src
         redis_version=redis-stable
         package_name="$(basename $redis_package)"
@@ -39,9 +40,18 @@ case "$1" in
 
         # 校正 tar.gz 文件的完整性(是否可以正常解压)
         # 不完整则删除
+        #
+        # @过期算法
+        # if [[ -f ${redis_package} ]]; then
+        #     tar jtvf ${redis_package} > /dev/null 2>&1
+        #     [[ $? -gt 0 ]] && rm -f ${redis_package}
+        # fi
+        #
         if [[ -f ${redis_package} ]]; then
-          tar jtvf ${redis_package} > /dev/null 2>&1
-          [[ $? -gt 0 ]] && rm -f ${redis_package}
+            current_hash=todo
+            command -v md5 > /dev/null && current_hash=$(md5 -q ${redis_package})
+            command -v md5sum > /dev/null && current_hash=$(md5sum ${redis_package} | cut -d ' ' -f 1)
+            test "${redis_hash}" != "${current_hash}" && rm -f ${redis_package}
         fi
 
         # 不存在则下载

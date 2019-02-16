@@ -45,6 +45,7 @@ case "$1" in
             ;;
             Ubuntu16)  
                 nginx_package=linux/packages/nginx-1.11.3.tar.gz
+                nginx_hash=18275c1daa39c5fac12e56c34907d45b
                 nginx_install_path=/usr/local/src
                 nginx_version=nginx-1.11.3
                 package_name="$(basename $nginx_package)"
@@ -57,9 +58,19 @@ case "$1" in
 
                 # 校正 tar.gz 文件的完整性(是否可以正常解压)
                 # 不完整则删除
+                #
+                # @过期算法
+                # if [[ -f ${nginx_package} ]]; then
+                #     tar jtvf ${nginx_package} > /dev/null 2>&1
+                #     [[ $? -gt 0 ]] && rm -f ${nginx_package}
+                # fi
+                #
+                # @手工校正文件哈希
                 if [[ -f ${nginx_package} ]]; then
-                    tar jtvf ${nginx_package} > /dev/null 2>&1
-                    [[ $? -gt 0 ]] && rm -f ${nginx_package}
+                    current_hash=todo
+                    command -v md5 > /dev/null && current_hash=$(md5 -q ${nginx_package})
+                    command -v md5sum > /dev/null && current_hash=$(md5sum ${nginx_package} | cut -d ' ' -f 1)
+                    test "${nginx_hash}" != "${current_hash}" && rm -f ${nginx_package}
                 fi
 
                 # 不存在则下载
