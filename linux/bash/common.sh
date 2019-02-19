@@ -732,6 +732,7 @@ function fun_update_rc_local() {
         sudo echo "" >> ${rc_local_filepath}
         sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
         sudo echo "test -n \"\${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl" >> ${rc_local_filepath}
+        sudo echo "mkdir -p \${SYPCTL_HOME}/logs" >> ${rc_local_filepath}
         sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
         sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:jobs\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
         sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
