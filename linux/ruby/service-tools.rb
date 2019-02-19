@@ -240,7 +240,10 @@ class Service
       Sypctl::Http.post(url, options, {}, {print_log: false})
     end
 
-    alias_method :guard, :post_to_server
+    def guard
+      monitor
+      post_to_server
+    end
 
     private
 

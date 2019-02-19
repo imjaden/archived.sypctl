@@ -65,6 +65,18 @@
       "extra": {
         "config_path": "/etc/ssh/sshd_config"
       }
+    },
+    {
+      "name": "公共服务 VNC",
+      "id": "vnc",
+      "user": "root",
+      "start": [
+        "vncserver"
+      ],
+      "stop": [
+        "vncserver -list | grep '^:' | awk '{ print $1 }' | xargs vncserver -kill"
+      ],
+      "pid_path": "/root/.vnc/sypmp:1.pid"
     }
   ]
 }

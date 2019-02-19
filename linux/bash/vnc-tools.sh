@@ -22,15 +22,31 @@ case "${cmd_type}" in
         fun_prompt_vncserver_already_installed
 
         test -z "$DESKTOP_SESSION" && {
-            yum check-update
+            yum upgrade -y
+            yum groupinstall -y "GNOME 桌面" 
             yum groupinstall -y "GNOME Desktop" 
             yum groupinstall -y "X Window System"
+            yum groupinstall -y "图形管理工具"
             yum groupinstall -y "Graphical Administration Tools"
+
+            test -z "$DESKTOP_SESSION" && {
+                echo "GNOME Desktop 安装失败，若提示：fwupdate-efi 与 grub2-common 冲突，请尝试下方命令:"
+                echo
+                echo "\$ yum update -y grub2-common"
+                echo "\$ yum install fwupdate-efi"
+                echo
+                echo "查看系统支持的组件:"
+                echo
+                echo "\$ yum group list"
+                echo
+
+                exit 1
+            }
+
             yum group list
 
             yum install -y gnome-classic-session gnome-terminal nautilus-open-terminal control-center liberation-mono-fonts
-            unlink /etc/systemd/system/default.target
-            ln -sf /lib/systemd/system/graphical.target /etc/systemd/system/default.target
+            ln -snf /lib/systemd/system/graphical.target /etc/systemd/system/default.target
         }
 
         yum install -y git cmake jq gnome-shell-browser-plugin gnome-tweak-tool gnome-shell* gstreamer-python
