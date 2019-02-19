@@ -392,8 +392,8 @@ function fun_clean() {
     crontab ~/${crontab_conf}
     rm -f ~/${crontab_conf}
 
-    rc_local_filepath=/etc/rc.local
-    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
+    rc_local_filepath=/etc/rc.d/rc.local
+    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.local
     test -f ${rc_local_filepath} && {
         if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
             begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
@@ -401,6 +401,7 @@ function fun_clean() {
             sudo sed -i "${begin_line_num},${end_line_num}d" ${rc_local_filepath}
         fi
     }
+    sudo chmod +x ${rc_local_filepath}
 
     fun_print_crontab_and_rclocal
 }
@@ -663,8 +664,8 @@ function fun_print_crontab_and_rclocal() {
     rm -f ~/${crontab_conf}
 
     title "rc.local configuration:"
-    rc_local_filepath=/etc/rc.local
-    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
+    rc_local_filepath=/etc/rc.d/rc.local
+    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.local
     test -f ${rc_local_filepath} && {
         if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
             begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
@@ -673,6 +674,8 @@ function fun_print_crontab_and_rclocal() {
             title "\$ cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}"
             cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}
         fi
+
+        sudo chmod +x ${rc_local_filepath}
     } || {
         title "cannot found rc.local in below path:"
         echo "/etc/rc.local"
@@ -706,8 +709,8 @@ function fun_update_crontab_jobs() {
 }
 
 function fun_update_rc_local() {
-    rc_local_filepath=/etc/rc.local
-    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.d/rc.local
+    rc_local_filepath=/etc/rc.d/rc.local
+    test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.local
 
     test -f ${rc_local_filepath} && {
         sudo chmod go+w ${rc_local_filepath}
@@ -728,7 +731,9 @@ function fun_update_rc_local() {
 
         sudo echo "" >> ${rc_local_filepath}
         sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\"" >> ${rc_local_filepath}
+        sudo echo "test -n \"${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\" > ${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:jobs\" > ${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
         sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
     } || {
         title "cannot found rc.local in below path:"
