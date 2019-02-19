@@ -736,6 +736,8 @@ function fun_update_rc_local() {
         sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
         sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:jobs\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
         sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
+
+        sudo chmod +x ${rc_local_filepath}
     } || {
         title "cannot found rc.local in below path:"
         echo "/etc/rc.local"

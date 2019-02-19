@@ -39,7 +39,7 @@
       "pid_path": "/var/run/haproxy.pid"
     },
     {
-      "name": "公共服务 mysql",
+      "name": "公共服务 MySQL",
       "id": "mysql",
       "user": "root",
       "start": [
