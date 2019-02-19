@@ -1,7 +1,10 @@
 # encoding: utf-8
 require 'json'
+require 'fileutils'
 require 'rest-client'
 require 'securerandom'
+require File.expand_path('../../core_ext/string.rb', __FILE__)
+require File.expand_path('../../core_ext/numberic.rb', __FILE__)
 
 module Sypctl
   class Http
@@ -38,21 +41,10 @@ module Sypctl
       end
 
       def download_version_file(url, path, job_uuid)
-        response, btime, ptime = nil, Time.now, Time.now
-        File.open(path, 'w:utf-8') do |file|
-          execute_job_logger('下载预告: 每十秒打印报告', job_uuid)
-          block = proc { |response|
-            response.read_body do |chunk|
-              file.write chunk.force_encoding('UTF-8')
-              if Time.now - ptime > 10
-                execute_job_logger("已下载文件大小 #{File.exists?(path) ? File.size(path).number_to_human_size : '0'}", job_uuid)
-                ptime = Time.now
-              end
-            end
-          }
-
-          response = RestClient::Request.execute(method: :get, url: url, block_response: block)
-        end
+        response = "下载中..."
+        FileUtils.rm_f(path) if File.exists?(path)
+        response = RestClient::Request.execute(method: :get, url: url, raw_response: true) #block_response: block)
+        FileUtils.copy(response.file.path, path)
         response
       end
 
@@ -64,20 +56,25 @@ module Sypctl
 
       def execute_job_logger(info, job_uuid = nil)
         message = "#{_timestamp} - #{info}"
-        if job_uuid
-          output_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}/job.output")
-          File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
-
-          sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
-          job_output_path = File.join(sandbox_path, 'job.output')
-          job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
-          post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
-        else
+        unless job_uuid
           puts message
+          return false
         end
+
+        output_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}/job.output")
+        File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
+
+        sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
+        job_output_path = File.join(sandbox_path, 'job.output')
+        job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+        post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
       rescue => e
         puts "#{__FILE__}@#{__LINE__}: #{e.message}"
       end
     end
   end
 end
+
+# url = "http://127.0.0.1:81/download-version/e413f39a88124c8497a3badf4e102aa8/6c20b473a03c444c8b1a8ce41cdffbb1.jar"
+# version_file_path = "./6c20b473a03c444c8b1a8ce41cdffbb1.jar"
+# Sypctl::Http.download_version_file(url, version_file_path, nil)

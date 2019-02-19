@@ -122,7 +122,7 @@ case "$1" in
     app:*)
         fun_app_caller $@
     ;;
-    agent:*)
+    agent:*|agent)
         fun_agent_caller $@
     ;;
     package)

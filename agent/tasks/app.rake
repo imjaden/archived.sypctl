@@ -11,17 +11,19 @@ namespace :app do
 
   def execute_job_logger(info, job_uuid = nil)
     message = "#{_timestamp} - #{info}"
-    if job_uuid
-      output_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}/job.output")
-      File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
-
-      sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
-      job_output_path = File.join(sandbox_path, 'job.output')
-      job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
-      post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
-    else
+    unless job_uuid
       puts message
+      return false
     end
+
+    output_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}/job.output")
+    File.open(output_path, 'a+:utf-8') { |file| file.puts(message) }
+
+    sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
+    job_output_path = File.join(sandbox_path, 'job.output')
+    job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+
+    post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
   rescue => e
     puts "#{__FILE__}@#{__LINE__}: #{e.message}"
   end
@@ -31,12 +33,14 @@ namespace :app do
       local_md5 = Digest::MD5.file(path).hexdigest
       if md5 == local_md5
         execute_job_logger("#{label}检查: 文件哈希一致 #{md5}", job_uuid)
+        return true
       else
         execute_job_logger("#{label}检查: 文件哈希不一致，期望 #{md5} 而实际是 #{local_md5}", job_uuid)
       end
     else
       execute_job_logger("#{label}异常: 文件不存在 #{path}", job_uuid)
     end
+    return false
   end
 
   def get_api_info(label, url, job_uuid)
@@ -52,15 +56,32 @@ namespace :app do
     response['hash']['data']
   end
 
-  def download_version_file(url, path, job_uuid)
-    execute_job_logger("下载文件: 链接 #{url}", job_uuid)
+  def download_version_file(url, config, job_uuid)
+    versions_path = File.join(ENV['RAKE_ROOT_PATH'], "db/versions")
+    version_path = File.join(versions_path, config['version']['uuid'])
+    version_file_path = File.join(version_path, config['version']['file_name'])
 
+    if File.exists?(version_file_path)
+      current_md5 = Digest::MD5.file(version_file_path).hexdigest
+      if current_md5 == config['version']['md5']
+        execute_job_logger("下载状态: 版本文件已下载，哈希值一致为 #{current_md5}", job_uuid)
+        execute_job_logger("文件路径: #{version_file_path}", job_uuid)
+        return version_file_path
+      end
+    end
+    
+    FileUtils.mkdir_p(version_path) unless File.exists?(version_path)
+    File.open(File.join(version_path, 'config.json'), 'w:utf-8') { |file| file.puts(config.to_json) }
+
+    execute_job_logger("下载链接: #{url}", job_uuid)
     btime = Time.now
-    response = Sypctl::Http.download_version_file(url, path, job_uuid)
+    response = Sypctl::Http.download_version_file(url, version_file_path, job_uuid)
 
     execute_job_logger("下载状态: #{response.inspect}", job_uuid)
-    execute_job_logger("下载报告: #{File.size(path).number_to_human_size}", job_uuid) if File.exists?(path)
+    execute_job_logger("文件路径: #{version_file_path}", job_uuid) if File.exists?(version_file_path)
+    execute_job_logger("文件大小: #{File.exists?(version_file_path) ? File.size(version_file_path).number_to_human_size : 'NotFound'}", job_uuid)
     execute_job_logger("下载用时: #{Time.now - btime}s", job_uuid)
+    return version_file_path
   end
 
   def delete_file_if_exists(label, path, backup_path = nil, job_uuid)    
@@ -75,7 +96,6 @@ namespace :app do
     end
   end
 
-  
   def deploy_app(sandbox_path, job_uuid)
     config_path = File.join(sandbox_path, 'config.json')
     config = JSON.parse(File.read(config_path)) rescue {}
@@ -105,7 +125,7 @@ namespace :app do
     execute_job_logger("版本信息:", job_uuid)
     execute_job_logger("    - UUID: #{data['uuid']}", job_uuid)
     execute_job_logger("    - 版本名称: #{data['version']}", job_uuid)
-    execute_job_logger("    - 文件大小: #{data['file_size']}", job_uuid)
+    execute_job_logger("    - 文件大小: #{data['file_size'].to_i.number_to_human_size}", job_uuid)
     execute_job_logger("    - 文件名称: #{data['file_name']}", job_uuid)
     execute_job_logger("    - 文件哈希: #{data['md5']}", job_uuid)
     execute_job_logger("    - 下载链接: #{data['download_path']}", job_uuid)
@@ -114,11 +134,12 @@ namespace :app do
 
     btime = Time.now
     url = "#{ENV['SYPCTL_API']}#{config['version']['download_path']}"
-    local_version_path = File.join(sandbox_path, config['version']['file_name'])
 
-    delete_file_if_exists('下载', local_version_path, job_uuid)
-    download_version_file(url, local_version_path, job_uuid)
-    check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
+    local_version_path = download_version_file(url, config, job_uuid)
+    unless check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
+      execute_job_logger("退出操作", job_uuid)
+      exit 1 
+    end
     
     target_file_path = File.join(config['app']['file_path'], config['app']['file_name'])
     delete_file_if_exists('部署', target_file_path, (config['version.backup_path'] || []).dig(0), job_uuid)
@@ -130,7 +151,10 @@ namespace :app do
     FileUtils.cp(local_version_path, target_file_path)
     execute_job_logger("部署状态: 拷贝#{File.exists?(target_file_path) ? '成功' : 失败} #{target_file_path}", job_uuid)
 
-    check_file_md5('部署', target_file_path, config['version']['md5'], job_uuid)
+    unless check_file_md5('部署', target_file_path, config['version']['md5'], job_uuid)
+      execute_job_logger("退出操作", job_uuid)
+      exit 1 
+    end
 
     if config['version.backup_path']
       config['version.backup_path'].each do |backup_path|

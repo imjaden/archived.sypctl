@@ -26,6 +26,7 @@ agent/config/deploy_tasks.sh
 agent/logs/
 agent/tmp/
 agent/db/jobs/
+agent/db/versions/
 agent/db/file-backups/
 agent/db/*.json
 agent/db/records-*

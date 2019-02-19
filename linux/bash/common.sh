@@ -356,7 +356,7 @@ function fun_sypctl_upgrade() {
 function fun_update_device() {
     echo "\$ cd agent"
     cd agent
-    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs,.config}
+    mkdir -p {monitor/{index,pages},logs,tmp/pids,db/{jobs,versions},.config}
     echo "\$ bundle install ..."
     bundle install
     if [[ $? -eq 0 ]]; then
@@ -880,7 +880,7 @@ function fun_agent_caller() {
 }
 
 function fun_app_caller() {
-    mkdir -p agent/jobs
+    mkdir -p agent/db/jobs
     case "$1" in
         app:config)
             fun_execute_bundle_rake_without_logger bundle exec rake app:config "key=$2" "value=$3" "uuid=$4"

@@ -22,10 +22,12 @@ namespace :agent do
     sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{ENV['uuid']}")
     job_json_path = File.join(sandbox_path, 'job.json')
     job_output_path = File.join(sandbox_path, 'job.output')
+    job_output_bundle_path = File.join(sandbox_path, 'job.output.bundle')
     job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+    job_bundle_output = File.exists?(job_output_bundle_path) ? IO.read(job_output_bundle_path) : "无输出"
     options = JSON.parse(File.read(job_json_path))
     options['state'] = 'done'
-    options['output'] = job_output
+    options['output'] = job_output + "\n\n#{'-' * 20}\n\n" + job_bundle_output
     post_to_server_job(options)
   end
 
