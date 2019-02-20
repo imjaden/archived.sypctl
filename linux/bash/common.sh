@@ -166,12 +166,13 @@ function fun_print_init_agent_command_help() {
     echo
     echo "任务操作:"
     echo "sypctl agent:task guard          代理守护者，注册、提交功能"
-    echo "sypctl agent:task doing          查看在执行的部署任务信息"
     echo "sypctl agent:task info           查看注册信息"
     echo "sypctl agent:task render         查看将要注册的信息"
     echo "sypctl agent:task log            查看提交日志"
     echo "sypctl agent:task device         对比设备信息与已注册信息（调整硬件时使用）"
     echo "sypctl agent:jobs guard          服务器端任务的监护者"
+    echo "sypctl agent:jobs doing          查看正在执行任务列表"
+    echo "sypctl agent:jobs view [uuid]   查看任务明细信息"
     echo
     echo "代理端服务:"
     echo "sypctl agent:server help         帮助说明"
@@ -197,13 +198,15 @@ function fun_print_app_command_help() {
 }
 
 function fun_print_toolkit_list() {
-    echo "工具安装:($(pwd))"
-    echo "$ sypctl toolkit [toolkit-name] [args]"
+    echo "内嵌工具:"
+    echo "$ sypctl toolkit [name] source   # 查看脚本源码"
+    echo "$ sypctl toolkit [name] [args]   # 脚本功能参数"
     echo
+    echo "支持列表:"
     for tookit in $(ls linux/bash/*-tools.sh); do
         tookit=${tookit##*/}
         tookit=${tookit%-*}
-    echo "sypctl toolkit ${tookit} [args]"
+        echo "\$ sypctl toolkit ${tookit} [args]"
     done
     echo
 }
@@ -750,58 +753,183 @@ function fun_update_rc_local() {
 #
 function fun_agent_job_guard() {
     if [[ $(find agent/db/jobs/ -name '*.todo' | wc -l) -eq 0 ]]; then
-        echo '无任务待处理'
-        exit 1
+        echo '#等待执行# 任务列表为空'
+    else
+        # 遍历待做任务
+        for todo_job_tag in $(ls agent/db/jobs/*.todo); do
+            job_uuid=$(cat $todo_job_tag)
+            bash_path=agent/db/jobs/${job_uuid}/job.sh
+            pid_path=agent/db/jobs/${job_uuid}/job.pid
+            output_path=agent/db/jobs/${job_uuid}/job.output
+            doing_job_tag="${todo_job_tag%.*}.doing"
+            done_job_tag="${todo_job_tag%.*}.done"
+
+            # 1. 定时任务每五分钟扫描一次待做任务
+            # 2. 每个任务可能耗时超出五分钟，下个定时扫描会执行一个任务，
+            #    在前N 个定时扫描遍历中时应该避免后续被执行的任务
+            if [[ -f ${todo_job_tag} ]]; then
+                echo $$ > ${pid_path}
+                mv ${todo_job_tag} ${doing_job_tag}
+
+                echo "${timestamp2} - Bash 进程 ID: $$" >> ${output_path} 2>&1
+                echo "${timestamp2} - 任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
+                echo "${timestamp2} - 部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
+
+                if [[ -f ${bash_path} ]]; then
+                    while read bash_line; do
+                        if [[ -n ${bash_line} ]]; then
+                            echo "${timestamp2} - \$ ${bash_line} ${job_uuid}" >> ${SYPCTL_HOME}/${output_path} 2>&1
+                            ${bash_line} ${job_uuid} >> ${SYPCTL_HOME}/${output_path}.bundle 2>&1
+                            echo "${timestamp2} - " >> ${SYPCTL_HOME}/${output_path} 2>&1
+                        fi
+                    done < ${bash_path}
+                    cd ${SYPCTL_HOME}
+                else
+                    echo "${timestamp2} - 脚本不存在：${bash_path}" >> ${output_path} 2>&1
+                fi
+
+                echo "${timestamp2} - 部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
+                echo "${timestamp2} - " >> ${output_path} 2>&1
+                echo "${timestamp2} - 提交部署状态至服务器" >> ${output_path} 2>&1
+                sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
+
+                mv ${doing_job_tag} ${done_job_tag}
+            fi
+        done
     fi
 
-    for todo_job_tag in $(ls agent/db/jobs/*.todo); do
-        job_uuid=$(cat $todo_job_tag)
-        bash_path=agent/db/jobs/${job_uuid}/job.sh
-        output_path=agent/db/jobs/${job_uuid}/job.output
-        doing_job_tag="${todo_job_tag%.*}.doing"
-        done_job_tag="${todo_job_tag%.*}.done"
+    if [[ $(find agent/db/jobs/ -name '*.doing' | wc -l) -eq 0 ]]; then
+        echo '#正在执行# 任务列表为空'
+    else
+        # 遍历正在执行任务，救火中断的任务
+        for doing_job_tag in $(ls agent/db/jobs/*.doing); do
+            job_uuid=$(cat $doing_job_tag)
+            bash_path=agent/db/jobs/${job_uuid}/job.sh
+            pid_path=agent/db/jobs/${job_uuid}/job.pid
+            output_path=agent/db/jobs/${job_uuid}/job.output
+            done_job_tag="${doing_job_tag%.*}.done"
 
-        mv ${todo_job_tag}  ${doing_job_tag}
-
-        echo "${timestamp2} - Bash 进程 ID: $$" >> ${output_path} 2>&1
-        echo "${timestamp2} - 任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
-        echo "${timestamp2} - 部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
-
-        if [[ -f ${bash_path} ]]; then
-            while read bash_line; do
-                if [[ -n ${bash_line} ]]; then
-                    echo "${timestamp2} - \$ ${bash_line} ${job_uuid}" >> ${output_path} 2>&1
-                    ${bash_line} ${job_uuid} >> ${output_path}.bundle 2>&1
-                    echo "${timestamp2} - " >> ${output_path} 2>&1
+            # 1. 定时任务每五分钟扫描一次待做任务
+            # 2. 每个任务可能耗时超出五分钟，下个定时扫描会执行一个任务，
+            #    在前N 个定时扫描遍历中时应该避免后续被执行的任务
+            if [[ -f ${doing_job_tag} ]]; then
+                # 任务中断的判断条件:
+                # 1. 无pid 文件
+                # 2. pid 查询不到
+                process_state="abort"
+                if [[ -f "${pid_path}" ]]; then
+                    pid=$(cat ${pid_path})
+                    ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
+                    if [[ $? -eq 0 ]]; then
+                      process_state="running"
+                    fi
                 fi
-            done < ${bash_path}
-        else
-            echo "${timestamp2} - 脚本不存在：${bash_path}" >> ${output_path} 2>&1
-        fi
 
-        echo "${timestamp2} - 部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
-        echo "${timestamp2} - " >> ${output_path} 2>&1
-        echo "${timestamp2} - 提交部署状态至服务器" >> ${output_path} 2>&1
-        sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
+                # 重新执行中断的任务
+                if [[ "${process_state}" = "abort" ]]; then
+                    echo $$ > ${pid_path}
+                    echo "${timestamp2} - 重新执行中断的任务" >> ${output_path} 2>&1
+                    echo "${timestamp2} - Bash 进程 ID: $$" >> ${output_path} 2>&1
+                    echo "${timestamp2} - 任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
+                    echo "${timestamp2} - 部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
 
-        mv ${doing_job_tag}  ${done_job_tag}
-    done
+                    if [[ -f ${bash_path} ]]; then
+                        while read bash_line; do
+                            if [[ -n ${bash_line} ]]; then
+                                echo "${timestamp2} - \$ ${bash_line} ${job_uuid}" >> ${SYPCTL_HOME}/${output_path} 2>&1
+                                ${bash_line} ${job_uuid} >> ${SYPCTL_HOME}/${output_path}.bundle 2>&1
+                                echo "${timestamp2} - " >> ${SYPCTL_HOME}/${output_path} 2>&1
+                            fi
+                        done < ${bash_path}
+                        cd ${SYPCTL_HOME}
+                    else
+                        echo "${timestamp2} - 脚本不存在：${bash_path}" >> ${output_path} 2>&1
+                    fi
+
+                    echo "${timestamp2} - 部署脚本执行完成: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
+                    echo "${timestamp2} - " >> ${output_path} 2>&1
+                    echo "${timestamp2} - 提交部署状态至服务器" >> ${output_path} 2>&1
+                    sypctl bundle exec rake agent:job uuid=${job_uuid} >> ${output_path} 2>&1
+
+                    mv ${doing_job_tag} ${done_job_tag}
+                fi
+            fi
+        done
+    fi
 }
 
 function fun_agent_job_doing() {
-    if [[ $(find agent/db/jobs/ -name '*.running' | wc -l) -eq 0 ]]; then
-        echo '无在执行的任务'
+    if [[ $(find agent/db/jobs/ -name '*.doing' | wc -l) -eq 0 ]]; then
+        echo '没有正在执行的任务'
         exit 1
     fi
 
-    for filepath in $(ls agent/db/jobs/*.running); do
+    for filepath in $(ls agent/db/jobs/*.doing); do
         job_uuid=$(cat $filepath)
+        pid_path=agent/db/jobs/${job_uuid}/job.pid
+
+        # 任务中断的判断条件:
+        # 1. 无pid 文件
+        # 2. pid 查询不到
+        process_state="任务中断"
+        if [[ -f "${pid_path}" ]]; then
+            pid=$(cat ${pid_path})
+            ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
+            if [[ $? -eq 0 ]]; then
+              process_state="任务执行中(${pid})"
+            fi
+        fi
+        
+        echo
         echo "任务UUID: ${job_uuid}"
-        echo "任务配置: ${SYPCTL_HOME}/agent/db/jobs/sypctl-job-${job_uuid}.json"
-        echo "部署执行: ${SYPCTL_HOME}/agent/db/jobs/sypctl-job-${job_uuid}.sh"
-        echo "执行日志: ${SYPCTL_HOME}/agent/db/jobs/sypctl-job-${job_uuid}.sh-output"
-        echo ""
+        echo "进程状态: ${process_state}"
+        echo "进程 ID: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.pid"
+        echo "任务配置: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.json"
+        echo "部署执行: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.sh"
+        echo "部署日志: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.output"
+        echo "执行日志: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.output.bundle"
+        echo
     done
+}
+
+function fun_agent_job_view() {
+    job_uuid=$1
+    job_home=agent/db/jobs/${job_uuid}
+
+    if [[ -z "${job_uuid}" ]]; then
+        echo "请提供任务 UUID"
+        echo
+        fun_print_init_agent_command_help
+        exit 1
+    fi
+
+    if [[ -d ${job_home} ]]; then
+        pid_path=agent/db/jobs/${job_uuid}/job.pid
+
+        # 任务中断的判断条件:
+        # 1. 无pid 文件
+        # 2. pid 查询不到
+        process_state="任务中断"
+        if [[ -f "${pid_path}" ]]; then
+            pid=$(cat ${pid_path})
+            ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
+            if [[ $? -eq 0 ]]; then
+              process_state="任务执行中(${pid})"
+            fi
+        fi
+        
+        echo
+        echo "任务UUID: ${job_uuid}"
+        echo "进程状态: ${process_state}"
+        echo "进程 ID: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.pid"
+        echo "任务配置: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.json"
+        echo "部署执行: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.sh"
+        echo "部署日志: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.output"
+        echo "执行日志: ${SYPCTL_HOME}/agent/db/jobs/${job_uuid}/job.output.bundle"
+        echo
+    else
+        echo "在本机查询任务失败，UUID=${job_uuid}"
+    fi
 }
 
 function fun_toolkit_caller() {
@@ -810,10 +938,22 @@ function fun_toolkit_caller() {
         exit 1
     fi
 
-    toolkit=linux/bash/$2-tools.sh
-    test -f ${toolkit} && {
-        bash ${toolkit} "$3" "$4" "$5" "$6"
-        exit 0
+    toolkit_name="$2"
+    toolkit_command="$3"
+    toolkit_path=linux/bash/${toolkit_name}-tools.sh
+    test -f ${toolkit_path} && {
+        if [[ "${toolkit_command}" = "source" ]]; then
+            echo "\$ cd $(pwd)"
+            echo "\$ cat ${toolkit_path}"
+            cat ${toolkit_path}
+            echo
+            echo
+        else
+            shift
+            shift
+            bash ${toolkit_path} $@
+            exit 0
+        fi
     } || {
         echo "脚本 ${toolkit} 不存在，退出！"
         fun_print_toolkit_list
@@ -867,16 +1007,28 @@ function fun_agent_caller() {
             fun_init_agent "${sub_type}" "$@"
         ;;
         agent:task)
-            if [[ "${sub_type}" = "doing" ]]; then
-                fun_agent_job_doing
-            else
-                [[ "${sub_type}" = "service" ]] && sypctl service monitor
-                fun_execute_bundle_rake_without_logger bundle exec rake agent:${sub_type} $@
-                [[ "${sub_type}" = "info" ]] && fun_print_crontab_and_rclocal
-            fi
+            [[ "${sub_type}" = "service" ]] && sypctl service monitor
+            fun_execute_bundle_rake_without_logger bundle exec rake agent:${sub_type} $@
+            [[ "${sub_type}" = "info" ]] && fun_print_crontab_and_rclocal
         ;;
         agent:jobs)
-            fun_agent_job_${sub_type:-guard}
+            case "${sub_type}" in
+                doing)
+                    fun_agent_job_doing
+                ;;
+                view)
+                    fun_agent_job_view $@
+                ;;
+                guard)
+                    fun_agent_job_guard
+                ;;
+                *)
+                    echo "Error - unknown command: ${sub_type}"
+                    echo
+                    echo
+                    fun_print_init_agent_command_help
+                ;;
+            esac
         ;;
         agent:server)
             fun_agent_server "$sub_type" $@

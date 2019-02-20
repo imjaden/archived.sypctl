@@ -68,6 +68,7 @@ case "${cmd_type}" in
             fi
             
             tar -xzvf ${tomcat_package} -C ~/tools
+            rm -f ~/tools/${tomcat_version}/lib/.*.jar > /dev/null 2>&1
         fi
 
         tomcat_port="${3:-8081}"
@@ -84,6 +85,7 @@ case "${cmd_type}" in
         printf "$two_cols_table_format" "${tomcat_home}" "starting..."
         cat /dev/null > ${tomcat_home}/logs/catalina.out
         rm -rf ${tomcat_home}/work/* 
+        rm -f ${tomcat_home}/lib/.*.jar > /dev/null 2>&1
 
         sleep 1s
 

@@ -55,7 +55,17 @@ case "${cmd_type}" in
         vncserver -list
     ;;
     start)
-        vncserver -geometry 1024x768 -depth 24
+        vncserver -geometry 1920x1080 -depth 32
+        # vncserver -geometry 1024x768 -depth 24
+        echo "温馨提示："
+        echo "当前分配的屏幕率为 1920x1080, 若有其他需求可以按下述命令调整:"
+        echo ""
+        echo "# 关闭 vnc server"
+        echo "\$ vncserver -list | grep -e ^: | awk '{ print $1 }' | xargs vncserver -kill"
+        echo ""
+        echo "# 启动 vnc server, 选择合适的分辨率"
+        echo "\$ vncserver -geometry 1920x1080 -depth 32"
+        echo "\$ vncserver -geometry 1024x768  -depth 24"
     ;;
     stop)
         vncserver -list | grep -e ^: | awk '{ print $1 }' | xargs vncserver -kill
@@ -65,7 +75,7 @@ case "${cmd_type}" in
         [[ ${service_count} -eq 0 ]] && bash $0 start
         bash $0 status
     ;;
-    *)
+    help|*)
         logger "warning: unkown params - $@"
         logger
         logger "Usage:"
