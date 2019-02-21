@@ -1,7 +1,7 @@
 # encoding: utf-8
 ########################################
 #  
-#  Service Manager v1.1
+#  FileBackup Manager v1.1
 #
 ########################################
 #
@@ -16,6 +16,7 @@ require 'digest/md5'
 require 'terminal-table'
 require File.expand_path('../../../agent/lib/utils/http', __FILE__)
 require File.expand_path('../../../agent/lib/utils/device', __FILE__)
+require File.expand_path('../../../agent/lib/core_ext/numberic', __FILE__)
 
 options = {}
 option_parser = OptionParser.new do |opts|
@@ -79,44 +80,111 @@ class BackupFile
     def list
       puts "元信息哈希: #{@db_hash}"
       puts "元信息路径: #{@db_json_path}"
-      table_rows = @db_json.map { |file| [file['uuid'], file['file_path'], file['description'], File.exists?(file['file_path']) ? '存在' : '不存在'] }
-      puts Terminal::Table.new(headings: %w(UUID 文件路径 描述 是否存在), rows: table_rows)
+      table_rows = @db_json.map do |file|
+        if File.exists?(file['file_path']) 
+          file_state = File.file?(file['file_path']) ? 'File' : 'Dir'
+        else
+          file_state = 'NO'
+        end
+
+        [file['uuid'], file['file_path'], file_state]
+      end
+      puts Terminal::Table.new(headings: %w(UUID 文件路径 状态), rows: table_rows)
     rescue => e
       puts "#{__FILE__}@#{__LINE__}: #{e.message}"
     end
 
     def execute
-      @db_json.each do |file|
-        next unless File.exists?(file['file_path'])
+      @db_json.each do |record|
+        next unless File.exists?(record['file_path'])
 
-        file_md5 = Digest::MD5.file(file['file_path']).hexdigest
-        next if @synced_json.dig(file['uuid'], 'md5') == file_md5
-        
-        archive_file_name = "#{file['uuid']}-#{File.mtime(file['file_path']).strftime('%Y%m%d%H%M%S')}-#{File.basename(file['file_path'])}"
-        FileUtils.cp(file['file_path'], File.join(@archived_path, archive_file_name))
+        uuid = record['uuid']
+        if File.directory?(record['file_path']) 
+          options = {
+            device_uuid: Sypctl::Device.uuid, 
+            file_uuid: uuid,
+          }
+          files_md5 = @synced_json.dig(uuid, 'files_md5') || {}
+          file_list = @synced_json.dig(uuid, 'file_list') || {}
+          Dir.glob(File.join(record['file_path'], "*.*")).each do |file_path|
+            next if File.directory?(file_path)
 
-        options = {
-          device_uuid: Sypctl::Device.uuid, 
-          file_uuid: file['uuid'], 
-          archive_file_name: archive_file_name,
-          backup_file: File.new(file['file_path'], 'rb')
-        }
+            file_md5 = Digest::MD5.file(file_path).hexdigest
+            file_name = File.basename(file_path)
+            next if files_md5.dig(file_name) == file_md5 && file_list.dig(file_name, 'synced')
+            
+            archive_file_name = "#{uuid}-#{File.mtime(file_path).strftime('%Y%m%d%H%M%S')}-#{File.basename(file_path)}"
+            FileUtils.cp(file_path, File.join(@archived_path, archive_file_name))
 
-        url = "#{ENV['SYPCTL_API']}/api/v1/upload/file_backup"
-        response = Sypctl::Http.post(url, options)
-        puts "#{response['hash']['message']}, #{archive_file_name}"
+            options[:archive_file_name] = archive_file_name
+            options[:backup_file] = File.new(file_path, 'rb')
 
-        @synced_json[file['uuid']] ||= {synced: false}.merge(file)
-        @synced_json[file['uuid']][:md5]     = file_md5
-        @synced_json[file['uuid']][:archive_file_name] = archive_file_name
-        @synced_json[file['uuid']][:message] = response['hash']['message']
-        @synced_json[file['uuid']][:synced]  = response['hash']['message'].include?('上传成功')
-        @synced_json[file['uuid']][:device_uuid] = Sypctl::Device.uuid
-        @synced_json[file['uuid']][:timestamp]   = Time.now.to_i
+            url = "#{ENV['SYPCTL_API']}/api/v1/upload/file_backup"
+            response = Sypctl::Http.post(url, options)
+            puts "#{response['hash']['message']}, #{file_path}"
 
-        File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) }
+            files_md5[file_name] = file_md5
+            file_list[file_name] = {
+              synced: response['hash']['message'].include?('上传成功'),
+              file_name: file_name,
+              file_md5: file_md5,
+              file_mtime: File.mtime(file_path).to_i,
+              file_size: File.size(file_path).to_i.number_to_human_size(true),
+              archive_file_name: archive_file_name
+            }
+
+            @synced_json[uuid] = {
+              synced: true,
+              uuid: uuid,
+              file_path: record['file_path'],
+              description: record['description'],
+              message: response['hash']['message'],
+              files_md5: files_md5,
+              file_list: file_list
+            }
+
+            File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) }
+            @synced_json = JSON.parse(File.read(@synced_json_path))
+          end
+        else
+          file_path = record['file_path']
+          file_md5 = Digest::MD5.file(file_path).hexdigest
+          next if @synced_json.dig(uuid, 'md5') == file_md5
+          
+          archive_file_name = "#{uuid}-#{File.mtime(file_path).strftime('%Y%m%d%H%M%S')}-#{File.basename(file_path)}"
+          FileUtils.cp(file_path, File.join(@archived_path, archive_file_name))
+
+          options = {
+            device_uuid: Sypctl::Device.uuid, 
+            file_uuid: uuid, 
+            archive_file_name: archive_file_name,
+            backup_file: File.new(file_path, 'rb')
+          }
+
+          url = "#{ENV['SYPCTL_API']}/api/v1/upload/file_backup"
+          response = Sypctl::Http.post(url, options)
+          puts "#{response['hash']['message']}, #{archive_file_name}"
+
+          @synced_json[uuid] ||= {synced: false}.merge(record)
+          @synced_json[uuid][:md5]         = file_md5
+          @synced_json[uuid][:message]     = response['hash']['message']
+          @synced_json[uuid][:synced]      = response['hash']['message'].include?('上传成功')
+          @synced_json[uuid][:file_mtime]  = File.mtime(file_path).to_i
+          @synced_json[uuid][:file_size]   = File.size(file_path).to_i.number_to_human_size(true)
+          @synced_json[uuid][:device_uuid] = Sypctl::Device.uuid
+          @synced_json[uuid][:archive_file_name] = archive_file_name
+
+          File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) }
+          @synced_json = JSON.parse(File.read(@synced_json_path))
+        end
       end
     
+      file_uuids = @db_json.map { |hsh| hsh['uuid'] }
+      @synced_json = JSON.parse(File.read(@synced_json_path))
+      deprecated_uuids = (@synced_json.keys - file_uuids)
+      deprecated_uuids.each { |file_uuid| @synced_json.delete(file_uuid) }
+      File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) } unless deprecated_uuids.empty?
+
       synced_hash = Digest::MD5.hexdigest(@synced_json.to_json)
       if @synced_hash != synced_hash
         url = "#{ENV['SYPCTL_API']}/api/v1/update/file_backup"
