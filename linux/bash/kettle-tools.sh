@@ -40,29 +40,29 @@ case "$1" in
                     if [[ "${integrity_state}" = "true" ]]; then
                         if [[ ! -d ${package_install_path}/${package_version} ]]; then
                             tar -xzvf ${package_path} -C ${package_install_path} > /dev/null 2>&1
-                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'failure')
                             fun_print_two_cols_row "uncompress tar.gz" "${state}"
 
                             ln -snf ${package_install_path}/${package_version}/spoon.sh /usr/bin/kettle > /dev/null 2>&1
-                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'failure')
                             fun_print_two_cols_row "create link" "${state}"
                             
                             rm -f /usr/share/applications/kettle.desktop
                             cp linux/config/kettle.desktop /usr/share/applications/ > /dev/null 2>&1
                             chmod a+x /usr/share/applications/kettle.desktop > /dev/null 2>&1
-                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'failure')
                             fun_print_two_cols_row "create kettle.desktop" "${state}"
 
                             if [[ -d ~/Desktop ]]; then
                                 rm -f ~/Desktop/kettle.desktop
-                                cp /usr/share/applications/kettle.desktop ~/Desktop/
+                                cp /usr/share/applications/kettle.desktop ~/Desktop/ > /dev/null 2>&1
                             elif [[ -d ~/桌面 ]]; then
                                 rm -f ~/桌面/kettle.desktop
-                                cp /usr/share/applications/kettle.desktop ~/桌面
+                                cp /usr/share/applications/kettle.desktop ~/桌面 > /dev/null 2>&1
                             else
                                 fun_print_two_cols_row "$(whoami) desktop" "NotFound"
                             fi
-                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'failure')
                             fun_print_two_cols_row "copy $(whoami) kettle.desktop" "${state}"
                         fi
 
@@ -80,6 +80,7 @@ case "$1" in
         fi
 
         fun_print_table_footer
+        mkdir -p /data/work/kettle/{jobs,scripts,data,logs}
     ;;
     install:force)
         if [[ -d ${package_install_path}/${package_version} ]]; then
@@ -93,13 +94,14 @@ case "$1" in
     ;;
     help)
         echo "Usage:"
-        echo "    $0 install"
-        echo "    $0 install:force"
+        echo "$ sypctl toolkit kettle install"
+        echo "$ sypctl toolkit kettle install:force"
         echo
         echo "#目录规范#"
         echo "部署目录: /usr/local/src/kettle-8.2.0.0_342"
         echo "业务文档: /data/work/kettle/jobs"
         echo "定时脚本: /data/work/kettle/scripts"
+        echo "数据文档: /data/work/kettle/data"
         echo "日志归档: /data/work/kettle/logs"
     ;;
     *)
