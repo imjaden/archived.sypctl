@@ -4,7 +4,9 @@
 #  
 # Kettle Tool
 #
-# https://community.hitachivantara.com/docs/DOC-1009855
+# 部署目录: /usr/local/src/kettle-8.2.0.0_342
+# 业务文档: /data/work/kettle/jobs
+# 定时脚本: /data/work/kettle/scripts
 # 
 ########################################
 
@@ -70,11 +72,19 @@ case "$1" in
 
         bash $0 install
     ;;
+    help)
+        echo "Usage:"
+        echo "    $0 install"
+        echo "    $0 install:force"
+        echo
+        echo "#目录规范#"
+        echo "部署目录: /usr/local/src/kettle-8.2.0.0_342"
+        echo "业务文档: /data/work/kettle/jobs"
+        echo "定时脚本: /data/work/kettle/scripts"
+    ;;
     *)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "    $0 install"
-        logger "    $0 install:force"
+        echo "warning: unkown params - $@"
+        echo
+        bash $0 help
     ;;
 esac
