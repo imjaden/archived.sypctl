@@ -52,6 +52,18 @@ case "$1" in
                             chmod a+x /usr/share/applications/kettle.desktop > /dev/null 2>&1
                             state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
                             fun_print_two_cols_row "create kettle.desktop" "${state}"
+
+                            if [[ -d ~/Desktop ]]; then
+                                rm -f ~/Desktop/kettle.desktop
+                                cp /usr/share/applications/kettle.desktop ~/Desktop/
+                            elif [[ -d ~/桌面 ]]; then
+                                rm -f ~/桌面/kettle.desktop
+                                cp /usr/share/applications/kettle.desktop ~/桌面
+                            else
+                                fun_print_two_cols_row "$(whoami) desktop" "NotFound"
+                            fi
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
+                            fun_print_two_cols_row "copy $(whoami) kettle.desktop" "${state}"
                         fi
 
                         fun_print_two_cols_row "${package_install_path}/${package_version}" "true|true"
@@ -88,6 +100,7 @@ case "$1" in
         echo "部署目录: /usr/local/src/kettle-8.2.0.0_342"
         echo "业务文档: /data/work/kettle/jobs"
         echo "定时脚本: /data/work/kettle/scripts"
+        echo "日志归档: /data/work/kettle/logs"
     ;;
     *)
         echo "warning: unkown params - $@"
