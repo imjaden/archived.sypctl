@@ -8,6 +8,7 @@
 .ruby-version
 .bundle-done
 .sypctl-*
+nohup.out
 
 linux/packages
 linux/bash/sqoop-*
@@ -33,3 +34,4 @@ agent/db/records-*
 agent/monitor/
 
 tmp/
+logs

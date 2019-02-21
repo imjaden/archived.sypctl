@@ -27,10 +27,10 @@ case "$1" in
         command -v redis-cli >/dev/null 2>&1 && fun_prompt_redis_already_installed ${format} || echo "warning: redis-cli command not found"
     ;;
     install:force)
-        redis_package=linux/packages/redis-stable.tar.gz
-        redis_hash=e8fc9b766679196ee70b12d82d4dad0b
+        redis_package=linux/packages/redis-4.0.6.tar.gz
+        redis_hash=161a6ec82a82dcf38259347833aab707
         redis_install_path=/usr/local/src
-        redis_version=redis-stable
+        redis_version=redis-4.0.6
         package_name="$(basename $redis_package)"
 
         if [[ -d ${redis_install_path}/${redis_version} ]]; then

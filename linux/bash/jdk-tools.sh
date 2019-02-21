@@ -54,10 +54,10 @@ case "$1" in
         bash $0 install:jdk:force
     ;;
     install:jdk:force)
-        jdk_package=linux/packages/jdk-8u192-linux-x64.tar.gz
-        jdk_hash=6f1961691877db56bf124d6f50478956
+        jdk_package=linux/packages/jdk-1.8.0_192.tar.gz
+        jdk_hash=910288747afd1792926d1b9bcd2a7844
         jdk_install_path=/usr/local/src
-        jdk_version=jdk1.8.0_192
+        jdk_version=jdk-1.8.0_192
         package_name="$(basename $jdk_package)"
 
         # 校正 tar.gz 文件的完整性(是否可以正常解压)
@@ -99,15 +99,15 @@ case "$1" in
 
         [[ -d ${jdk_install_path}/jdk ]] && rm -fr ${jdk_install_path}/jdk
         tar -xzvf ${jdk_package} -C ${jdk_install_path}
-        mv ${jdk_install_path}/${jdk_version} ${jdk_install_path}/jdk
-        ln -snf ${jdk_install_path}/jdk/bin/java /usr/bin/java
+
+        jdk_path=${jdk_install_path}/${jdk_version}
+        ln -snf ${jdk_path}/bin/java /usr/bin/java
 
         echo "# jdk configuration" >> /etc/profile
-        echo "export JAVA_HOME=${jdk_install_path}/jdk" >> /etc/profile
-        echo "export JRE_HOME=${jdk_install_path}/jdk/jre" >> /etc/profile
+        echo "export JAVA_HOME=${jdk_path}" >> /etc/profile
+        echo "export JRE_HOME=${jdk_path}/jre" >> /etc/profile
         echo "export CLASS_PATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar:\$JRE_HOME/lib" >> /etc/profile
         echo "export PATH=\$PATH:\$JAVA_PATH/bin:\$JRE_HOME/bin" >> /etc/profile
-
         echo "source /etc/profile" >> ~/.bash_profile
         source ~/.bash_profile
             

@@ -820,9 +820,7 @@ function fun_agent_job_guard() {
                 if [[ -f "${pid_path}" ]]; then
                     pid=$(cat ${pid_path})
                     ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
-                    if [[ $? -eq 0 ]]; then
-                      process_state="running"
-                    fi
+                    test $? -eq 0 && process_state="running"
                 fi
 
                 # 重新执行中断的任务
@@ -1111,3 +1109,24 @@ function fun_print_table_footer() {
     printf "| %-${header_col1_width}s |\n" "${footer_text}"
     printf "$two_cols_table_header" "$two_cols_table_divider" "$two_cols_table_divider"
 }
+
+function fun_left_34() {
+    echo ${1:0:34}
+}
+
+function fun_right_34() {
+    str="$1"
+    length=${#str}
+    left_pos=0
+    if [[ ${length} -gt 34 ]]; then
+        left_pos=$(expr $length - 34)
+    fi
+    echo ${str:${left_pos}:${length}}
+}
+
+function fun_print_two_cols_row() {
+    one=$(fun_left_34 "$1")
+    two=$(fun_right_34 "$2")
+    printf "$two_cols_table_format" "${one}" "${two}"
+}
+
