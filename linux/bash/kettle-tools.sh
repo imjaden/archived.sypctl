@@ -39,18 +39,18 @@ case "$1" in
 
                     if [[ "${integrity_state}" = "true" ]]; then
                         if [[ ! -d ${package_install_path}/${package_version} ]]; then
-                            tar -xzvf ${package_package} -C ${package_install_path} > /dev/null 2>&1
-                            state=$(test $? -eq 0 && echo 'OK' || echo 'Fail')
+                            tar -xzvf ${package_path} -C ${package_install_path} > /dev/null 2>&1
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
                             fun_print_two_cols_row "uncompress tar.gz" "${state}"
 
                             ln -snf ${package_install_path}/${package_version}/spoon.sh /usr/bin/kettle > /dev/null 2>&1
-                            state=$(test $? -eq 0 && echo 'OK' || echo 'Fail')
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
                             fun_print_two_cols_row "create link" "${state}"
                             
                             rm -f /usr/share/applications/kettle.desktop
                             cp linux/config/kettle.desktop /usr/share/applications/ > /dev/null 2>&1
                             chmod a+x /usr/share/applications/kettle.desktop > /dev/null 2>&1
-                            state=$(test $? -eq 0 && echo 'OK' || echo 'Fail')
+                            state=$(test $? -eq 0 && echo 'successfully' || echo 'fail')
                             fun_print_two_cols_row "create kettle.desktop" "${state}"
                         fi
 
