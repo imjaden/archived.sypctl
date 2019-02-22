@@ -301,32 +301,35 @@ function fun_init_agent() {
 # sypctl 版本升级后的处理逻辑
 #
 function fun_sypctl_upgrade() {
+    # 升级 sypctl 源代码
+    title "upgrade sypctl source"
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     title "\$ git pull origin ${git_current_branch}"
-    git reset --hard HEAD
-    git pull origin ${git_current_branch}
+    git reset --hard HEAD  > /dev/null 2>&1
+    git pull origin ${git_current_branch} > /dev/null 2>&1
+    sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
 
+    # 分配源代码权限
     if [[ "$(whoami)" != "root" ]]; then
         sudo chmod -R go+w ${SYPCTL_HOME}
         sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
     fi
 
-    sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
-    sypctl crontab:update > /dev/null 2>&1
-    sypctl linux:date check > /dev/null 2>&1
-    sypctl memory:free > /dev/null 2>&1
-
-    title "\$ cd agent && bundle install"
-    cd agent
-    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
-    rm -f .config/bundle-done
-    bundle install
-    if [[ $? -eq 0 ]]; then
-      echo "$ bundle install --local successfully"
-      echo ${timestamp} > .config/bundle-done
+    # 编译 sypctl 代理端服务
+    if [[ -f .config/local-server ]]; then
+        title "\$ cd agent && bundle install"
+        cd agent
+        mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
+        rm -f .config/bundle-done
+        bundle install > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+          echo "$ bundle install successfully"
+          echo ${timestamp} > .config/bundle-done
+        fi
+        bash tool.sh restart
+        cd ..
     fi
-    test -f .config/local-server && bash tool.sh restart
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
@@ -334,23 +337,23 @@ function fun_sypctl_upgrade() {
         exit 0
     fi
 
-    # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；
-    # 即支持 device uuid 更新
-    test -f device-uuid && mv device-uuid init-uuid
-    # 升级后重新注册
-    test -f db/agent.json && cp db/agent.json tmp/agent.json-${timestamp}
-    cd ..
+    # 升级后重新提交主机信息
+    test -f agent/db/agent.json && mv agent/db/agent.json agent/db/agent.json-${timestamp}
+
+    # 升级生重新备份配置档
+    test -f agent/db/file-backups/synced.hash && rm -f agent/db/file-backups/synced.hash
+    test -f agent/db/file-backups/synced.json && mv agent/db/file-backups/synced.json agent/db/file-backups/synced.json-${timestamp}
+
+    # 升级后重要实时同步的操作
+    sypctl linux:date check > /dev/null 2>&1
+    sypctl memory:free > /dev/null 2>&1
+    sypctl crontab:update > /dev/null 2>&1
+    sypctl crontab:jobs > /dev/null 2>&1
 
     fun_print_logo
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
 
     sypctl help
-
-    # temporary command
-    bundle config mirror.https://rubygems.org https://gems.ruby-china.com
-    gem sources --remove https://rubygems.org/
-    gem sources --add https://gems.ruby-china.com/ 
-    gem sources -l
 }
 
 #
