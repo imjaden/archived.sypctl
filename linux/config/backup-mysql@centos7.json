@@ -1,0 +1,17 @@
+[
+  {
+    "name": "本地测试",
+    "config": {
+      "host": "localhost",
+      "port": 3306,
+      "username": "root",
+      "password": "iamjay",
+      "encoding": "utf8"
+    },
+    "ignore_databases": [],
+    "ignore_tables": [
+      "(_|-)logs?$"
+    ],
+    "backup_path": "/Users/junjieli/Work/syp-apps/sypctl"
+  }
+]

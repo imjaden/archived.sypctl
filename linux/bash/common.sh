@@ -302,10 +302,8 @@ function fun_init_agent() {
 #
 function fun_sypctl_upgrade() {
     # 升级 sypctl 源代码
-    title "upgrade sypctl source"
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
-    title "\$ git pull origin ${git_current_branch}"
     git reset --hard HEAD  > /dev/null 2>&1
     git pull origin ${git_current_branch} > /dev/null 2>&1
     sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
@@ -994,6 +992,15 @@ function fun_backup_file_caller() {
     else
         echo "Error - unknown command: $2, support: ${support_commands[@]}"
     fi
+}
+
+function fun_backup_mysql_caller() {
+    if [[ "${2}" = "help" ]]; then
+        echo "TODO"
+        exit 1
+    fi
+
+    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/backup-mysql-tools.rb "--$2" "${3:-all}"
 }
 
 function fun_agent_caller() {
