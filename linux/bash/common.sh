@@ -148,7 +148,8 @@ function fun_print_sypctl_help() {
     echo "sypctl package help      #安装包# 管理"
     echo "sypctl toolkit help      #工具# 安装"
     echo "sypctl service help      #服务# 管理"
-    echo "sypctl backup:file help  #备份文件# 管理"
+    echo "sypctl backup:file help   #备份文件# 管理"
+    echo "sypctl backup:mysql help  #备份MySQL# 管理"
     echo
     fun_print_logo
     echo "Current version is $VERSION"
@@ -250,6 +251,14 @@ function fun_print_sypctl_backup_file_help() {
     echo "sypctl backup:file render   查看元信息"
     echo "sypctl backup:file execute  执行备份操作"
     echo "sypctl backup:file guard    守护备份操作，功能同 execute"
+}
+
+function fun_print_sypctl_backup_mysql_help() {
+    echo "sypctl backup:mysql help     帮助说明"
+    echo "sypctl backup:mysql list     查看备份配置"
+    echo "sypctl backup:mysql view     执行今日备份状态"
+    echo "sypctl backup:mysql execute  执行备份操作"
+    echo "sypctl backup:mysql guard    守护备份操作，功能同 execute"
 }
 
 #
@@ -996,11 +1005,16 @@ function fun_backup_file_caller() {
 
 function fun_backup_mysql_caller() {
     if [[ "${2}" = "help" ]]; then
-        echo "TODO"
+        fun_print_sypctl_backup_mysql_help
         exit 1
     fi
 
-    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/backup-mysql-tools.rb "--$2" "${3:-all}"
+    support_commands=(help list view execute guard)
+    if [[ "${support_commands[@]}" =~ "$2" ]]; then
+        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/backup-mysql-tools.rb "--$2" "${3:-all}"
+    else
+        echo "Error - unknown command: $2, support: ${support_commands[@]}"
+    fi
 }
 
 function fun_agent_caller() {
