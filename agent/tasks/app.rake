@@ -134,9 +134,17 @@ namespace :app do
 
     btime = Time.now
     url = "#{ENV['SYPCTL_API']}#{config['version']['download_path']}"
-
+    
     local_version_path = download_version_file(url, config, job_uuid)
-    unless check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
+    version_file_state = check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
+    download_try_time = 2
+    while !version_file_state && download_try_time <= 3
+      execute_job_logger("第#{download_try_time}次尝试下载", job_uuid)
+      version_file_state = check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
+      download_try_time += 1
+    end
+
+    unless version_file_state
       execute_job_logger("退出操作", job_uuid)
       exit 1 
     end
@@ -148,6 +156,7 @@ namespace :app do
       FileUtils.mkdir_p(config['app']['file_path'])
       execute_job_logger("部署预检: 创建待部署的目录 #{config['app']['file_path']}", job_uuid)
     end
+
     FileUtils.cp(local_version_path, target_file_path)
     execute_job_logger("部署状态: 拷贝#{File.exists?(target_file_path) ? '成功' : 失败} #{target_file_path}", job_uuid)
 

@@ -373,14 +373,17 @@ function fun_update_device() {
     echo "\$ bundle exec rake agent:device"
     bundle exec rake agent:device
 
-    echo "\$ mv device-uuid init-uuid"
     # 旧 device uuid 作为初始化 uuid, 以避免 devuce uuid 生成策略调整；
     # 即支持 device uuid 更新
-    test -f device-uuid && mv device-uuid init-uuid
+    if [[ -f device-uuid ]]; then
+        echo "\$ mv device-uuid init-uuid"
+        test -f device-uuid && mv device-uuid init-uuid
+    fi
+    
     # 升级后重新注册
     test -f db/agent.json && mv db/agent.json tmp/agent.json-${timestamp}
 
-    echo "\$ bundle exec rake agent:device"
+    echo "\$ bundle exec rake agent:guard"
     bundle exec rake agent:guard
 
     echo "\$ bundle exec rake agent:device"

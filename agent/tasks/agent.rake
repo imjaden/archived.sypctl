@@ -27,7 +27,7 @@ namespace :agent do
     job_bundle_output = File.exists?(job_output_bundle_path) ? IO.read(job_output_bundle_path) : "无输出"
     options = JSON.parse(File.read(job_json_path))
     options['state'] = 'done'
-    options['output'] = job_output + "\n\n#{'-' * 20}\n\n" + job_bundle_output
+    options['output'] = job_bundle_output + "\n\n#{'-' * 20}\n\n" + job_output
     post_to_server_job(options)
   end
 
