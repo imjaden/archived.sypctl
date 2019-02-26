@@ -116,6 +116,9 @@ case "$1" in
     backup:file)
         fun_backup_file_caller $@
     ;;
+    backup:mysql)
+        fun_backup_mysql_caller $@
+    ;;
     app)
         fun_app_caller 'help'
     ;;
