@@ -88,8 +88,8 @@ class BackupMySQL
     end
 
     def state
-      pid_path = File.join(ENV['SYPCTL_HOME'], 'tmp/backup-mysql-ruby.pid')
-      log_path = File.join(ENV['SYPCTL_HOME'], 'logs/backup-mysql.log')
+      pid_path = File.join(ENV['SYPCTL_HOME'] || ".", 'tmp/backup-mysql-ruby.pid')
+      log_path = File.join(ENV['SYPCTL_HOME'] || ".", 'logs/backup-mysql.log')
 
       if File.exists?(pid_path)
         pid = File.read(pid_path).strip
@@ -130,7 +130,7 @@ class BackupMySQL
     end
 
     def execute
-      pid_path = File.join(ENV['SYPCTL_HOME'], 'tmp/backup-mysql-ruby.pid')
+      pid_path = File.join(ENV['SYPCTL_HOME'] || ".", 'tmp/backup-mysql-ruby.pid')
       if File.exists?(pid_path)
         pid = File.read(pid_path).strip
         result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
