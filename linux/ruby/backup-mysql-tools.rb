@@ -170,7 +170,7 @@ class BackupMySQL
           begin_time = Time.now
           ignore_tables = result2.map { |h| h.values }.flatten.select { |table| (backup_config['ignore_tables'] || []).any? { |regexp| table =~ Regexp::new(regexp)} }
           ignore_tables_sql = ignore_tables.map { |table| "--ignore-table=#{database}.#{table}" }.join(" ")
-          bash_script = "mysqldump -h#{config['host']} -u#{config['username']} -p#{config['password']} -P#{config['port']} #{database} #{ignore_tables_sql} > #{database}.sql 2>&1"
+          bash_script = "mysqldump -h#{config['host']} -u#{config['username']} -p#{config['password']} -P#{config['port']} --default-character-set=utf8 #{database} #{ignore_tables_sql} > #{database}.sql 2>&1"
 
           state = 'successfully'
           begin
