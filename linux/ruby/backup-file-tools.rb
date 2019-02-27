@@ -125,7 +125,7 @@ class BackupFile
 
             files_md5[file_name] = file_md5
             file_list[file_name] = {
-              synced: response['hash']['message'].include?('上传成功'),
+              synced: ((response || {}).dig('hash', 'message') || '').include?('上传成功'),
               file_name: file_name,
               file_md5: file_md5,
               file_mtime: File.mtime(file_path).to_i,
@@ -145,6 +145,12 @@ class BackupFile
 
             File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) }
             @synced_json = JSON.parse(File.read(@synced_json_path))
+
+            Sypctl::Http.post_behavior({
+              behavior: "监测到文档更新并上传服务器，#{file_path}", 
+              object_type: 'file_backup', 
+              object_id: uuid
+            })
           end
         else
           file_path = record['file_path']
@@ -164,11 +170,12 @@ class BackupFile
           url = "#{ENV['SYPCTL_API']}/api/v1/upload/file_backup"
           response = Sypctl::Http.post(url, options)
           puts "#{response['hash']['message']}, #{archive_file_name}"
-
+          
+          response_message = (response || {}).dig('hash', 'message') || ''
           @synced_json[uuid] ||= {synced: false}.merge(record)
           @synced_json[uuid][:md5]         = file_md5
-          @synced_json[uuid][:message]     = response['hash']['message']
-          @synced_json[uuid][:synced]      = response['hash']['message'].include?('上传成功')
+          @synced_json[uuid][:message]     = response_message
+          @synced_json[uuid][:synced]      = response_message.include?('上传成功')
           @synced_json[uuid][:file_mtime]  = File.mtime(file_path).to_i
           @synced_json[uuid][:file_size]   = File.size(file_path).to_i.number_to_human_size(true)
           @synced_json[uuid][:device_uuid] = Sypctl::Device.uuid
@@ -176,6 +183,12 @@ class BackupFile
 
           File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) }
           @synced_json = JSON.parse(File.read(@synced_json_path))
+
+          Sypctl::Http.post_behavior({
+            behavior: "监测到文档更新并上传服务器，#{file_path}", 
+            object_type: 'file_backup', 
+            object_id: uuid
+          }, {}, {print_log: true})
         end
       end
     

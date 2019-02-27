@@ -165,21 +165,33 @@ namespace :app do
       exit 1 
     end
 
-    if config['version.backup_path']
-      config['version.backup_path'].each do |backup_path|
-        unless File.exists?(backup_path)
-          execute_job_logger("备份异常: 备份目录不存在 #{backup_path}", job_uuid)
-          next
-        end
+    if File.extname(target_file_path).downcase == ".war" and File.exists?(target_file_path.sub(/\.war$/i, ''))
+      target_file_folder = target_file_path.sub(/\.war$/i, '')
+      FileUtils.rm_rf(target_file_folder)
+      execute_job_logger("部署清理: 删除Tomcat旧目录 #{target_file_folder}", job_uuid)
+    end
 
-        backup_file_path = File.join(backup_path, config['version']['version'] + '@' + config['app']['file_name'])
-        FileUtils.cp(local_version_path, backup_file_path)
-        execute_job_logger("版本备份: 备份#{File.exists?(backup_file_path) ? '成功' : 失败} #{backup_file_path}", job_uuid)
+    (config['version.backup_path'] || []).each do |backup_path|
+      unless File.exists?(backup_path)
+        execute_job_logger("备份异常: 备份目录不存在 #{backup_path}", job_uuid)
+        next
       end
+
+      backup_file_path = File.join(backup_path, config['version']['version'] + '@' + config['app']['file_name'])
+      FileUtils.cp(local_version_path, backup_file_path)
+      execute_job_logger("版本备份: 备份#{File.exists?(backup_file_path) ? '成功' : 失败} #{backup_file_path}", job_uuid)
     end
 
     execute_job_logger("部署归档: 清理沙盒目录 #{sandbox_path}", job_uuid)
     execute_job_logger('部署完成!', job_uuid)
+
+    job_config_path = File.join(sandbox_path, 'job.json')
+    job_config_hash = JSON.parse(File.read(job_config_path))
+    Sypctl::Http.post_behavior({
+      behavior: "成功执行任务「 #{job_config_hash['title']}」", 
+      object_type: 'job', 
+      object_id: job_config_hash['uuid']
+    })
   end
 
   desc "app version config"

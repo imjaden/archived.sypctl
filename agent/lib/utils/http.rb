@@ -48,6 +48,39 @@ module Sypctl
         response
       end
 
+      def post_behavior(options = {}, headers = {}, external_options = {print_log: false})
+        url = "#{ENV['SYPCTL_API']}/api/v1/agent/behavior_log"
+
+        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'], 'db/agent.json')
+        unless File.exists?(agent_db_path)
+          puts "该主机未注册，中断提交行为记录"
+          return false 
+        end
+
+        agent_db_hash = JSON.parse(File.read(agent_db_path))
+        playload = {
+          behavior: {
+            device_uuid: agent_db_hash['uuid'],
+            device_name: agent_db_hash['human_name'] || agent_db_hash['hostname'],
+            behavior: options[:behavior] || '',
+            object_type: options[:object_type] || '',
+            object_id: options[:object_id] || '',
+            description: options[:description] || ''
+          }
+        }
+        response = RestClient.post(url, playload, default_header.merge(headers))
+        if external_options[:print_log]
+          puts "post #{url}"
+          puts "parameters: \n#{JSON.pretty_generate(playload)}"
+          puts "response code: #{response.code}"
+          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+        end
+        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
+      # rescue => e
+      #   puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+      #   {'code' => 500, 'body' => e.message, 'hash' => {}}
+      end
+
       protected
           
       def _timestamp
