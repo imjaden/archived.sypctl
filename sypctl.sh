@@ -10,7 +10,7 @@ test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
 cd ${SYPCTL_HOME}
 export SYPCTL_EXECUTE_PATH="$(pwd)"
 source linux/bash/common.sh
-mkdir {logs,tmp}
+mkdir -p {logs,tmp}
 
 case "$1" in
     version)
