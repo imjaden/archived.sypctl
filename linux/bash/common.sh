@@ -718,6 +718,7 @@ function fun_update_crontab_jobs() {
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
     echo "*/5 * * * * sypctl crontab:jobs" >> ~/${crontab_conf}
     echo "0   0 * * * sypctl upgrade" >> ~/${crontab_conf}
+    echo "0   1 * * * sypctl backup:mysql guard" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
