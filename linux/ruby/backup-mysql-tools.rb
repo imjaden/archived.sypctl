@@ -158,7 +158,7 @@ class BackupMySQL
 
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
           if File.exists?(file_path)
-            puts "#{database} backuped to #{backup_path}"
+            puts "#{database} backuped to #{file_path}"
             next
           end
 
@@ -196,7 +196,6 @@ class BackupMySQL
           File.open(output_path, 'w:utf-8') { |file| file.puts(output_list.to_json) }
 
           puts "#{database}, #{state}"
-          puts output_path
         end
       end
 
