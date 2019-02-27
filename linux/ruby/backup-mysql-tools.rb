@@ -157,7 +157,10 @@ class BackupMySQL
           next if (backup_config['ignore_databases'] || []).include?(database)
 
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
-          next if File.exists?(file_path)
+          if File.exists?(file_path)
+            puts "#{database} backuped to #{backup_path}"
+            next
+          end
 
           config["database"] = database
           client2 = Mysql2::Client.new(config)
@@ -188,7 +191,6 @@ class BackupMySQL
             duration: Time.now - begin_time,
             state: state 
           }
-
           output_list = File.exists?(output_path) ? JSON.parse(File.read(output_path)) : []
           output_list.push(options)
           File.open(output_path, 'w:utf-8') { |file| file.puts(output_list.to_json) }
