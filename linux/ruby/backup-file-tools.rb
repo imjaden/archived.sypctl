@@ -188,7 +188,7 @@ class BackupFile
             behavior: "监测到文档更新并上传服务器，#{file_path}", 
             object_type: 'file_backup', 
             object_id: uuid
-          }, {}, {print_log: true})
+          })
         end
       end
     

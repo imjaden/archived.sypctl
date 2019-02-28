@@ -24,6 +24,7 @@ module Sypctl
         {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
       rescue => e
         puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        puts e.backtrace.select{ |line| line.include?(__FILE__)}
         {'code' => 500, 'body' => e.message, 'hash' => {}}
       end
 
@@ -37,6 +38,7 @@ module Sypctl
         {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
       rescue => e
         puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        puts e.backtrace.select{ |line| line.include?(__FILE__)}
         {'code' => 500, 'body' => e.message, 'hash' => {}}
       end
 
@@ -51,7 +53,7 @@ module Sypctl
       def post_behavior(options = {}, headers = {}, external_options = {print_log: false})
         url = "#{ENV['SYPCTL_API']}/api/v1/agent/behavior_log"
 
-        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'], 'db/agent.json')
+        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'] || "#{Dir.pwd}/agent", 'db/agent.json')
         unless File.exists?(agent_db_path)
           puts "该主机未注册，中断提交行为记录"
           return false 
@@ -76,9 +78,9 @@ module Sypctl
           puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
         end
         {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
-      # rescue => e
-      #   puts "#{__FILE__}@#{__LINE__}: #{e.message}"
-      #   {'code' => 500, 'body' => e.message, 'hash' => {}}
+      rescue => e
+        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
       end
 
       protected
@@ -103,6 +105,7 @@ module Sypctl
         post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
       rescue => e
         puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        puts e.backtrace.select{ |line| line.include?(__FILE__)}
       end
     end
   end

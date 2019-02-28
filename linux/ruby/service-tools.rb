@@ -48,10 +48,10 @@ option_parser = OptionParser.new do |opts|
   opts.on('-m', "--monitor all", '监控列表中的服务，未运行则启动') do |value|
     options[:monitor] = value
   end
-  opts.on('-p', "--post_to_server", ' 提交监控服务配置档至服务器') do |value|
+  opts.on('-p', "--post_to_server", '提交监控服务配置档至服务器') do |value|
     options[:post_to_server] = value
   end
-  opts.on('-g', "--guard", ' 守护监控服务配置，功能同 post_to_server') do |value|
+  opts.on('-g', "--guard", '守护监控服务配置，功能同 post_to_server') do |value|
     options[:guard] = value
   end
 end.parse!
@@ -190,6 +190,12 @@ class Service
 
         puts "\n# 启动 #{service['name']}"
         start_service(service)
+
+        Sypctl::Http.post_behavior({
+          behavior: "检测到「#{service['name']}」(#{service['id']}) 服务未运行，执行启动操作(#{whoami})", 
+          object_type: 'service', 
+          object_id: "#{service['name']}(#{service['id']})"
+        }, {}, {print_log: true})
       end
 
       status('all')

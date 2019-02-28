@@ -1015,7 +1015,7 @@ function fun_backup_mysql_caller() {
 
     support_commands=(help list state view clean execute guard)
     if [[ "${2}" = "execute" ||  "${2}" = "guard" ]]; then
-        nohup ruby linux/ruby/backup-mysql-tools.rb "--$2" "${3:-all}" SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent >> logs/backup-mysql.log 2>&1 &
+        nohup ruby linux/ruby/backup-mysql-tools.rb "--$2" SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent >> logs/backup-mysql.log 2>&1 &
         echo "started backup mysql task"
         echo 
         echo "$ sypctl backup:mysql state"

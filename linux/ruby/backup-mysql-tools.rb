@@ -196,6 +196,11 @@ class BackupMySQL
           File.open(output_path, 'w:utf-8') { |file| file.puts(output_list.to_json) }
 
           puts "#{database}, #{state}"
+          Sypctl::Http.post_behavior({
+            behavior: "成功备份数据库 #{database}.sql.tar.gz, #{file_size.number_to_human_size(true)}", 
+            object_type: 'mysql_backup', 
+            object_id: "file_path"
+          }, {}, {print_log: false})
         end
       end
 

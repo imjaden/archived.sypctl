@@ -5,6 +5,7 @@
 .env-files
 .install-defender
 *.lock
+*.sql
 .ruby-version
 .bundle-done
 .sypctl-*
