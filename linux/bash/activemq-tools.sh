@@ -22,9 +22,10 @@
 
 source linux/bash/common.sh
 
-activemq_home="${1:-$ACTIVEMQ_HOME}"
-cmd_type="${2:-install}"
+cmd_type="${1:-install}"
+activemq_home="${2:-$ACTIVEMQ_HOME}"
 option="${3:-use-header}"
+
 case "${cmd_type}" in
     install)
         if [[ -d ${activemq_home} ]]; then
@@ -72,10 +73,19 @@ case "${cmd_type}" in
 
         printf "$two_cols_table_format" "${activemq_home}" "deployed successfully"
     ;;
+    install:force)
+        [[ -d ${activemq_home} ]] && rm -fr ${activemq_home}
+        sypctl toolkit activemq install ${activemq_home}
+    ;;
+    help)
+        echo "activeMQ管理:"
+        echo "sypctl toolkit activemq help"
+        echo "sypctl toolkit activemq install <expect-to-install-path>"
+        echo "sypctl toolkit activemq install:force <expect-to-install-path>"
+    ;;
     *)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "    $0 activemq_home install"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit activemq help
     ;;
 esac

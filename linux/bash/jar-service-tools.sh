@@ -22,8 +22,8 @@
 
 source linux/bash/common.sh
 
-jar_path="$1"
-cmd_type="${2:-startup}"
+cmd_type="${1:-startup}"
+jar_path="$2"
 option="${3:-use-header}"
 
 jar_dir="$(dirname $jar_path)"
@@ -84,29 +84,31 @@ case "${cmd_type}" in
         fi
     ;;
     monitor)
-        bash $0 ${jar_path} status ${option}
+        bash $0 status ${jar_path} ${option}
         if [[ $? -gt 0 ]]; then
             printf "$two_cols_table_format" "${jar_name}" "Process Not Found"
             printf "$two_cols_table_format" "${jar_name}" "Starting..."
-            bash $0 ${jar_path} startup
+            bash $0 startup ${jar_path}
         fi
     ;;
     restart|restartup)
-        bash $0 ${jar_path} stop
-        bash $0 ${jar_path} startup
+        bash $0 stop ${jar_path}
+        bash $0 startup ${jar_path}
     ;;
     auto:generage:praams|agp)
         cat $0 | grep "|*)$" | grep -v echo | awk '{gsub(/ /,"")}1' | awk -F ')' '{print "logger \"    $0 "$1" jar_path\"" }'
     ;;
+    help)
+        echo "sypctl toolkit jar-service install <jar-path>"
+        echo "sypctl toolkit jar-service start <jar-path>"
+        echo "sypctl toolkit jar-service stop <jar-path>"
+        echo "sypctl toolkit jar-service status <jar-path>"
+        echo "sypctl toolkit jar-service restart <jar-path>"
+        echo "sypctl toolkit jar-service monitor <jar-path>"
+    ;;
     *)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "    $0 jar_path start"
-        logger "    $0 jar_path stop"
-        logger "    $0 jar_path status|state"
-        logger "    $0 jar_path monitor"
-        logger "    $0 jar_path restart"
-        logger "    $0 jar_path auto:generage:praams|agp"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit jar-service help
     ;;
 esac

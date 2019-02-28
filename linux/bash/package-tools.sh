@@ -75,13 +75,19 @@ case $1 in
         done
         fun_print_table_footer
     ;;
-    *)
+    help)
         echo "安装包管理:"
-        echo "sypctl package help         帮助说明"
-        echo "sypctl package files        安装包文件"
-        echo "sypctl package list         安装包列表"
-        echo "sypctl package deploy       下载安装包"
-        echo "sypctl package check        查检安装包一致性(文件哈希)"
-        echo "sypctl package status       安装包安装状态"
+        echo "sypctl toolkit package help     帮助说明"
+        echo "sypctl toolkit package files    安装包文件"
+        echo "sypctl toolkit package list     安装包列表"
+        echo "sypctl toolkit package deploy   下载安装包"
+        echo "sypctl toolkit package check    查检安装包一致性(文件哈希)"
+        echo "sypctl toolkit package status   安装包安装状态"
+    ;;
+    *)
+        echo "警告：未知参数 - $@"
+        echo
+
+        sypctl toolkit package help
     ;;
 esac

@@ -38,10 +38,19 @@ source linux/bash/common.sh
 # # 场景二，以局域网服务器为标准
 # $ bash date-tools.sh view 127.0.0.1
 # ```
+#
+
+api_host=sypctl.com
+remote_api=http://${api_host}/api/v1/linux.date
+
+ping -c 1 ${api_host} > /dev/null 2>&1
+test $? -eq 0 || {
+    echo "警告：网络异常，退出操作"
+    exit 1
+} 
+
 function fun_check_linux_date() {
     global_executed_date=$(date +%s)
-
-    remote_api=http://sypctl-api.ibi.ren/api/v1/linux.date
     test -n "$1" && remote_api="$1"
 
     if [[ "${remote_api}" = "$(hostname)" ]]; then
@@ -155,7 +164,6 @@ function fun_check_linux_date() {
 }
 
 function fun_view_linux_date() {
-    remote_api=http://sypctl-api.ibi.ren/api/v1/linux.date
     test -n "$1" && remote_api="$1"
 
     echo "对比标准：${remote_api}"
@@ -180,6 +188,9 @@ function fun_view_linux_date() {
 }
 
 case "$1" in
+    timestamp)
+        echo $(date +%s)
+    ;;
     check)
         if [[ "$2" = "rdate" ]]; then
             command -v rdate > /dev/null || fun_install rdate
@@ -218,7 +229,16 @@ case "$1" in
         interval=$(expr $interval % 60)
         echo "human: ${hours}h ${minutes}m ${interval}s"
     ;;
+    help)
+        echo "日期管理:"
+        echo "sypctl toolkit date view      # 查看与服务器日期误差，不作实质修改"
+        echo "sypctl toolkit date check     # 对比与服务器日期误差，作实质修改"
+        echo "sypctl toolkit date timestamp # 当前日期戳"
+        echo "sypctl toolkit date interval <timestamp> # 对比日期戳误差"
+    ;;
     *)
-        echo "bash $0 view|check"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit date help
     ;;  
 esac

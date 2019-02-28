@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 VERSION=$(test -f version && cat version || echo 'unkown')
+sypctl_mode=$(cat mode)
 current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
@@ -144,12 +145,12 @@ function fun_print_sypctl_help() {
     echo "sypctl deployed          查看已部署服务"
     echo "sypctl device:update     更新重新提交设备信息"
     echo
-    echo "sypctl agent   help      #代理# 配置"
-    echo "sypctl package help      #安装包# 管理"
-    echo "sypctl toolkit help      #工具# 安装"
-    echo "sypctl service help      #服务# 管理"
-    echo "sypctl backup:file help   #备份文件# 管理"
-    echo "sypctl backup:mysql help  #备份MySQL# 管理"
+    echo "sypctl agent   help         #代理# 配置"
+    echo "sypctl toolkit help         #工具# 安装"
+    echo "sypctl toolkit package help #安装包# 管理"
+    echo "sypctl service help         #服务# 管理"
+    echo "sypctl backup:file help     #备份文件# 管理"
+    echo "sypctl backup:mysql help    #备份MySQL# 管理"
     echo
     fun_print_logo
     echo "Current version is $VERSION"
@@ -346,18 +347,20 @@ function fun_sypctl_upgrade() {
         exit 0
     fi
 
-    # 升级后重新提交主机信息
-    test -f agent/db/agent.json && mv agent/db/agent.json agent/db/agent.json-${timestamp}
+    if [[ "${sypctl_mode}" = "server" ]]; then
+        # 升级后重新提交主机信息
+        test -f agent/db/agent.json && mv agent/db/agent.json agent/db/agent.json-${timestamp}
 
-    # 升级生重新备份配置档
-    test -f agent/db/file-backups/synced.hash && rm -f agent/db/file-backups/synced.hash
-    test -f agent/db/file-backups/synced.json && mv agent/db/file-backups/synced.json agent/db/file-backups/synced.json-${timestamp}
+        # 升级生重新备份配置档
+        test -f agent/db/file-backups/synced.hash && rm -f agent/db/file-backups/synced.hash
+        test -f agent/db/file-backups/synced.json && mv agent/db/file-backups/synced.json agent/db/file-backups/synced.json-${timestamp}
 
-    # 升级后重要实时同步的操作
-    sypctl linux:date check > /dev/null 2>&1
-    sypctl memory:free > /dev/null 2>&1
-    sypctl crontab:update > /dev/null 2>&1
-    sypctl crontab:jobs > /dev/null 2>&1
+        # 升级后重要实时同步的操作
+        sypctl toolkit date check > /dev/null 2>&1
+        sypctl memory:free > /dev/null 2>&1
+        sypctl crontab:update > /dev/null 2>&1
+        sypctl crontab:jobs > /dev/null 2>&1
+    fi
 
     fun_print_logo
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
@@ -470,7 +473,7 @@ function check_install_defenders_include() {
 
 function fun_deploy_service_guides() {
     mkdir -p ./logs
-    bash linux/bash/packages-tools.sh state
+    bash linux/bash/package-tools.sh state
 
     fun_user_expect_to_install_package_guides
 
@@ -509,24 +512,24 @@ function fun_deploy_service_guides() {
 
     check_install_defenders_include "SYPAPI" && {
         root_path=/usr/local/src/tomcatAPI
-        bash linux/bash/tomcat-tools.sh ${root_path} install 8081
+        bash linux/bash/tomcat-tools.sh install ${root_path} 8081
         jar_path=/usr/local/src/providerAPI/api-service.jar
-        bash linux/bash/jar-service-tools.sh ${jar_path} install
+        bash linux/bash/jar-service-tools.sh install ${jar_path}
     }
 
     check_install_defenders_include "SYPSuperAdmin" && {
         root_path=/usr/local/src/tomcatSuperAdmin
-        bash linux/bash/tomcat-tools.sh ${root_path} install 8082
+        bash linux/bash/tomcat-tools.sh install ${root_path} 8082
     }
 
     check_install_defenders_include "SYPAdmin" && {
         root_path=/usr/local/src/tomcatAdmin
-        bash linux/bash/tomcat-tools.sh ${root_path} install 8083
+        bash linux/bash/tomcat-tools.sh install ${root_path} 8083
     }
 
     check_install_defenders_include "ActiveMQ" && {
         root_path=/usr/local/src/activeMQ
-        bash linux/bash/activemq-tools.sh ${root_path} install
+        bash linux/bash/activemq-tools.sh install ${root_path}
     }
 
     check_install_defenders_include "Zookeeper" && {
@@ -717,8 +720,6 @@ function fun_update_crontab_jobs() {
     echo "" >> ~/.${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
     echo "*/5 * * * * sypctl crontab:jobs" >> ~/${crontab_conf}
-    echo "0   0 * * * sypctl upgrade" >> ~/${crontab_conf}
-    echo "0   1 * * * sypctl backup:mysql guard" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
@@ -752,8 +753,8 @@ function fun_update_rc_local() {
         sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
         sudo echo "test -n \"\${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl" >> ${rc_local_filepath}
         sudo echo "mkdir -p \${SYPCTL_HOME}/logs" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:jobs\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:jobs\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
         sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
 
         sudo chmod +x ${rc_local_filepath}

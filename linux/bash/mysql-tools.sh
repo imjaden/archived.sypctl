@@ -50,12 +50,16 @@ case "$1" in
     monitor)
         echo "TODO"
     ;;
+    help)
+        echo "MySQL 管理:"
+        echo "$ sypctl toolkit mysql help"
+        echo "$ sypctl toolkit mysql check"
+        echo "$ sypctl toolkit mysql install"
+    ;;
     *)
-        echo "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "    $0 install"
-        logger "    $0 check"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit mysql help
     ;;
 esac
 

@@ -22,9 +22,10 @@
 
 source linux/bash/common.sh
 
-tomcat_home="${1:-$TOMCAT_HOME}"
-cmd_type="${2:-startup}"
+cmd_type="${1:-startup}"
+tomcat_home="${2:-$TOMCAT_HOME}"
 option="${3:-use-header}"
+
 case "${cmd_type}" in
     check)
         printf "$two_cols_table_format" "Tomcat:check" "TODO"
@@ -92,7 +93,7 @@ case "${cmd_type}" in
         bash ${tomcat_home}/bin/startup.sh > /dev/null 2>&1
         printf "$two_cols_table_format" "${tomcat_home}" "started"
 
-        bash $0 ${tomcat_home} status
+        bash $0 status ${tomcat_home}
     ;;
     stop)
         printf "$two_cols_table_format" "${tomcat_home}" "Stoping..."
@@ -125,30 +126,30 @@ case "${cmd_type}" in
         fi
     ;;
     monitor)
-        bash $0 ${tomcat_home} status ${option}
+        bash $0 status ${tomcat_home} ${option}
         if [[ $? -gt 0 ]]; then
             printf "$two_cols_table_format" "${tomcat_home}" "not found"
             printf "$two_cols_table_format" "${tomcat_home}" "starting..."
-            bash $0 ${tomcat_home} startup
+            bash $0 startup ${tomcat_home}
         fi
     ;;
     restart|restartup)
-        bash $0 ${tomcat_home} stop
-        bash $0 ${tomcat_home} startup
+        bash $0 stop ${tomcat_home}
+        bash $0 startup ${tomcat_home}
     ;;
-    auto:generage:praams|agp)
-        cat $0 | grep "|*)$" | grep -v echo | awk '{gsub(/ /,"")}1' | awk -F ')' '{print "logger \"    $0 "$1" tomcat_home\"" }'
+    help)
+        echo "Tomcat 管理:"
+        echo "sypctl toolkit tomcat help"
+        echo "sypctl toolkit tomcat check"
+        echo "sypctl toolkit tomcat install"
+        echo "sypctl toolkit tomcat start"
+        echo "sypctl toolkit tomcat status"
+        echo "sypctl toolkit tomcat restart"
+        echo "sypctl toolkit tomcat monitor"
     ;;
     *)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "    $0 tomcat_home install"
-        logger "    $0 tomcat_home check"
-        logger "    $0 tomcat_home stop"
-        logger "    $0 tomcat_home status|state"
-        logger "    $0 tomcat_home monitor"
-        logger "    $0 tomcat_home restart"
-        logger "    $0 tomcat_home auto:generage:praams|agp"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit tomcat help
     ;;
 esac

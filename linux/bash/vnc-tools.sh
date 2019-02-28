@@ -75,14 +75,18 @@ case "${cmd_type}" in
         [[ ${service_count} -eq 0 ]] && bash $0 start
         bash $0 status
     ;;
-    help|*)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "    $0 install|deplo"
-        logger "    $0 list|status"
-        logger "    $0 start"
-        logger "    $0 stop"
-        logger "    $0 monitor"
+    help)
+        echo "VNC 管理:"
+        echo "sypctl toolkit vnc help"
+        echo "sypctl toolkit vnc install"
+        echo "sypctl toolkit vnc list"
+        echo "sypctl toolkit vnc start"
+        echo "sypctl toolkit vnc stop"
+        echo "sypctl toolkit vnc monitor"
+    ;;
+    *)
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit vnc help
     ;;
 esac

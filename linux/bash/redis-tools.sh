@@ -123,11 +123,18 @@ case "$1" in
             bash $0 start
         fi
     ;;
+    help)
+        echo "Redis 管理:"
+        echo "sypctl toolkit redis help"
+        echo "sypctl toolkit redis install"
+        echo "sypctl toolkit redis install:force"
+        echo "sypctl toolkit redis start"
+        echo "sypctl toolkit redis status"
+        echo "sypctl toolkit redis monitor"
+    ;;
     *)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "\$ sypctl toolkit redis check"
-        logger "\$ sypctl toolkit redis install"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit redis help
     ;;
 esac

@@ -9,6 +9,7 @@
 .bundle-done
 .sypctl-*
 nohup.out
+mode
 
 linux/packages
 linux/bash/sqoop-*

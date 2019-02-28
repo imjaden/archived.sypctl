@@ -10,7 +10,10 @@ test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
 cd ${SYPCTL_HOME}
 export SYPCTL_EXECUTE_PATH="$(pwd)"
 source linux/bash/common.sh
+
 mkdir -p {logs,tmp}
+test -f mode || echo default > mode
+sypctl_mode=$(cat mode)
 
 case "$1" in
     version)
@@ -20,6 +23,10 @@ case "$1" in
         fun_print_logo
         echo " Version: ${VERSION}"
         echo "HomePath: ${SYPCTL_HOME}"
+    ;;
+    network)
+        ping -c 1 sypctl.com > /dev/null 2>&1
+        test $? -eq 0 && echo "网络正常" || echo "网络异常"
     ;;
     git:pull|gp|upgrade|update)
         fun_sypctl_upgrade
@@ -63,11 +70,14 @@ case "$1" in
             echo "Warning: Please offer json filepath！"
         }
     ;;
-    crontab:update) # sypctl crontab jobs
+    crontab:update)
         fun_update_crontab_jobs
         fun_update_rc_local
     ;;
     crontab:jobs)
+        [[ $(date +%H%M) = "0000" ]] && sypctl upgrade
+        [[ $(date +%H) = "00" ]] && sypctl backup:mysql guard
+
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard
         bash $0 service     guard
@@ -95,9 +105,6 @@ case "$1" in
     ;;
     variable)
         fun_print_variable "$2"
-    ;;
-    linux:date)
-        bash linux/bash/date-tools.sh "$2" "$3"
     ;;
     etl:import)
         fun_etl_caller $@
@@ -129,8 +136,15 @@ case "$1" in
     agent:*|agent)
         fun_agent_caller $@
     ;;
-    package)
-        bash linux/bash/packages-tools.sh $2
+    mode)
+        cat mode
+    ;;
+    set-mode)
+        read -p "设置 server 模式? y/n: " user_input
+        if [[ "${user_input}" = 'y' ]]; then
+            echo server > mode
+            echo "设置模式成功: server"
+        fi
     ;;
     *)
         fun_print_sypctl_help

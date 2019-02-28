@@ -121,13 +121,18 @@ case "$1" in
             fun_prompt_java_already_installed "custom"
         fi
     ;;
+    help)
+        echo "JDK 管理:"
+        echo "sypctl toolkit jdk help"
+        echo "sypctl toolkit jdk check"
+        echo "sypctl toolkit jdk install:jdk"
+        echo "sypctl toolkit jdk install:jdk:force"
+        echo "sypctl toolkit jdk install:javac"
+    ;;
     *)
-        echo "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "\$ sypctl toolkit jdk install:jdk"
-        logger "\$ sypctl toolkit jdk install:jdk:force"
-        logger "\$ sypctl toolkit jdk install:javac"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit jdk help
     ;;
 esac
 

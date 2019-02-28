@@ -80,23 +80,6 @@ case "${cmd_type}" in
         cd ${zk_home}
         echo "already enter zookeeper installed dir, do yourself!"
     ;;
-    install)
-        zk_install_path=/usr/local/src
-
-        if [[ ! -f ${zookeeper_package} ]]; then
-            printf "$two_cols_table_format" "Zookeeper" "Tar Package Not Found"
-            exit 2
-        fi
-
-        if [[ -d ${zk_install_path}/zookeeper ]]; then
-            printf "$two_cols_table_format" "Zookeeper" "Deployed"
-            exit 2
-        fi
-
-        tar -xzvf ${zookeeper_package} -C ${zk_install_path}
-        mv ${zk_install_path}/${zookeeper_version} ${zk_install_path}/zookeeper
-        mkdir -p /usr/local/src/zookeeper/{data,log}
-    ;;
     start|startup)
         test -f ~/.bash_profile && source ~/.bash_profile
 
@@ -137,29 +120,31 @@ case "${cmd_type}" in
         fi
     ;;
     monitor)
-        bash $0 ${zk_home} status ${option}
+        bash $0 status ${zk_home} ${option}
         if [ $? -gt 0 ]; then
             printf "$two_cols_table_format" "Zookeeper" "Process Not Found"
             printf "$two_cols_table_format" "Zookeeper" "Starting..."
-            bash $0 ${zk_home} startup
+            bash $0 startup ${zk_home}
         fi
     ;;
     restart|restartup)
-        bash $0 ${zk_home} stop 
-        bash $0 ${zk_home} start 
+        bash $0 stop ${zk_home}
+        bash $0 start ${zk_home}
     ;;
-    auto:generage:praams|agp)
-        cat $0 | grep "|*)$" | grep -v echo | awk '{gsub(/ /,"")}1' | awk -F ')' '{print "logger \"    $0 "$1" zk_home\"" }'
+    help)
+        echo "Zookeeper 管理:"
+        echo "sypctl toolkit zookeeper help"
+        echo "sypctl toolkit zookeeper check"
+        echo "sypctl toolkit zookeeper install"
+        echo "sypctl toolkit zookeeper start"
+        echo "sypctl toolkit zookeeper status"
+        echo "sypctl toolkit zookeeper stop"
+        echo "sypctl toolkit zookeeper restart"
+        echo "sypctl toolkit zookeeper monitor"
     ;;
     *)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "    $0 zk_home start"
-        logger "    $0 zk_home stop"
-        logger "    $0 zk_home status|state"
-        logger "    $0 zk_home monitor"
-        logger "    $0 zk_home restart"
-        logger "    $0 zk_home auto:generage:praams|agp"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit zookeeper help
     ;;
 esac

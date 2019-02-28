@@ -167,11 +167,19 @@ case "$1" in
             bash $0 start
         fi
     ;;
+    help)
+        echo "Nginx 管理:"
+        echo "$ sypctl toolkit nginx help"
+        echo "$ sypctl toolkit nginx install"
+        echo "$ sypctl toolkit nginx start"
+        echo "$ sypctl toolkit nginx status"
+        echo "$ sypctl toolkit nginx stop"
+        echo "$ sypctl toolkit nginx restart"
+        echo "$ sypctl toolkit nginx monitor"
+    ;;
     *)
-        logger "warning: unkown params - $@"
-        logger
-        logger "Usage:"
-        logger "\$ sypctl toolkit jdk check"
-        logger "\$ sypctl toolkit jdk install"
+        echo "警告：未知参数 - $@"
+        echo
+        sypctl toolkit nginx help
     ;;
 esac

@@ -93,7 +93,8 @@ case "$1" in
         bash $0 install
     ;;
     help)
-        echo "Usage:"
+        echo "Kettle 管理:"
+        echo "$ sypctl toolkit kettle help"
         echo "$ sypctl toolkit kettle install"
         echo "$ sypctl toolkit kettle install:force"
         echo
@@ -105,8 +106,8 @@ case "$1" in
         echo "日志归档: /data/work/kettle/logs"
     ;;
     *)
-        echo "warning: unkown params - $@"
+        echo "警告：未知参数 - $@"
         echo
-        bash $0 help
+        sypctl toolkit kettle help
     ;;
 esac
