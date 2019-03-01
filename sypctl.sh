@@ -137,13 +137,17 @@ case "$1" in
         fun_agent_caller $@
     ;;
     mode)
-        cat mode
+        test -f mode || echo default > mode
+        echo "当前模式: $(cat mode)"
     ;;
     set-mode)
         read -p "设置 server 模式? y/n: " user_input
         if [[ "${user_input}" = 'y' ]]; then
             echo server > mode
             echo "设置模式成功: server"
+        else
+            test -f mode || echo default > mode
+            echo "当前模式: $(cat mode)"
         fi
     ;;
     *)

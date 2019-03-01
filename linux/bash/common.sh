@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+test -f mode || echo default > mode
 VERSION=$(test -f version && cat version || echo 'unkown')
 sypctl_mode=$(cat mode)
 current_path=$(pwd)
@@ -327,19 +328,14 @@ function fun_sypctl_upgrade() {
     fi
 
     # 编译 sypctl 代理端服务
-    if [[ -f .config/local-server ]]; then
-        title "\$ cd agent && bundle install"
-        cd agent
-        mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
-        rm -f .config/bundle-done
-        bundle install > /dev/null 2>&1
-        if [[ $? -eq 0 ]]; then
-          echo "$ bundle install successfully"
-          echo ${timestamp} > .config/bundle-done
-        fi
-        bash tool.sh restart
-        cd ..
-    fi
+    # bundle 操作必须执行，所 ruby 脚本依赖的包都维护在该 Gemfile 中
+    cd agent
+    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
+    rm -f .config/bundle-done
+    bundle install > /dev/null 2>&1
+    test $? -eq 0 && echo ${timestamp} > .config/bundle-done
+    test -f .config/local-server && bash tool.sh restart
+    cd ..
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
