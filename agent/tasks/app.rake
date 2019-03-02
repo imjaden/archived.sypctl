@@ -138,8 +138,9 @@ namespace :app do
     local_version_path = download_version_file(url, config, job_uuid)
     version_file_state = check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
     download_try_time = 2
-    while !version_file_state && download_try_time <= 3
+    while !version_file_state && download_try_time <= 5
       execute_job_logger("第#{download_try_time}次尝试下载", job_uuid)
+      local_version_path = download_version_file(url, config, job_uuid)
       version_file_state = check_file_md5('下载', local_version_path, config['version']['md5'], job_uuid)
       download_try_time += 1
     end
