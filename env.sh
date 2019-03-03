@@ -39,6 +39,7 @@ fi
 
 function fun_install_dependent_packages() {
     command -v yum > /dev/null && {
+    command -v yum > /dev/null && {
         declare -a packages
         packages[0]=git
         packages[1]=tree
@@ -59,18 +60,11 @@ function fun_install_dependent_packages() {
         packages[16]=mysql-devel
         packages[17]=openssl-devel
         packages[18]=readline-devel
-        packages[19]=readline-devel
-        packages[20]=iptables-services
-        packages[21]=libxslt-devel.x86_64
-        packages[22]=libxml2-devel.x86_64
-        packages[23]=yum-plugin-downloadonly
-        for package in ${packages[@]}; do
-          rpm -q ${package} > /dev/null 2>&1 || {
-              printf "installing ${package}..."
-              sudo yum install -y ${package} > /dev/null 2>&1
-              printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
-          }
-        done
+        packages[19]=iptables-services
+        packages[20]=libxslt-devel.x86_64
+        packages[21]=libxml2-devel.x86_64
+        packages[22]=yum-plugin-downloadonly
+        sudo yum install -y ${packages[@]}
     }
 
     command -v apt-get > /dev/null && {
