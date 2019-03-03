@@ -37,6 +37,55 @@ else
     exit 1
 fi
 
+function fun_install_dependent_packages() {
+    command -v yum > /dev/null && {
+        declare -a packages
+        packages[0]=git
+        packages[1]=tree
+        packages[2]=wget
+        packages[3]=make
+        packages[4]=rdate
+        packages[5]=dos2unix
+        packages[6]=net-tools
+        packages[7]=bzip2
+        packages[8]=gcc
+        packages[9]=gcc-c++
+        packages[10]=automake
+        packages[11]=autoconf
+        packages[12]=libtool
+        packages[13]=openssl
+        packages[14]=vim-enhanced
+        packages[15]=zlib-devel
+        packages[16]=mysql-devel
+        packages[17]=openssl-devel
+        packages[18]=readline-devel
+        packages[19]=readline-devel
+        packages[20]=iptables-services
+        packages[21]=libxslt-devel.x86_64
+        packages[22]=libxml2-devel.x86_64
+        packages[23]=yum-plugin-downloadonly
+        for package in ${packages[@]}; do
+          rpm -q ${package} > /dev/null 2>&1 || {
+              printf "installing ${package}..."
+              sudo yum install -y ${package} > /dev/null 2>&1
+              printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
+          }
+        done
+    }
+
+    command -v apt-get > /dev/null && {
+        packages=(git rdate git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
+        for package in ${packages[@]}; do
+          command -v ${package} > /dev/null || {
+              printf "installing ${package}..."
+              sudo apt-get build-dep -y ${package} > /dev/null 2>&1
+              sudo apt-get install -y ${package} > /dev/null 2>&1
+              printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
+          }
+        done
+    }
+}
+
 fun_install_dependent_packages
 
 title "移除旧版本的 sypctl..."
@@ -64,12 +113,13 @@ cd ${SYPCTL_HOME}
 git remote set-url origin http://gitlab.ibi.ren/syp-apps/sypctl.git
 git pull origin dev-0.0.1 > /dev/null 2>&1
 
-test -L /usr/bin/sypctl && sudo unlink /usr/bin/sypctl
 sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
+sudo ln -snf ${SYPCTL_HOME}/linux/bash/syps.sh /usr/bin/syps
+sudo ln -snf ${SYPCTL_HOME}/linux/bash/sypt.sh /usr/bin/sypt
 
 title "检查/安装 JDK..."
-command -v java > /dev/null || bash linux/bash/jdk-tools.sh jdk:install
-command -v javac > /dev/null || bash linux/bash/jdk-tools.sh javac:install
+command -v java > /dev/null || bash linux/bash/jdk-tools.sh install:jdk
+command -v javac > /dev/null || bash linux/bash/jdk-tools.sh install:javac
 
 title "检查/安装 Rbenv/Ruby..."
 function fun_rbenv_install_ruby() {
@@ -104,7 +154,7 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
 }
 
 cd agent
-mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
+mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
 bundle install > /dev/null 2>&1
 cd ..
 
@@ -123,9 +173,13 @@ fun_prompt_java_already_installed
 fun_print_table_footer
 
 title "sypctl 约束配置..."
-sypctl crontab
-sypctl rc.local
 sypctl ssh-keygen
+
+title "sypctl 基础服务配置..."
 sypctl linux:date check
+sypctl crontab:update
+sypctl crontab:jobs
+
+title "sypctl 安装完成"
 sypctl help
 sypctl home
