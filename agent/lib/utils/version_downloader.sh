@@ -29,8 +29,8 @@ if [[ "$process_state" = "todo" ]]; then
 else
     progress=
     if [[ -f ${log_path} ]]; then
-        progress=$(cat ${log_path} | grep -E '\d+% \S+M' -o | tail -n 1) # mac
-        test -z "${progress}" && progress=$(cat ${log_path} | grep -P '\d+% \S+M' -o | tail -n 1) # linux
+        progress=$(cat ${log_path} | grep -E '\d+% \S+ \S+$' -o | tail -n 1) # mac
+        test -z "${progress}" && progress=$(cat ${log_path} | grep -P '\d+% \S+ \S+$' -o | tail -n 1) # linux
     fi
     echo "pid:$pid,progress:$progress"
 fi

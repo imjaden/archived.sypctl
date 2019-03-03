@@ -830,7 +830,8 @@ function fun_agent_job_guard() {
                 echo $$ > ${pid_path}
                 mv ${todo_job_tag} ${doing_job_tag}
 
-                echo "${timestamp2} - Bash 进程 ID: $$" >> ${output_path} 2>&1
+                echo "${timestamp2} - Bash PID: $$" >> ${output_path} 2>&1
+                echo "${timestamp2} - Bash User: ${whoami}" >> ${output_path} 2>&1
                 echo "${timestamp2} - 任务 UUID: ${job_uuid}" >> ${output_path} 2>&1
                 echo "${timestamp2} - 部署脚本执行开始: $(date +'%Y-%m-%d %H:%M:%S')" >> ${output_path} 2>&1
 
