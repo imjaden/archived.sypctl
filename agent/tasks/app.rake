@@ -113,7 +113,7 @@ namespace :app do
     while download_state == "running"
       bash_message = `#{bash_command}`
       execute_job_logger("下载状态: #{bash_message}", job_uuid)
-      # sleep 5
+      sleep 5
 
       if File.exists?(download_pid_path)
         download_pid = File.read(download_pid_path).strip
