@@ -31,6 +31,9 @@ case "$1" in
     git:pull|gp|upgrade|update)
         fun_sypctl_upgrade
     ;;
+    check:dependent:packages)
+        fun_install_dependent_packages
+    ;;
     device:update)
         fun_update_device
     ;;

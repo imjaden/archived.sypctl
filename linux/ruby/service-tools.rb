@@ -195,7 +195,7 @@ class Service
           behavior: "检测到「#{service['name']}」(#{service['id']}) 服务未运行，执行启动操作(#{whoami})", 
           object_type: 'service', 
           object_id: "#{service['name']}(#{service['id']})"
-        }, {}, {print_log: true})
+        }, {}, {print_log: false})
       end
 
       status('all')

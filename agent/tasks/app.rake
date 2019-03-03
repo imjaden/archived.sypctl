@@ -56,7 +56,7 @@ namespace :app do
     response['hash']['data']
   end
 
-  def download_version_file(url, config, job_uuid)
+  def download_version_file_deprecated(url, config, job_uuid)
     versions_path = File.join(ENV['RAKE_ROOT_PATH'], "db/versions")
     version_path = File.join(versions_path, config['version']['uuid'])
     version_file_path = File.join(version_path, config['version']['file_name'])
@@ -81,6 +81,52 @@ namespace :app do
     execute_job_logger("文件路径: #{version_file_path}", job_uuid) if File.exists?(version_file_path)
     execute_job_logger("文件大小: #{File.exists?(version_file_path) ? File.size(version_file_path).number_to_human_size : 'NotFound'}", job_uuid)
     execute_job_logger("下载用时: #{Time.now - btime}s", job_uuid)
+    return version_file_path
+  end
+
+  def download_version_file(url, config, job_uuid)
+    versions_path = File.join(ENV['RAKE_ROOT_PATH'], "db/versions")
+    version_folder = File.join(versions_path, config['version']['uuid'])
+    version_file_path = File.join(version_folder, config['version']['file_name'])
+
+    if File.exists?(version_file_path)
+      current_md5 = Digest::MD5.file(version_file_path).hexdigest
+      if current_md5 == config['version']['md5']
+        execute_job_logger("下载状态: 版本文件已下载，哈希值一致为 #{current_md5}", job_uuid)
+        execute_job_logger("文件路径: #{version_file_path}", job_uuid)
+        return version_file_path
+      end
+    end
+    
+    FileUtils.mkdir_p(version_folder) unless File.exists?(version_folder)
+    File.open(File.join(version_folder, 'config.json'), 'w:utf-8') { |file| file.puts(config.to_json) }
+
+    bash_command = "bash lib/utils/version_downloader.sh #{url} #{config['version']['file_name']} db/versions/#{config['version']['uuid']}"
+    execute_job_logger("下载链接: #{url}", job_uuid)
+    execute_job_logger("执行下载: #{bash_command}", job_uuid)
+
+    download_pid_path = "#{version_file_path}.pid"
+    download_log_path = "#{version_file_path}.log"
+    download_state = "running"
+    begin_time = Time.now
+
+    while download_state == "running"
+      bash_message = `#{bash_command}`
+      execute_job_logger("下载状态: #{bash_message}", job_uuid)
+      # sleep 5
+
+      if File.exists?(download_pid_path)
+        download_pid = File.read(download_pid_path).strip
+        expected_pid = `ps ax | awk '{print $1}' | grep -e "^#{download_pid}$"`.strip
+        download_state = (download_pid == expected_pid ? "running" : "done")
+      else
+        download_state == "done"
+      end
+    end
+
+    execute_job_logger("文件路径: #{version_file_path}", job_uuid) if File.exists?(version_file_path)
+    execute_job_logger("文件大小: #{File.exists?(version_file_path) ? File.size(version_file_path).number_to_human_size : 'NotFound'}", job_uuid)
+    execute_job_logger("下载用时: #{Time.now - begin_time}s", job_uuid)
     return version_file_path
   end
 
@@ -182,8 +228,6 @@ namespace :app do
       FileUtils.cp(local_version_path, backup_file_path)
       execute_job_logger("版本备份: 备份#{File.exists?(backup_file_path) ? '成功' : 失败} #{backup_file_path}", job_uuid)
     end
-
-    execute_job_logger("部署归档: 清理沙盒目录 #{sandbox_path}", job_uuid)
     execute_job_logger('部署完成!', job_uuid)
 
     job_config_path = File.join(sandbox_path, 'job.json')

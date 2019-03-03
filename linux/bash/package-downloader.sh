@@ -20,10 +20,8 @@ if [[ -f "${pid_path}" ]]; then
 fi
 
 if [[ "$process_state" = "abort" ]]; then
-    rm -f ${pid_path}
-    rm -f ${log_path}
-    rm -f linux/packages/${package_name}
-    nohup wget -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}" > ${log_path} 2>&1 & echo $! > ${pid_path}
+    rm -f ${pid_path} ${log_path} linux/packages/${package_name}
+    nohup wget -S -c -t 3 -T 120 -P linux/packages/ "http://qiniu-cdn.sypctl.com/${package_name}" > ${log_path} 2>&1 & echo $! > ${pid_path}
     pid=$(cat ${pid_path})
     printf "$two_cols_table_format" "${package_name:0:34}" "ToDownload(pid:$pid)"
 else

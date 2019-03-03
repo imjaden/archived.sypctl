@@ -37,28 +37,7 @@ else
     exit 1
 fi
 
-command -v yum > /dev/null && {
-    packages=(git rdate dos2unix vim-enhanced iptables-services net-tools wget bzip2 gcc gcc-c++ automake autoconf libtool make openssl openssl-devel mysql-devel readline-devel zlib-devel readline-devel libxslt-devel.x86_64 libxml2-devel.x86_64 tree)
-    for package in ${packages[@]}; do
-      rpm -q ${package} > /dev/null 2>&1 || {
-          printf "installing ${package}..."
-          sudo yum install -y ${package} > /dev/null 2>&1
-          printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
-      }
-    done
-}
-
-command -v apt-get > /dev/null && {
-    packages=(git rdate git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
-    for package in ${packages[@]}; do
-      command -v ${package} > /dev/null || {
-          printf "installing ${package}..."
-          sudo apt-get build-dep -y ${package} > /dev/null 2>&1
-          sudo apt-get install -y ${package} > /dev/null 2>&1
-          printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
-      }
-    done
-}
+fun_install_dependent_packages
 
 title "移除旧版本的 sypctl..."
 # remove deprecated sypctl command

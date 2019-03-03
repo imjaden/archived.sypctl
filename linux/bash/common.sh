@@ -32,6 +32,55 @@ function fun_install() {
 
 command -v lsb_release > /dev/null || fun_install redhat-lsb
 
+function fun_install_dependent_packages() {
+    command -v yum > /dev/null && {
+        declare -a packages
+        packages[0]=git
+        packages[1]=tree
+        packages[2]=wget
+        packages[3]=make
+        packages[4]=rdate
+        packages[5]=dos2unix
+        packages[6]=net-tools
+        packages[7]=bzip2
+        packages[8]=gcc
+        packages[9]=gcc-c++
+        packages[10]=automake
+        packages[11]=autoconf
+        packages[12]=libtool
+        packages[13]=openssl
+        packages[14]=vim-enhanced
+        packages[15]=zlib-devel
+        packages[16]=mysql-devel
+        packages[17]=openssl-devel
+        packages[18]=readline-devel
+        packages[19]=readline-devel
+        packages[20]=iptables-services
+        packages[21]=libxslt-devel.x86_64
+        packages[22]=libxml2-devel.x86_64
+        packages[23]=yum-plugin-downloadonly
+        for package in ${packages[@]}; do
+          rpm -q ${package} > /dev/null 2>&1 || {
+              printf "installing ${package}..."
+              sudo yum install -y ${package} > /dev/null 2>&1
+              printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
+          }
+        done
+    }
+
+    command -v apt-get > /dev/null && {
+        packages=(git rdate git-core git-doc lsb-release curl libreadline-dev libcurl4-gnutls-dev libssl-dev libexpat1-dev gettext libz-dev tree language-pack-zh-hant language-pack-zh-hans)
+        for package in ${packages[@]}; do
+          command -v ${package} > /dev/null || {
+              printf "installing ${package}..."
+              sudo apt-get build-dep -y ${package} > /dev/null 2>&1
+              sudo apt-get install -y ${package} > /dev/null 2>&1
+              printf "$([[ $? -eq 0 ]] && echo 'successfully' || echo 'failed')\n"
+          }
+        done
+    }
+}
+
 os_type="UnKnownOSType"
 os_version="UnKnownOSVersion"
 os_platform="UnknownOS"
@@ -320,12 +369,16 @@ function fun_sypctl_upgrade() {
     git reset --hard HEAD  > /dev/null 2>&1
     git pull origin ${git_current_branch} > /dev/null 2>&1
     sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
+    sudo ln -snf ${SYPCTL_HOME}/linux/bash/syps.sh /usr/bin/syps
+    sudo ln -snf ${SYPCTL_HOME}/linux/bash/sypt.sh /usr/bin/sypt
 
     # 分配源代码权限
     if [[ "$(whoami)" != "root" ]]; then
         sudo chmod -R go+w ${SYPCTL_HOME}
         sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
     fi
+
+    sypctl check:dependent:packages
 
     # 编译 sypctl 代理端服务
     # bundle 操作必须执行，所 ruby 脚本依赖的包都维护在该 Gemfile 中
@@ -647,7 +700,6 @@ function fun_execute_bundle_rake_without_logger() {
     test -f .config/bundle-done || {
         bundle install --local > /dev/null
         if [[ $? -eq 0 ]]; then
-            echo "$ bundle install --local successfully"
             echo ${timestamp} > .config/bundle-done
         else
             bundle install > /dev/null
@@ -656,6 +708,7 @@ function fun_execute_bundle_rake_without_logger() {
 
     test -f .config/local-server && bash tool.sh process:defender
     $@
+    cd ..
 }
 
 function fun_print_variable() {
