@@ -180,20 +180,22 @@ function fun_prompt_vncserver_already_installed() {
 function fun_print_sypctl_help() {
     echo "Usage: sypctl <command> [args]"
     echo 
-    echo "常规操作："
-    echo "sypctl help              sypctl 支持的命令参数列表，及已部署服务的信息"
-    echo "sypctl upgrade           更新 sypctl 源码"
-    echo "sypctl env               部署基础环境依赖：JDK/Rbenv/Ruby"
-    echo "sypctl deploy            部署服务引导，并安装部署输入 \`y\` 确认的服务"
+    echo "常规操作:"
+    echo "sypctl help              帮助说明"
+    echo "sypctl upgrade           更新源码"
+    echo "sypctl deploy            部署服务引导（删除会自动部署）"
     echo "sypctl deployed          查看已部署服务"
     echo "sypctl device:update     更新重新提交设备信息"
     echo
-    echo "sypctl agent   help         #代理# 配置"
-    echo "sypctl toolkit help         #工具# 安装"
-    echo "sypctl toolkit package help #安装包# 管理"
-    echo "sypctl service help         #服务# 管理"
-    echo "sypctl backup:file help     #备份文件# 管理"
-    echo "sypctl backup:mysql help    #备份MySQL# 管理"
+    echo "sypctl agent   help           #代理# 配置"
+    echo "sypctl toolkit help           #工具# 箱"
+    echo "sypctl service help           #服务# 管理"
+    echo "sypctl backup:file help       #备份文件# 管理"
+    echo "sypctl backup:mysql help      #备份MySQL# 管理"
+    echo
+    echo "命令缩写:"
+    echo "sypctl service -> syps"
+    echo "sypctl toolkit -> sypt"
     echo
     fun_print_logo
     echo "Current version is $VERSION"
@@ -243,15 +245,15 @@ function fun_print_app_command_help() {
 }
 
 function fun_print_toolkit_list() {
-    echo "内嵌工具:"
+    echo "使用说明:"
     echo "$ sypctl toolkit [name] source   # 查看脚本源码"
     echo "$ sypctl toolkit [name] [args]   # 脚本功能参数"
     echo
-    echo "支持列表:"
+    echo "工具箱:"
     for tookit in $(ls linux/bash/*-tools.sh); do
         tookit=${tookit##*/}
         tookit=${tookit%-*}
-        echo "\$ sypctl toolkit ${tookit} [args]"
+        echo "\$ sypctl toolkit ${tookit} help"
     done
     echo
 }
@@ -400,8 +402,8 @@ function fun_sypctl_upgrade() {
         # 升级后重要实时同步的操作
         sypctl toolkit date check > /dev/null 2>&1
         sypctl memory:free > /dev/null 2>&1
-        sypctl crontab:update > /dev/null 2>&1
-        sypctl crontab:jobs > /dev/null 2>&1
+        sypctl schedule:update > /dev/null 2>&1
+        sypctl schedule:jobs > /dev/null 2>&1
     fi
 
     fun_print_logo
@@ -761,7 +763,7 @@ function fun_update_crontab_jobs() {
 
     echo "" >> ~/.${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
-    echo "*/5 * * * * sypctl crontab:jobs" >> ~/${crontab_conf}
+    echo "*/5 * * * * sypctl schedule:jobs" >> ~/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> ~/${crontab_conf}
 
     sudo cp ~/${crontab_conf} tmp/${crontab_conf}-updated
@@ -795,8 +797,8 @@ function fun_update_rc_local() {
         sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
         sudo echo "test -n \"\${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl" >> ${rc_local_filepath}
         sudo echo "mkdir -p \${SYPCTL_HOME}/logs" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:jobs\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl crontab:update\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl schedule:jobs\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl schedule:update\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
         sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
 
         sudo chmod +x ${rc_local_filepath}

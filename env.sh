@@ -171,8 +171,8 @@ sypctl ssh-keygen
 
 title "sypctl 基础服务配置..."
 sypctl linux:date check
-sypctl crontab:update
-sypctl crontab:jobs
+sypctl schedule:update
+sypctl schedule:jobs
 
 title "sypctl 安装完成"
 sypctl help

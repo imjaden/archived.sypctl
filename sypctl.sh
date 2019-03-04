@@ -73,13 +73,13 @@ case "$1" in
             echo "Warning: Please offer json filepath！"
         }
     ;;
-    crontab:update)
+    crontab:update|schedule:update)
         fun_update_crontab_jobs
         fun_update_rc_local
     ;;
-    crontab:jobs)
+    crontab:jobs|schedule:jobs)
         [[ $(date +%H%M) = "0000" ]] && sypctl upgrade
-        [[ $(date +%H) = "00" ]] && sypctl backup:mysql guard
+        [[ $(date +%H)   = "02" ]] && sypctl backup:mysql guard
 
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard

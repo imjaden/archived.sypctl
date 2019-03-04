@@ -95,18 +95,18 @@ class BackupMySQL
         pid = File.read(pid_path).strip
         result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
         if result.empty?
-          puts "backup mysql aborted(#{pid})"
+          puts "pid: aborted(#{pid})"
         else
-          puts "backuping mysql(#{pid})"
+          puts "pid: backuping(#{pid})"
         end
       else
-        puts "no backup mysql process"
+        puts "pid: -"
       end
 
       if File.exists?(log_path)
-        puts "log path: #{log_path}"
+        puts "log: #{log_path}"
       else
-        puts "no log"
+        puts "log: -"
       end
     end
 
@@ -135,7 +135,7 @@ class BackupMySQL
         pid = File.read(pid_path).strip
         result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
         unless result.empty?
-          puts "backuping mysql(#{pid})..."
+          puts "pid: backuping(#{pid})"
           exit 1
         end
       end
@@ -153,11 +153,13 @@ class BackupMySQL
         databases_path = File.join(backup_path, 'databases.json')
         File.open(databases_path, 'w:utf-8') { |file| file.puts(databases.to_json) }
 
+        state_list, databases_btime = [], Time.now
         databases.each do |database|
           next if (backup_config['ignore_databases'] || []).include?(database)
 
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
           if File.exists?(file_path)
+            state_list.push('skip')
             puts "#{database} backuped to #{file_path}"
             next
           end
@@ -167,41 +169,47 @@ class BackupMySQL
           result2 = client2.query("show tables;")
           client2.close
           
-          begin_time = Time.now
+          database_btime = Time.now
           ignore_tables = result2.map { |h| h.values }.flatten.select { |table| (backup_config['ignore_tables'] || []).any? { |regexp| table =~ Regexp::new(regexp)} }
           ignore_tables_sql = ignore_tables.map { |table| "--ignore-table=#{database}.#{table}" }.join(" ")
           bash_script = "mysqldump -h#{config['host']} -u#{config['username']} -p#{config['password']} -P#{config['port']} --default-character-set=utf8 #{database} #{ignore_tables_sql} > #{database}.sql 2>&1"
 
           state = 'successfully'
           begin
-            `#{bash_script} && tar -czvf #{database}.sql.tar.gz #{database}.sql && mv #{database}.sql.tar.gz #{backup_path} && rm -f #{database}.sql`
+            `cd #{backup_path} && #{bash_script}`
           rescue => e
-            state = "error: #{e.message}"
+            state = 'failure'
+            File.open(File.join(backup_path, "#{database}.sql"), 'w:utf-8') { |file| file.puts("error: #{e.message}\n\n#{config.to_json}\n\n#{bash_script}") }
+          ensure
+            `cd #{backup_path} && tar -czvf #{database}.sql.tar.gz #{database}.sql && rm #{database}.sql`
           end
+          state_list.push(state)
 
-          file_size = File.exists?(file_path) ? File.size(file_path) : 0
           options = {
             host: config['host'],
             database: database,
             file_name: "#{database}.sql.tar.gz",
-            file_size: file_size,
+            file_size: (File.exists?(file_path) ? File.size(file_path) : 0).number_to_human_size(true),
+            file_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'not-exist'),
             ignore_tables: ignore_tables,
             mysqldump_command: "#{bash_script}",
-            begin_time: begin_time.strftime('%y-%m-%d %H:%M:%S'),
-            duration: Time.now - begin_time,
-            state: state 
+            begin_time: database_btime.strftime('%y-%m-%d %H:%M:%S'),
+            duration: Time.now - database_btime,
+            state: state
           }
           output_list = File.exists?(output_path) ? JSON.parse(File.read(output_path)) : []
           output_list.push(options)
           File.open(output_path, 'w:utf-8') { |file| file.puts(output_list.to_json) }
 
           puts "#{database}, #{state}"
-          Sypctl::Http.post_behavior({
-            behavior: "成功备份数据库 #{database}.sql.tar.gz, #{file_size.number_to_human_size(true)}", 
-            object_type: 'mysql_backup', 
-            object_id: "file_path"
-          }, {}, {print_log: false})
         end
+
+        state_hash = state_list.group_by { |i| i }
+        Sypctl::Http.post_behavior({
+          behavior: "备份数据库报告,共计#{databases.length}个, 成功#{(state_hash['successfully']||[]).length}个,已备份跳过#{(state_hash['skip']||[]).length}个,失败#{(state_hash['failure']||[]).length}个, 用时#{(Time.now-databases_btime).round(1)}s", 
+          object_type: 'mysql_backup', 
+          object_id: "file_path"
+        }, {}, {print_log: false})
       end
 
       FileUtils.rm_f(pid_path) if File.exists?(pid_path)

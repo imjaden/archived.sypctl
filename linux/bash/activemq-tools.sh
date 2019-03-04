@@ -68,7 +68,6 @@ case "${cmd_type}" in
             tar -xzvf ${activemq_package} -C ~/tools
         fi
 
-        cp linux/config/setting-${activemq_port}.xml ~/tools/${activemq_version}/conf/server.xml
         cp -r ~/tools/${activemq_version} ${activemq_home}
 
         printf "$two_cols_table_format" "${activemq_home}" "deployed successfully"
