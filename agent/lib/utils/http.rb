@@ -83,6 +83,63 @@ module Sypctl
         {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
       end
 
+      def post_backup_mysql_day(options = {}, headers = {}, external_options = {print_log: false})
+        url = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_day"
+
+        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'] || "#{Dir.pwd}/agent", 'db/agent.json')
+        unless File.exists?(agent_db_path)
+          puts "该主机未注册，中断提交行为记录"
+          return false 
+        end
+
+        agent_db_hash = JSON.parse(File.read(agent_db_path))
+        options[:device_uuid] = agent_db_hash['uuid']
+        options[:device_name] = agent_db_hash['human_name'] || agent_db_hash['hostname']
+
+        options.delete(:backup_command)
+        options.delete(:ignore_tables)
+
+        playload = {backup_mysql_day: options}
+        response = RestClient.post(url, playload, default_header.merge(headers))
+        if external_options[:print_log]
+          puts "post #{url}"
+          puts "parameters: \n#{JSON.pretty_generate(playload)}"
+          puts "response code: #{response.code}"
+          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+        end
+        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
+      rescue => e
+        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
+      end
+
+      def post_backup_mysql_meta(options = {}, headers = {}, external_options = {print_log: false})
+        url = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_meta"
+
+        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'] || "#{Dir.pwd}/agent", 'db/agent.json')
+        unless File.exists?(agent_db_path)
+          puts "该主机未注册，中断提交行为记录"
+          return false 
+        end
+
+        agent_db_hash = JSON.parse(File.read(agent_db_path))
+        options[:device_uuid] = agent_db_hash['uuid']
+        options[:device_name] = agent_db_hash['human_name'] || agent_db_hash['hostname']
+
+        playload = {backup_mysql_meta: options}
+        response = RestClient.post(url, playload, default_header.merge(headers))
+        if external_options[:print_log]
+          puts "post #{url}"
+          puts "parameters: \n#{JSON.pretty_generate(playload)}"
+          puts "response code: #{response.code}"
+          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+        end
+        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
+      rescue => e
+        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
+      end
+
       protected
           
       def _timestamp

@@ -123,12 +123,16 @@
             </p>
         </div>
     </main>
-    <div class="bs-docs-featurette" style="padding-top: 30px;">
+    <div class="bs-docs-featurette" style="padding-top: 50px;">
         <div class="container">
             <div class="row">
                 <div class="col-sm-6 col-sm-offset-3">
+                    <div class="input-group col-sm-12">
+                       <input type="text" class="form-control input-lg enterprise-uuid" placeholder="企业 UUID">
+                    </div>
                     <div class="input-group">
-                       <input type="text" class="form-control input-lg search" placeholder="REP 接口异常 UUID"><span class="input-group-addon btn btn-primary" onclick="searchREPExceptionUUID()">查询</span>
+                       <input type="text" class="form-control input-lg exception-uuid" placeholder="REP 接口异常 UUID">
+                       <span class="input-group-addon btn btn-primary" onclick="searchREPExceptionUUID()">查询</span>
                     </div>
                 </div>
                 <div class="col-sm-6 col-sm-offset-3 uuid-result">
@@ -180,13 +184,18 @@
         $(".domain").html(window.location.host);
         $(".api").html(window.location.host + "/saas-api")
         function searchREPExceptionUUID() {
-            var uuid = $(".search").val();
-            if(!uuid.length) {
-                alert("请输入 REP 接口报错 UUID");
+            var enterpriseUuid = $(".enterprise-uuid").val(),
+                exceptionUuid = $(".exception-uuid").val();
+            if(!enterpriseUuid.length) {
+                alert("请输入企业 UUID");
+                return false;
+            }
+            if(!exceptionUuid.length) {
+                alert("请输入 REP 接口异常 UUID");
                 return false;
             }
 
-            $(".parameter").html(uuid);
+            $(".parameter").html(exceptionUuid);
             $(".data_code").html('');
             $(".message").html('');
             $(".stack_trace").html('');
@@ -194,7 +203,11 @@
             $(".created_at").html('');
             $.ajax({
                 type: 'GET',
-                url: '/saas-api/api/portal/custom?dataSourceCode=DATA_000000&repCode=REP_000003&uuid=' + uuid,
+                 headers: {
+                    Accept: "application/json; charset=utf-8",
+                    enterpriseUuid: enterpriseUuid
+                },
+                url: '/saas-api/api/portal/custom?dataSourceCode=DATA_000000&repCode=REP_000003&uuid=' + exceptionUuid,
                 success: function(response, status, xhr) {
                     var hash = JSON.parse(response);
                     if(hash.code === 0 && hash.data.length) {

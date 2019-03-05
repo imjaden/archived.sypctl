@@ -14,6 +14,7 @@ require 'timeout'
 require 'optparse'
 require 'fileutils'
 require 'digest/md5'
+require 'securerandom'
 require 'terminal-table'
 require File.expand_path('../../../agent/lib/utils/http', __FILE__)
 require File.expand_path('../../../agent/lib/utils/device', __FILE__)
@@ -78,9 +79,9 @@ class BackupMySQL
         databases_path = File.join(backup_path, 'databases.json')
         next unless File.exists?(output_path)
 
-        output_list = JSON.parse(File.read(output_path))
+        backup_hash = JSON.parse(File.read(output_path))
         database_list = JSON.parse(File.read(databases_path))
-        table_rows = output_list.sort_by { |h| h['file_size'] }.map { |h| [h['host'], h['database'], h['file_name'], h['file_size'].to_i.number_to_human_size(true), "#{h['duration']}s"] }
+        table_rows = backup_hash.values.sort_by { |h| h['backup_size'] }.map { |h| ["#{h['host']}:#{h['port']}", h['database_name'], h['backup_name'], h['backup_size'].to_i.number_to_human_size(true), "#{h['backup_duration']}s"] }
         puts Terminal::Table.new(headings: %w(Host Database FileName FileSize Duration), rows: table_rows)
         puts "total: #{table_rows.length} rows"
         puts "total: #{database_list.length} databases"
@@ -153,13 +154,13 @@ class BackupMySQL
         databases_path = File.join(backup_path, 'databases.json')
         File.open(databases_path, 'w:utf-8') { |file| file.puts(databases.to_json) }
 
-        state_list, databases_btime = [], Time.now
+        backup_hash, databases_btime = {}, Time.now
+        backup_hash = JSON.parse(File.read(output_path)) rescue {} if File.exists?(output_path)
         databases.each do |database|
           next if (backup_config['ignore_databases'] || []).include?(database)
 
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
-          if File.exists?(file_path)
-            state_list.push('skip')
+          if File.exists?(file_path) && backup_hash.dig(database, 'backup_state') == 'successfully'
             puts "#{database} backuped to #{file_path}"
             next
           end
@@ -181,38 +182,61 @@ class BackupMySQL
             state = 'failure'
             File.open(File.join(backup_path, "#{database}.sql"), 'w:utf-8') { |file| file.puts("error: #{e.message}\n\n#{config.to_json}\n\n#{bash_script}") }
           ensure
+            `cd #{backup_path} && rm -f #{database}.sql.tar.gz`
             `cd #{backup_path} && tar -czvf #{database}.sql.tar.gz #{database}.sql && rm #{database}.sql`
           end
-          state_list.push(state)
 
           options = {
+            uuid: SecureRandom.uuid.gsub('-', ''),
+            ymd: Time.now.strftime("%y/%m/%d"),
             host: config['host'],
-            database: database,
-            file_name: "#{database}.sql.tar.gz",
-            file_size: (File.exists?(file_path) ? File.size(file_path) : 0).number_to_human_size(true),
-            file_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'not-exist'),
-            ignore_tables: ignore_tables,
-            mysqldump_command: "#{bash_script}",
-            begin_time: database_btime.strftime('%y-%m-%d %H:%M:%S'),
-            duration: Time.now - database_btime,
-            state: state
+            port: config['port'],
+            database_name: database,
+            backup_name: "#{database}.sql.tar.gz",
+            backup_size: (File.exists?(file_path) ? File.size(file_path) : 0).number_to_human_size(true),
+            backup_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'not-exist'),
+            backup_time: database_btime.strftime('%y-%m-%d %H:%M:%S'),
+            backup_duration: "#{(Time.now - database_btime).round(2)}s",
+            backup_state: state,
+            backup_command: "#{bash_script}",
+            ignore_tables: ignore_tables
           }
-          output_list = File.exists?(output_path) ? JSON.parse(File.read(output_path)) : []
-          output_list.push(options)
-          File.open(output_path, 'w:utf-8') { |file| file.puts(output_list.to_json) }
+          options[:description] = options.to_json
+          Sypctl::Http.post_backup_mysql_day(options, {}, {print_log: true})
+
+          options.delete(:description)
+          backup_hash[database] = options
+          File.open(output_path, 'w:utf-8') { |file| file.puts(backup_hash.to_json) }
 
           puts "#{database}, #{state}"
         end
 
-        state_hash = state_list.group_by { |i| i }
+        state_grouped_hash = backup_hash.values.group_by { |h| h[:backup_state] }
+        options = {
+          uuid: SecureRandom.uuid.gsub('-', ''),
+          ymd: Time.now.strftime("%y/%m/%d"),
+          database_count: databases.length,
+          backup_count: backup_hash.keys.length,
+          backup_duration: "#{(Time.now-databases_btime).round(2)}s",
+          backup_size: du_sh(backup_path),
+          backup_state: "数据库备份#{backup_hash.keys.length}个(共#{databases.length}个), 成功#{(state_grouped_hash['successfully']||[]).length}个,跳过(已备份)#{(state_grouped_hash['skip']||[]).length}个,失败#{(state_grouped_hash['failure']||[]).length}个"
+        }
+
+        Sypctl::Http.post_backup_mysql_meta(options, {}, {print_log: true})
         Sypctl::Http.post_behavior({
-          behavior: "备份数据库报告,共计#{databases.length}个, 成功#{(state_hash['successfully']||[]).length}个,已备份跳过#{(state_hash['skip']||[]).length}个,失败#{(state_hash['failure']||[]).length}个, 用时#{(Time.now-databases_btime).round(1)}s", 
+          behavior: "#{options[:backup_state]}, 用时#{(Time.now-databases_btime).round(2)}s", 
           object_type: 'mysql_backup', 
           object_id: "file_path"
         }, {}, {print_log: false})
       end
 
       FileUtils.rm_f(pid_path) if File.exists?(pid_path)
+    end
+
+    def du_sh(path)
+      `du -sh #{path}`.split(/\s/)[0]
+    rescue => e
+      "error: #{e.message}"
     end
 
     alias_method :guard, :execute
