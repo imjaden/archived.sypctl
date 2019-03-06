@@ -32,8 +32,28 @@
         %tr{'v-for' => '(rows, row_index) in serviceData.table.rows'}
           %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  serviceData.table.widths[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
 
-  .col-sm-9{'v-if' => 'menu.id == "backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
-    %pre{'v-text' => 'JSON.stringify(backupData, null, 4)'}
+  .col-sm-9{'v-if' => 'menu.id == "file_backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    %table.table.table-hover.table-condensed.table-strip.table-bordered.file-backups.tableFileBackup
+      %thead
+        %th 文件路径
+        %th 修改时间
+        %th 文件大小
+        %th -
+        %th -
+      %tbody
+        %tr{'v-for' => '(item, index) in fileBackups', ':key' => 'item.id'}
+          %td{'v-text' => 'item.file_path'}
+          %td{'v-text' => 'formatDate(item.timestamp)'}
+          %td{'v-text' => 'item.file_size'}
+          %td
+            %a{'@click' => 'getBackupFile("read", item.archive_file_name, item.file_path)'}
+              %span.glyphicon.glyphicon-eye-open
+          %td
+            %a{'@click' => 'getBackupFile("download", item.archive_file_name, item.file_path)'}
+              %span.glyphicon.glyphicon-download
+
+  .col-sm-9{'v-if' => 'menu.id == "mysql_backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    %pre{'v-text' => 'JSON.stringify(mysqlBackups, null, 4)'}
 
   .col-sm-9{'v-if' => 'menu.id == "packages"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
     %table.table.table-condensed.table-bordered.smart-table

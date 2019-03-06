@@ -219,7 +219,9 @@ module Sypctl
       end
 
       def uuid(use_cache = true)
-        uuid_tmp_path = File.join(ENV["RAKE_ROOT_PATH"] || Dir.pwd, ".config/device-uuid")
+        rake_root_path = ENV['RAKE_ROOT_PATH'] || Dir.pwd
+        rake_root_path = "#{rake_root_path}/agent" if rake_root_path.split('/').last != 'agent'
+        uuid_tmp_path = File.join(rake_root_path, ".config/device-uuid")
 
         use_cache = true if `uname -s`.strip == 'Darwin'
         if use_cache && File.exists?(uuid_tmp_path)

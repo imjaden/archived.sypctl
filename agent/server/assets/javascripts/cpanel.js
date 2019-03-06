@@ -7,13 +7,15 @@ if(document.getElementById('cpanelVueApp')) {
         menus: [
           {label: '注册信息', id: 'register'},
           {label: '监控服务', id: 'service'},
-          {label: '备份配置', id: 'backup'},
+          {label: '文档备份', id: 'file_backup'},
+          {label: 'MySQL备份', id: 'mysql_backup'},
           {label: '安装包状态', id: 'packages'}
         ],
         menu: {},
         registerData: {},
         serviceData: {},
-        backupData: {},
+        fileBackups: {},
+        mysqlBackups: {},
         packagesData: {},
         modal: {
           title: '标题',
@@ -44,8 +46,11 @@ if(document.getElementById('cpanelVueApp')) {
           case 'service':
             if(JSON.stringify(this.serviceData) == "{}") { this.getData(menu) } else { this.menu = menu; }
           break;
-          case 'backup':
-            if(JSON.stringify(this.backupData) == "{}") { this.getData(menu) } else { this.menu = menu; }
+          case 'file_backup':
+            if(JSON.stringify(this.fileBackups) == "{}") { this.getData(menu) } else { this.menu = menu; }
+          break;
+          case 'mysql_backup':
+            if(JSON.stringify(this.mysqlBackups) == "{}") { this.getData(menu) } else { this.menu = menu; }
           break;
           case 'packages':
             if(JSON.stringify(this.packagesData) == "{}") { this.getData(menu) } else { this.menu = menu; }
@@ -93,12 +98,15 @@ if(document.getElementById('cpanelVueApp')) {
               }
               console.log(that.serviceData)
             break;
-            case 'backup':
-              that.backupData = res.data
-              break;
+            case 'file_backup':
+              that.fileBackups = res.data.data
+            break;
+            case 'mysql_backup':
+              that.mysqlBackups = res.data.data
+            break;
             case 'packages':
               that.packagesData = res.data.data
-              break;
+            break;
             default: 
               console.log("未知 menu: " + JSON.stringify(menu))
           }
@@ -114,6 +122,34 @@ if(document.getElementById('cpanelVueApp')) {
           this.modal.body = JSON.stringify(this.serviceData.config, null, 4)
           console.log(this.serviceData.config)
         }
+      },
+      getBackupFile(type, archive_file_name, file_path) {
+        let that = this,
+            url = `/sypctl/cpanel/file_backup/${type}?archive_file_name=${archive_file_name}`;
+
+        if(type == 'download') {
+          window.open(url, 'blank')
+          return false
+        }
+        window.Loading.show("获取数据中...");
+        $.ajax({
+          type: 'get',
+          url: url,
+          contentType: 'application/json'
+        }).done(function(res, status, xhr) {
+          console.log(res)
+          that.modal.title = file_path
+          that.modal.body = res.code == 200 ? res.data : res.message
+          $("#infoModal").modal('show')
+        }).fail(function(xhr, status, error) {
+        }).always(function(res, status, xhr) {
+          window.Loading.hide();
+        });
+      },
+      formatDate(timestamp) {
+        if(!timestamp || String(timestamp).length != 10) { return '-' }
+        let date = new Date(parseInt(timestamp) * 1000)
+        return date.format('yy/MM/dd hh:mm:ss')
       },
       logout() {
         if(!confirm('确认登出？')) { return false }

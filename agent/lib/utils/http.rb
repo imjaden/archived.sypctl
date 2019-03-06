@@ -53,7 +53,6 @@ module Sypctl
       def post_behavior(options = {}, headers = {}, external_options = {print_log: false})
         url = "#{ENV['SYPCTL_API']}/api/v1/agent/behavior_log"
 
-        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'] || "#{Dir.pwd}/agent", 'db/agent.json')
         unless File.exists?(agent_db_path)
           puts "该主机未注册，中断提交行为记录"
           return false 
@@ -86,7 +85,6 @@ module Sypctl
       def post_backup_mysql_day(options = {}, headers = {}, external_options = {print_log: false})
         url = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_day"
 
-        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'] || "#{Dir.pwd}/agent", 'db/agent.json')
         unless File.exists?(agent_db_path)
           puts "该主机未注册，中断提交行为记录"
           return false 
@@ -116,7 +114,6 @@ module Sypctl
       def post_backup_mysql_meta(options = {}, headers = {}, external_options = {print_log: false})
         url = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_meta"
 
-        agent_db_path = File.join(ENV['RAKE_ROOT_PATH'] || "#{Dir.pwd}/agent", 'db/agent.json')
         unless File.exists?(agent_db_path)
           puts "该主机未注册，中断提交行为记录"
           return false 
@@ -144,6 +141,12 @@ module Sypctl
           
       def _timestamp
         Time.now.strftime('%y-%m-%d %H:%M:%S')
+      end
+
+      def agent_db_path
+        rake_root_path = ENV['RAKE_ROOT_PATH'] || Dir.pwd
+        rake_root_path = "#{rake_root_path}/agent" if rake_root_path.split('/').last != 'agent'
+        File.join(rake_root_path, 'db/agent.json')
       end
 
       def execute_job_logger(info, job_uuid = nil)

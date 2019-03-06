@@ -55,7 +55,7 @@ class BackupMySQL
     def options(options)
       @options = options
 
-      @config_path    = '/etc/sypctl/backup-mysql.json'
+      @config_path = '/etc/sypctl/backup-mysql.json'
       exit(1) unless File.exists?(@config_path)
         
       @backup_list = JSON.parse(File.read(@config_path))
@@ -160,7 +160,7 @@ class BackupMySQL
           next if (backup_config['ignore_databases'] || []).include?(database)
 
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
-          if File.exists?(file_path) && backup_hash.dig(database, 'backup_state') == 'successfully'
+          if File.exists?(file_path) && backup_hash.dig(database, 'backup_state') == 'successfully' && backup_hash.dig(database, 'upload_state') == '上传成功'
             puts "#{database} backuped to #{file_path}"
             next
           end
@@ -188,13 +188,13 @@ class BackupMySQL
 
           options = {
             uuid: SecureRandom.uuid.gsub('-', ''),
-            ymd: Time.now.strftime("%y/%m/%d"),
+            ymd: Time.now.strftime("%y%m%d"),
             host: config['host'],
             port: config['port'],
             database_name: database,
-            backup_name: "#{database}.sql.tar.gz",
+            backup_name: File.basename(file_path),
             backup_size: (File.exists?(file_path) ? File.size(file_path) : 0).number_to_human_size(true),
-            backup_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'not-exist'),
+            backup_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'NotExist'),
             backup_time: database_btime.strftime('%y-%m-%d %H:%M:%S'),
             backup_duration: "#{(Time.now - database_btime).round(2)}s",
             backup_state: state,
@@ -204,17 +204,30 @@ class BackupMySQL
           options[:description] = options.to_json
           Sypctl::Http.post_backup_mysql_day(options, {}, {print_log: true})
 
+          params = {
+            device_uuid: Sypctl::Device.uuid,
+            host: "#{config['host']}-#{config['port']||3306}",
+            ymd: Time.now.strftime("%y%m%d"),
+            backup_name: File.basename(file_path),
+            backup_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'NotExist'),
+            backup_file: File.new(file_path, 'rb')
+          }
+
+          url = "#{ENV['SYPCTL_API']}/api/v1/upload/mysql_backup"
+          response = Sypctl::Http.post(url, params)
+
           options.delete(:description)
+          options[:upload_state] = response.dig('hash', 'message') || '上传响应为空'
           backup_hash[database] = options
           File.open(output_path, 'w:utf-8') { |file| file.puts(backup_hash.to_json) }
 
-          puts "#{database}, #{state}"
+          puts "#{database}, backup #{state}, upload #{response.dig('hash', 'message')}, #{file_path}"
         end
 
         state_grouped_hash = backup_hash.values.group_by { |h| h[:backup_state] }
         options = {
           uuid: SecureRandom.uuid.gsub('-', ''),
-          ymd: Time.now.strftime("%y/%m/%d"),
+          ymd: Time.now.strftime("%y%m%d"),
           database_count: databases.length,
           backup_count: backup_hash.keys.length,
           backup_duration: "#{(Time.now-databases_btime).round(2)}s",

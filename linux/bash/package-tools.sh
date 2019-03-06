@@ -24,7 +24,13 @@ package_list[10]=go1.12.darwin-amd64.tar.gz@2e50819b23f3b97eb4da9a154de48d95
 package_list[11]=go1.12.linux-amd64.tar.gz@feca904457dca812b1840cd98c5d0ae1
 
 case $1 in
-    list|files)
+    files)
+        for index in ${!package_list[@]}; do
+            package_info=${package_list[$index]}
+            echo $package_info
+        done
+    ;;
+    list)
         fun_print_table_header "PackagesList" "PackageName" "Hash"
         for index in ${!package_list[@]}; do
             package_info=${package_list[$index]}
@@ -33,7 +39,7 @@ case $1 in
             package=${package_name%-*}
             fun_print_two_cols_row "${index}, ${package_name}" "${package_hash}"
         done
-      fun_print_table_footer
+        fun_print_table_footer
     ;;
     state|status|check|deploy)
         fun_print_table_header "PackagesState" "PackageName" "Download|Hash"
