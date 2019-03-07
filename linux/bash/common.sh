@@ -1058,13 +1058,27 @@ function fun_backup_mysql_caller() {
         exit 1
     fi
 
-    support_commands=(help list state view clean execute guard)
+    support_commands=(help list state view clean execute guard killer)
     if [[ "${2}" = "execute" ||  "${2}" = "guard" ]]; then
-        nohup ruby linux/ruby/backup-mysql-tools.rb "--$2" SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent >> logs/backup-mysql.log 2>&1 &
-        echo "started backup mysql task"
-        echo 
-        echo "$ sypctl backup:mysql state"
-        echo "$ sypctl backup:mysql view"
+        process_state="abort"
+        pid=
+        pid_path=tmp/backup-mysql-ruby.pid
+        log_path=logs/backup-mysql-nohup.log
+        if [[ -f "${pid_path}" ]]; then
+            pid=$(cat ${pid_path})
+            ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
+            test $? -eq 0 && process_state="running"
+        fi
+
+        if [[ "${process_state}" = "running" ]]; then
+            echo "${timestamp2} - backup process running(${pid})"
+        else
+            nohup ruby linux/ruby/backup-mysql-tools.rb "--$2" --home=${SYPCTL_HOME} >> ${log_path} 2>&1 &
+            echo "${timestamp2} - backup process started!"
+            echo 
+            echo "${timestamp2} - \$ sypctl backup:mysql state"
+            echo "${timestamp2} - \$ sypctl backup:mysql view"
+        fi
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
         SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/backup-mysql-tools.rb "--$2" "${3:-all}"
     else

@@ -10,6 +10,12 @@ package_name="$1"
 pid_path=linux/packages/${package_name}.pid
 log_path=linux/packages/${package_name}.log
 
+ping -c 1 qiniu-cdn.sypctl.com > /dev/null 2>&1
+test $? -eq 0 || {
+    echo "警告：无网络环境，退出操作"
+    exit 1
+} 
+
 source linux/bash/common.sh
 process_state="abort"
 pid=

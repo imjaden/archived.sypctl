@@ -46,6 +46,12 @@ option_parser = OptionParser.new do |opts|
   opts.on('-g', "--guard", '守护备份操作，功能同 execute') do |value|
     options[:guard] = value
   end
+  opts.on('-k', "--killer", '杀死备份进程') do |value|
+    options[:killer] = value
+  end
+  opts.on('-h', "--home path", 'SYPCTL_HOME') do |value|
+    options[:home] = value
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -60,6 +66,9 @@ class BackupMySQL
         
       @backup_list = JSON.parse(File.read(@config_path))
       ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+
+      @options[:home] ||= Dir.pwd
+      `mkdir -p #{@options[:home]}/{tmp,logs}`
     end
 
     def list
@@ -89,8 +98,8 @@ class BackupMySQL
     end
 
     def state
-      pid_path = File.join(ENV['SYPCTL_HOME'] || ".", 'tmp/backup-mysql-ruby.pid')
-      log_path = File.join(ENV['SYPCTL_HOME'] || ".", 'logs/backup-mysql.log')
+      pid_path = File.join(@options[:home], 'tmp/backup-mysql-ruby.pid')
+      log_path = File.join(@options[:home], 'logs/backup-mysql-nohup.log')
 
       if File.exists?(pid_path)
         pid = File.read(pid_path).strip
@@ -130,8 +139,28 @@ class BackupMySQL
       end
     end
 
+    def killer
+      pid_path = File.join(@options[:home], 'tmp/backup-mysql-ruby.pid')
+      if File.exists?(pid_path)
+        pid = File.read(pid_path).strip
+        result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
+        if result.empty?
+          puts "backup process not found"
+        else
+          `kill -9 #{pid}`
+          puts "kill backup process(#{pid}) successfully"
+
+          Sypctl::Http.post_behavior({
+            behavior: "成功杀死已执行 #{(Time.now-File.mtime(pid_path)).round(2)}s 的备份进程(#{pid})", 
+            object_type: 'mysql_backup', 
+            object_id: "killer"
+          }, {}, {print_log: false})
+        end
+      end
+    end
+
     def execute
-      pid_path = File.join(ENV['SYPCTL_HOME'] || ".", 'tmp/backup-mysql-ruby.pid')
+      pid_path = File.join(@options[:home], 'tmp/backup-mysql-ruby.pid')
       if File.exists?(pid_path)
         pid = File.read(pid_path).strip
         result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
@@ -232,7 +261,7 @@ class BackupMySQL
           backup_count: backup_hash.keys.length,
           backup_duration: "#{(Time.now-databases_btime).round(2)}s",
           backup_size: du_sh(backup_path),
-          backup_state: "数据库备份#{backup_hash.keys.length}个(共#{databases.length}个), 成功#{(state_grouped_hash['successfully']||[]).length}个,跳过(已备份)#{(state_grouped_hash['skip']||[]).length}个,失败#{(state_grouped_hash['failure']||[]).length}个"
+          backup_state: "备份:#{backup_hash.keys.length}个(共#{databases.length}),成功:#{(state_grouped_hash['successfully']||[]).length},跳过(已备份):#{(state_grouped_hash['skip']||[]).length},失败:#{(state_grouped_hash['failure']||[]).length}"
         }
 
         Sypctl::Http.post_backup_mysql_meta(options, {}, {print_log: true})

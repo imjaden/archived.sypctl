@@ -45,7 +45,7 @@ remote_api=http://${api_host}/api/v1/linux.date
 
 ping -c 1 ${api_host} > /dev/null 2>&1
 test $? -eq 0 || {
-    echo "警告：网络异常，退出操作"
+    echo "警告：无网络环境，退出操作"
     exit 1
 } 
 

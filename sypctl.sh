@@ -46,15 +46,6 @@ case "$1" in
     deployed)
         fun_print_deployed_services
     ;;
-    guide|install:help|ih)
-        fun_user_expect_to_install_package_guides
-    ;;
-    apk)
-        bash android/tools.sh assemble "$2"
-    ;;
-    shengyiplus|ruishangplus|yh_android|shenzhenpoly)
-        bash ios/tools.sh "$1"
-    ;;
     env)
         fun_execute_env_script
     ;;
@@ -79,7 +70,8 @@ case "$1" in
     ;;
     crontab:jobs|schedule:jobs)
         [[ $(date +%H%M) = "0000" ]] && sypctl upgrade
-        [[ $(date +%H)   = "02" ]] && sypctl backup:mysql guard
+        [[ $(date +%H%M) = "0200" ]] && sypctl backup:mysql guard
+        [[ $(date +%H%M) = "0400" ]] && sypctl backup:mysql killer
 
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard
@@ -129,9 +121,6 @@ case "$1" in
     ;;
     backup:mysql)
         fun_backup_mysql_caller $@
-    ;;
-    app)
-        fun_app_caller 'help'
     ;;
     app:*)
         fun_app_caller $@
