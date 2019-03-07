@@ -388,7 +388,7 @@ function fun_sypctl_upgrade() {
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
         title "current version ${old_version} already is latest version!"
-        exit 0
+        exit 1
     fi
 
     if [[ "${sypctl_mode}" = "server" ]]; then
@@ -408,6 +408,7 @@ function fun_sypctl_upgrade() {
 
     fun_print_logo
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
+    ruby linux/ruby/behavior.rb --old="${old_version}" --new="$(sypctl version)"
 
     sypctl help
 }
