@@ -8,7 +8,7 @@
 
 SYPCTL_HOME=/usr/local/src/sypctl
 test -f ~/.bash_profile && source ~/.bash_profile
-function title() { printf "####################\n# %s\n####################" "$1"; }
+function title() { printf "####################\n# %s\n####################\n" "$1"; }
 
 title "安装基础依赖的软件..."
 function fun_install() {
