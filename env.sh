@@ -8,7 +8,7 @@
 
 SYPCTL_HOME=/usr/local/src/sypctl
 test -f ~/.bash_profile && source ~/.bash_profile
-function title() { printf "\n%s\n\n" "$1"; }
+function title() { printf "####################\n# %s\n####################" "$1"; }
 
 title "安装基础依赖的软件..."
 function fun_install() {
@@ -38,7 +38,6 @@ else
 fi
 
 function fun_install_dependent_packages() {
-    command -v yum > /dev/null && {
     command -v yum > /dev/null && {
         declare -a packages
         packages[0]=git
@@ -170,7 +169,7 @@ title "sypctl 约束配置..."
 sypctl ssh-keygen
 
 title "sypctl 基础服务配置..."
-sypctl linux:date check
+sypctl toolkit date check
 sypctl schedule:update
 sypctl schedule:jobs
 

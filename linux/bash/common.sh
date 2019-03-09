@@ -473,7 +473,7 @@ function fun_clean() {
 }
 
 function fun_generate_sshkey_when_not_exist() {
-    test -d ~/.ssh || ssh-keygen  -t rsa -P '' -f ~/.ssh/id_rsa
+    test -d ~/.ssh || ssh-keygen  -t rsa -P '' # -f ~/.ssh/id_rsa
     test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
 
     chmod -R 700 ~/.ssh
@@ -696,6 +696,7 @@ function fun_execute_bundle_rake_without_logger() {
     test -f .config/bundle-done || {
         bundle install --local > /dev/null
         if [[ $? -eq 0 ]]; then
+            mkdir -p .config
             echo ${timestamp} > .config/bundle-done
         else
             bundle install > /dev/null
