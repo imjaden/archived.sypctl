@@ -25,17 +25,41 @@
 #         3.2.4 确认待导入列表是否是全部导入，是，则退出脚本操作
 # 3. 进程 threadFrom/threadTo 结伴而行，以 threadFrom 始以 threadTo 终
 #
-# 导入/导出进程共同维护一份导出/导入状态维护档
-# [
-#   {
-#     "database": "databae",
-#     "database_size": "todo",
-#     "exported": "todo",
-#     "exported_duration": "todo",
-#     "imported": "todo",
-#     "imported_duration": "todo",
+# 迁移配置档:
+# {
+#   "from": {
+#     "host": "remote-host",
+#     "port": "3306",
+#     "username": "username",
+#     "password": "password",
+#     "database": "database"
+#   },
+#   "to": {
+#     "host": "127.0.0.1",
+#     "port": "3306",
+#     "username": "root",
+#     "password": "password",
+#     "database": "database"
 #   }
-# ]
+# }
+#
+# 注意事项: 
+# - MySQL 数据库不同版本中 mysqldump 操作要求必须包含或不能包含 --set-gtid-purged=OFF
+# - 具体是否需求传参根据 mysql 导出报表日志来判断
+#
+# 导出报告文件:
+# - 导出sql：temp/{database}.sql
+# - 导出sql 报错：temp/{database}.export-err
+# - 导入sql 报表: temp/{database}.import-err
+#
+# 运行脚本: 
+# $ mkdir -p tmp/sync-mysql
+# $ vim sync-mysql.json
+# $ ruby sync-mysql-tools.rb --config=sync-mysql.json --temp=tmp/sync-mysql
+#
+# 运行 sypctl
+# $ sypctl sync:mysql --config=$(readlink -f config.json) --temp=$(readlink -f tmp/sync-mysql/)
+#
 require 'json'
 require 'mysql2'
 require 'optparse'
@@ -56,14 +80,23 @@ option_parser = OptionParser.new do |opts|
   opts.on('-t', "--temp path", '临时报表目录') do |value|
     options[:temp] = value
   end
+  options[:'set-gtid-purged'] = false
+  opts.on('-s', "--set-gtid-purged", '导出时是否带参数--set-gtid-purged=OFF, 默认不带') do |value|
+    options[:'set-gtid-purged'] = true
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
 
-options[:temp] ||= Dir.pwd
 def timestamp; Time.now.strftime('%y/%m/%d %H:%M:%S'); end
 ignore_databases = ['sys', 'mysql', 'information_schema', 'performance_schema']
 config = JSON.parse(File.read(options[:config]))
+
+options[:temp] ||= Dir.pwd
+option_set_gtid_purged = options[:'set-gtid-purged'] ? '--set-gtid-purged=OFF' : ''
+bash_script = "mysqldump #{option_set_gtid_purged} -h#{config['from']['host']} -u#{config['from']['username']} -p#{config['from']['password']} -P#{config['from']['port']} --default-character-set=utf8 dd 1> #{options[:temp]}/d.sql 2> #{options[:temp]}/d.export-err"
+puts bash_script  
+exit
 
 ['from', 'to'].each do |type|
   begin
@@ -103,7 +136,8 @@ threadFrom = Thread.new do
   while true
     todo_list = JSON.parse(File.read(report_path)).values.select { |h| h['exported'] == 'todo' }
     todo_list.each_with_index do |item, index|
-      bash_script = "mysqldump --set-gtid-purged=OFF -h#{config['from']['host']} -u#{config['from']['username']} -p#{config['from']['password']} -P#{config['from']['port']} --default-character-set=utf8 #{item['database']} 1> #{options[:temp]}/#{item['database']}.sql 2> #{options[:temp]}/#{item['database']}.export-err"
+      option_set_gtid_purged = options[:'set-gtid-purged'] ? '--set-gtid-purged=OFF' : ''
+      bash_script = "mysqldump #{option_set_gtid_purged} -h#{config['from']['host']} -u#{config['from']['username']} -p#{config['from']['password']} -P#{config['from']['port']} --default-character-set=utf8 #{item['database']} 1> #{options[:temp]}/#{item['database']}.sql 2> #{options[:temp]}/#{item['database']}.export-err"
       begin_time = Time.now
 
       puts "#{timestamp} - threadFrom, #{item['database']}(#{index+1}/#{todo_list.length}), 准备导出"
