@@ -84,6 +84,10 @@ option_parser = OptionParser.new do |opts|
   opts.on('-s', "--set-gtid-purged", '导出时是否带参数--set-gtid-purged=OFF, 默认不带') do |value|
     options[:'set-gtid-purged'] = true
   end
+  options[:'ignore-log-tables'] = true
+  opts.on('-i', "--ignore-log-tables", '导出时是否忽略 log[s]作后缀的业务表, 默认忽略') do |value|
+    options[:'ignore-log-tables'] = false
+  end
 end.parse!
 options[:temp] ||= Dir.pwd
 
@@ -92,6 +96,8 @@ puts `ruby #{__FILE__} -h` if options.keys.empty?
 def timestamp; Time.now.strftime('%y/%m/%d %H:%M:%S'); end
 ignore_databases = ['sys', 'mysql', 'information_schema', 'performance_schema']
 config = JSON.parse(File.read(options[:config]))
+ignore_table_regexp = "(_|-)logs?$"
+is_config_file_open = false
 
 ['from', 'to'].each do |type|
   begin
@@ -131,19 +137,34 @@ threadFrom = Thread.new do
   while true
     todo_list = JSON.parse(File.read(report_path)).values.select { |h| h['exported'] == 'todo' }
     todo_list.each_with_index do |item, index|
+
+      ignore_tables_sql = ''
+      if options[:'ignore-log-tables']
+        config['from']['database'] = item['database']
+        client = Mysql2::Client.new(config['from'])
+        tables = client.query("show tables").map { |h| h.values }.flatten
+        client.close
+        ignore_tables = tables.select { |table| table =~ Regexp::new(ignore_table_regexp) }
+        ignore_tables_sql = ignore_tables.map { |table| "--ignore-table=#{item['database']}.#{table}" }.join(" ")
+      end
+
       option_set_gtid_purged = options[:'set-gtid-purged'] ? '--set-gtid-purged=OFF' : ''
-      bash_script = "mysqldump #{option_set_gtid_purged} -h#{config['from']['host']} -u#{config['from']['username']} -p#{config['from']['password']} -P#{config['from']['port']} --default-character-set=utf8 #{item['database']} 1> #{options[:temp]}/#{item['database']}.sql 2> #{options[:temp]}/#{item['database']}.export-err"
+      bash_script = "mysqldump #{option_set_gtid_purged} -h#{config['from']['host']} -u#{config['from']['username']} -p#{config['from']['password']} -P#{config['from']['port']} --default-character-set=utf8 #{item['database']} #{ignore_tables_sql} 1> #{options[:temp]}/#{item['database']}.sql 2> #{options[:temp]}/#{item['database']}.export-err"
       begin_time = Time.now
 
       puts "#{timestamp} - threadFrom, #{item['database']}(#{index+1}/#{todo_list.length}), 准备导出"
+      puts "#{timestamp} - threadFrom, #{bash_script}"
       system(bash_script)
       puts "#{timestamp} - threadFrom, #{item['database']}(#{index+1}/#{todo_list.length}), 准备完成, 用时 #{(Time.now - begin_time).round(2)}s"
 
+      sleep(rand) if is_config_file_open
+      is_config_file_open = true
       report = JSON.parse(File.read(report_path))
       report[item['database']]['exported'] = 'done'
       report[item['database']]['exported_at'] = timestamp
       report[item['database']]['exported_duration'] = (Time.now - begin_time).round(2)
       File.open(report_path, 'w:utf-8') { |file| file.puts(report.to_json) }
+      is_config_file_open = false
     end
     if todo_list.empty?
       puts "#{timestamp} - threadFrom, 导出完成，休息 2s 等待 threadTo"
@@ -165,23 +186,26 @@ threadTo = Thread.new do
       todo_list = report.select { |h| h['exported'] == 'done' && h['imported'] == 'todo' }
 
       todo_list.each_with_index do |item, index|
-        bash_script = "mysql -h#{config['to']['host']} -u#{config['to']['username']} -p#{config['to']['password']} -P#{config['to']['port']} --default-character-set=utf8 #{item['database']} < #{options[:temp]}/#{item['database']}.sql 2> #{options[:temp]}/#{item['database']}.import-err"
+        bash_script = "mysql -h#{config['to']['host']} -u#{config['to']['username']} -p#{config['to']['password']} -P#{config['to']['port']} --default-character-set=utf8 #{item['database']} < #{options[:temp]}/#{item['database']}.sql.out 2> #{options[:temp]}/#{item['database']}.import-err"
         begin_time = Time.now
 
         puts "#{timestamp} - threadTo, #{item['database']}(#{index+1}/#{todo_list.length}), 准备导入"
+        puts "#{timestamp} - threadTo, #{bash_script}"
         system(bash_script)
         puts "#{timestamp} - threadTo, #{item['database']}(#{index+1}/#{todo_list.length}), 导入完成, 用时 #{(Time.now - begin_time).round(2)}s"
 
+        sleep(rand) if is_config_file_open
+        is_config_file_open = true
         report = JSON.parse(File.read(report_path))
         report[item['database']]['imported'] = 'done'
         report[item['database']]['imported_at'] = timestamp
         report[item['database']]['imported_duration'] = (Time.now - begin_time).round(2)
         File.open(report_path, 'w:utf-8') { |file| file.puts(report.to_json) }
+        is_config_file_open = true
       end
     end
   end
 end
 
-threadFrom.join
-threadTo.join
+[threadFrom, threadTo].map(&:join)
 
