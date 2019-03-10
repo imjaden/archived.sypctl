@@ -186,7 +186,7 @@ threadTo = Thread.new do
       todo_list = report.select { |h| h['exported'] == 'done' && h['imported'] == 'todo' }
 
       todo_list.each_with_index do |item, index|
-        bash_script = "mysql -h#{config['to']['host']} -u#{config['to']['username']} -p#{config['to']['password']} -P#{config['to']['port']} --default-character-set=utf8 #{item['database']} < #{options[:temp]}/#{item['database']}.sql.out 2> #{options[:temp]}/#{item['database']}.import-err"
+        bash_script = "mysql -h#{config['to']['host']} -u#{config['to']['username']} -p#{config['to']['password']} -P#{config['to']['port']} --default-character-set=utf8 #{item['database']} < #{options[:temp]}/#{item['database']}.sql 2> #{options[:temp]}/#{item['database']}.import-err"
         begin_time = Time.now
 
         puts "#{timestamp} - threadTo, #{item['database']}(#{index+1}/#{todo_list.length}), 准备导入"
