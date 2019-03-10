@@ -1,0 +1,50 @@
+global
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    # option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+listen proxy-mysql
+       bind 0.0.0.0:3306
+       mode tcp
+       option tcplog
+       option tcpka
+       balance roundrobin
+       server mysql0 rm-bp1a6ixj4o2986hp5.mysql.rds.aliyuncs.com:3306 check
+       
+listen admin-stats
+       bind 0.0.0.0:3307
+       mode http
+       # option httplog
+       maxconn 10
+       stats refresh 30s
+       stats uri /stats
+       stats realm XingCloud/ Haproxy
+       stats auth admin:1qaz2wsx
+       stats hide-version
+       stats admin if TRUE

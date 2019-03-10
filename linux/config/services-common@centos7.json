@@ -28,11 +28,10 @@
       "id": "haproxy",
       "user": "root",
       "start": [
-        "systemctl start rsyslog",
+        "systemctl restart rsyslog",
         "systemctl start haproxy"
       ],
       "stop": [
-        "systemctl stop rsyslog",
         "systemctl stop haproxy",
         "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
       ],
