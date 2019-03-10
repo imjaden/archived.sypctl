@@ -54,7 +54,7 @@ namespace :agent do
 
   desc 'print device info'
   task device: :environment do 
-    submited_hash = print_agent_info(false)
+    submited_hash = print_agent_regisitered_info(false)
     current_hash = agent_device_init_info
 
     rows = %w(hostname username password os_type os_version lan_ip wan_ip memory cpu disk).map do |key|

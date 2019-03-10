@@ -122,6 +122,10 @@ case "$1" in
     backup:mysql)
         fun_backup_mysql_caller $@
     ;;
+    sync:mysql)
+        shift
+        ruby linux/ruby/sync-mysql-tools.rb $@
+    ;;
     app:*)
         fun_app_caller $@
     ;;

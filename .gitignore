@@ -6,6 +6,7 @@
 .install-defender
 *.lock
 *.sql
+*.json
 .ruby-version
 .bundle-done
 .sypctl-*

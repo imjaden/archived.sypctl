@@ -300,10 +300,10 @@ class Service
     end
 
     def process_status_by_pid(pid_path)
-      if File.exists?(pid_path)
-        pid = File.read(pid_path).strip
+      if File.exists?(pid_path) && !(pid = File.read(pid_path).strip).empty?
         (pid == `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip ? [true, "运行中(#{pid})"] : [false, "未运行"])
       else
+        `rm -f #{pid_path}`
         [false, "未运行，PID 不存在"]
       end
     end
@@ -316,14 +316,16 @@ class Service
 
       state, message = process_status_by_pid(pid_path)
       return false unless state
-
+      return false unless File.exists?(pid_path)
+      
+      pid = File.read(pid_path).strip
       if try_time > 1
-        puts "查看进程(#{File.read(pid_path)})详情:"
-        puts `ps aux | grep #{File.read(pid_path)}`
+        puts "查看进程(#{pid})详情:"
+        puts `ps aux | grep #{pid}`
       end
       
       puts "#{message}, 第#{try_time}次尝试 KILL 进程, #{pid_path}"
-      run_command("cat #{pid_path} | xargs kill -KILL > /dev/null 2>&1")
+      run_command("kill -KILL #{pid} > /dev/null 2>&1")
       kill_process_by_pid(pid_path, try_time + 1)
     end
 
