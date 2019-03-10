@@ -85,18 +85,13 @@ option_parser = OptionParser.new do |opts|
     options[:'set-gtid-purged'] = true
   end
 end.parse!
+options[:temp] ||= Dir.pwd
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
 
 def timestamp; Time.now.strftime('%y/%m/%d %H:%M:%S'); end
 ignore_databases = ['sys', 'mysql', 'information_schema', 'performance_schema']
 config = JSON.parse(File.read(options[:config]))
-
-options[:temp] ||= Dir.pwd
-option_set_gtid_purged = options[:'set-gtid-purged'] ? '--set-gtid-purged=OFF' : ''
-bash_script = "mysqldump #{option_set_gtid_purged} -h#{config['from']['host']} -u#{config['from']['username']} -p#{config['from']['password']} -P#{config['from']['port']} --default-character-set=utf8 dd 1> #{options[:temp]}/d.sql 2> #{options[:temp]}/d.export-err"
-puts bash_script  
-exit
 
 ['from', 'to'].each do |type|
   begin
