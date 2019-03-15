@@ -1,2 +1,0 @@
-mysql: [Warning] Using a password on the command line interface can be insecure.
-ERROR 1305 (42000) at line 71: PROCEDURE eziiot_db45.syppro_add_column does not exist

@@ -185,7 +185,7 @@ class BackupFile
           @synced_json = JSON.parse(File.read(@synced_json_path))
 
           Sypctl::Http.post_behavior({
-            behavior: "监测到文档更新并上传服务器，#{file_path}", 
+            behavior: "备份文档更新，#{file_path}", 
             object_type: 'file_backup', 
             object_id: uuid
           })

@@ -262,7 +262,7 @@ class BackupMySQL
           backup_count: backup_hash.keys.length,
           backup_duration: "#{(Time.now-databases_btime).round(2)}s",
           backup_size: du_sh(backup_path),
-          backup_state: "备份:#{backup_hash.keys.length}个(共#{databases.length}),成功:#{(state_grouped_hash['successfully']||[]).length},跳过(已备份):#{(state_grouped_hash['skip']||[]).length},失败:#{(state_grouped_hash['failure']||[]).length}"
+          backup_state: "备份数据库:#{backup_hash.keys.length}个(共#{databases.length}),成功:#{(state_grouped_hash['successfully']||[]).length},跳过(已备份):#{(state_grouped_hash['skip']||[]).length},失败:#{(state_grouped_hash['failure']||[]).length}"
         }
 
         Sypctl::Http.post_backup_mysql_meta(options, {}, {print_log: true})

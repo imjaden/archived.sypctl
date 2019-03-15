@@ -55,7 +55,7 @@ function fun_sypctl_upgrade() {
     # fi
 
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
-    ruby linux/ruby/behavior.rb --old="${old_version}" --new="$(sypctl version)"
+    ruby platform/ruby/behavior.rb --old="${old_version}" --new="$(sypctl version)"
 
     sypctl help
 }
@@ -127,4 +127,20 @@ function fun_generate_sshkey_when_not_exist() {
     cat ~/.ssh/id_rsa.pub
 }
 
+function fun_service_caller() {
+    if [[ "${2}" = "help" ]]; then
+        fun_print_sypctl_service_help
+        exit 1
+    fi
+
+    sudo mkdir -p /etc/sypctl/
+    support_commands=(render list start stop status restart monitor edit guard)
+    if [[ "$2" = "edit" ]]; then
+        vim /etc/sypctl/services.json
+    elif [[ "${support_commands[@]}" =~ "$2" ]]; then
+        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/service-tools.rb "--$2" "${3:-all}"
+    else
+        echo "Error - unknown command: $2, support: ${support_commands[@]}"
+    fi
+}
 

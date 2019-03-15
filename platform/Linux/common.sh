@@ -217,7 +217,7 @@ function fun_sypctl_upgrade() {
     fi
 
     title "upgrade from ${old_version} => $(sypctl version) successfully!"
-    ruby linux/ruby/behavior.rb --old="${old_version}" --new="$(sypctl version)"
+    ruby platform/ruby/behavior.rb --old="${old_version}" --new="$(sypctl version)"
 
     sypctl help
 }
@@ -527,7 +527,7 @@ function fun_service_caller() {
     if [[ "$2" = "edit" ]]; then
         vim /etc/sypctl/services.json
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
-        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby linux/ruby/service-tools.rb "--$2" "${3:-all}"
+        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/service-tools.rb "--$2" "${3:-all}"
     else
         echo "Error - unknown command: $2, support: ${support_commands[@]}"
     fi

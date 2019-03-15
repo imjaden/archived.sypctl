@@ -9,7 +9,7 @@
 SYPCTL_HOME=/usr/local/opt/sypctl
 function title() { printf "####################\n# %s\n####################\n" "$1"; }
 
-command -v brew || {
+command -v brew > /dev/null 2>&1 || {
   title "安装 Homebrew"
 
   ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -76,6 +76,7 @@ title "已安装软件清单..."
 custom_col1_width=22
 custom_col2_width=32
 source platform/Darwin/common.sh
+function title() { printf "####################\n# %s\n####################\n" "$1"; }
 
 fun_print_table_header "Installed State" "Component" "Version"
 dependency_commands=(git rbenv ruby gem bundle)

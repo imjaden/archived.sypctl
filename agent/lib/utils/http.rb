@@ -14,32 +14,39 @@ module Sypctl
       end
 
       def post(url, playload = {}, headers = {}, external_options = {print_log: false})
-        response = RestClient.post(url, playload, default_header.merge(headers))
-        if external_options[:print_log]
-          puts "post #{url}"
-          puts "parameters: \n#{JSON.pretty_generate(playload)}"
-          puts "response code: #{response.code}"
-          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+        options = {
+          url: url,
+          playload: playload,
+          headers: headers,
+          external_options: external_options
+        }
+        rescue_method options do |options|
+          response = RestClient.post(options[:url], options[:playload], default_header.merge(options[:headers]))
+          if options[:external_options][:print_log]
+            puts "post #{options[:url]}"
+            puts "parameters: \n#{JSON.pretty_generate(playload)}"
+            puts "response code: #{response.code}"
+            puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+          end
+          {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
         end
-        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
-      rescue => e
-        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
-        puts e.backtrace.select{ |line| line.include?(__FILE__)}
-        {'code' => 500, 'body' => e.message, 'hash' => {}}
       end
 
       def get(url, headers = {}, external_options = {print_log: false})
-        response = RestClient.get(url, default_header.merge(headers)).force_encoding('UTF-8')
-        if external_options[:print_log]
-          puts "get #{url}"
-          puts "response code: #{response.code}"
-          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+        options = {
+          url: url,
+          headers: headers,
+          external_options: external_options
+        }
+        rescue_method options do |options|
+          response = RestClient.get(options[:url], default_header.merge(options[:headers])).force_encoding('UTF-8')
+          if options[:external_options][:print_log]
+            puts "get #{options[:url]}"
+            puts "response code: #{response.code}"
+            puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+          end
+          {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
         end
-        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
-      rescue => e
-        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
-        puts e.backtrace.select{ |line| line.include?(__FILE__)}
-        {'code' => 500, 'body' => e.message, 'hash' => {}}
       end
 
       def download_version_file(url, path, job_uuid)
@@ -51,94 +58,117 @@ module Sypctl
       end
 
       def post_behavior(options = {}, headers = {}, external_options = {print_log: false})
-        url = "#{ENV['SYPCTL_API']}/api/v1/agent/behavior_log"
+        params = {}
+        params[:url] = "#{ENV['SYPCTL_API']}/api/v1/agent/behavior_log"
+        params[:headers] = headers
+        params[:external_options] = external_options
 
-        unless File.exists?(agent_db_path)
-          puts "该主机未注册，中断提交行为记录"
-          return false 
-        end
+        rescue_method params do |params|
+          unless File.exists?(agent_db_path)
+            puts "该主机未注册，中断提交行为记录"
+            return false 
+          end
 
-        agent_db_hash = JSON.parse(File.read(agent_db_path))
-        playload = {
-          behavior: {
-            device_uuid: agent_db_hash['uuid'],
-            device_name: agent_db_hash['human_name'] || agent_db_hash['hostname'],
-            behavior: options[:behavior] || '',
-            object_type: options[:object_type] || '',
-            object_id: options[:object_id] || '',
-            description: options[:description] || ''
+          agent_db_hash = JSON.parse(File.read(agent_db_path))
+          playload = {
+            behavior: {
+              device_uuid: agent_db_hash['uuid'],
+              device_name: agent_db_hash['human_name'] || agent_db_hash['hostname'],
+              behavior: options[:behavior] || '',
+              object_type: options[:object_type] || '',
+              object_id: options[:object_id] || '',
+              description: options[:description] || ''
+            }
           }
-        }
-        response = RestClient.post(url, playload, default_header.merge(headers))
-        if external_options[:print_log]
-          puts "post #{url}"
-          puts "parameters: \n#{JSON.pretty_generate(playload)}"
-          puts "response code: #{response.code}"
-          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+          response = RestClient.post(params[:url], playload, default_header.merge(params[:headers]))
+          if params[:external_options][:print_log]
+            puts "post #{params[:url]}"
+            puts "parameters: \n#{JSON.pretty_generate(playload)}"
+            puts "response code: #{response.code}"
+            puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+          end
+          {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
         end
-        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
-      rescue => e
-        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
-        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
       end
 
       def post_backup_mysql_day(options = {}, headers = {}, external_options = {print_log: false})
-        url = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_day"
+        params = {}
+        params[:url] = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_day"
+        params[:headers] = headers
+        params[:external_options] = external_options
+        
+        rescue_method params do |params|
+          unless File.exists?(agent_db_path)
+            puts "该主机未注册，中断提交行为记录"
+            return false 
+          end
 
-        unless File.exists?(agent_db_path)
-          puts "该主机未注册，中断提交行为记录"
-          return false 
+          agent_db_hash = JSON.parse(File.read(agent_db_path))
+          options[:device_uuid] = agent_db_hash['uuid']
+          options[:device_name] = agent_db_hash['human_name'] || agent_db_hash['hostname']
+
+          options.delete(:backup_command)
+          options.delete(:ignore_tables)
+
+          playload = {backup_mysql_day: options}
+          response = RestClient.post(params[:url], playload, default_header.merge(params[:headers]))
+          if params[:external_options][:print_log]
+            puts "post #{params[:url]}"
+            puts "parameters: \n#{JSON.pretty_generate(playload)}"
+            puts "response code: #{response.code}"
+            puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+          end
+          {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
         end
-
-        agent_db_hash = JSON.parse(File.read(agent_db_path))
-        options[:device_uuid] = agent_db_hash['uuid']
-        options[:device_name] = agent_db_hash['human_name'] || agent_db_hash['hostname']
-
-        options.delete(:backup_command)
-        options.delete(:ignore_tables)
-
-        playload = {backup_mysql_day: options}
-        response = RestClient.post(url, playload, default_header.merge(headers))
-        if external_options[:print_log]
-          puts "post #{url}"
-          puts "parameters: \n#{JSON.pretty_generate(playload)}"
-          puts "response code: #{response.code}"
-          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
-        end
-        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
-      rescue => e
-        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
-        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
       end
 
       def post_backup_mysql_meta(options = {}, headers = {}, external_options = {print_log: false})
-        url = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_meta"
+        params = {}
+        params[:url] = "#{ENV['SYPCTL_API']}/api/v1/agent/backup_mysql_meta"
+        params[:headers] = headers
+        params[:external_options] = external_options
+        
+        rescue_method params do |params|
+          unless File.exists?(agent_db_path)
+            puts "该主机未注册，中断提交行为记录"
+            return false 
+          end
 
-        unless File.exists?(agent_db_path)
-          puts "该主机未注册，中断提交行为记录"
-          return false 
+          agent_db_hash = JSON.parse(File.read(agent_db_path))
+          options[:device_uuid] = agent_db_hash['uuid']
+          options[:device_name] = agent_db_hash['human_name'] || agent_db_hash['hostname']
+
+          playload = {backup_mysql_meta: options}
+          response = RestClient.post(params[:url], playload, default_header.merge(params[:headers]))
+          if params[:external_options][:print_log]
+            puts "post #{params[:url]}"
+            puts "parameters: \n#{JSON.pretty_generate(playload)}"
+            puts "response code: #{response.code}"
+            puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+          end
+          {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
         end
-
-        agent_db_hash = JSON.parse(File.read(agent_db_path))
-        options[:device_uuid] = agent_db_hash['uuid']
-        options[:device_name] = agent_db_hash['human_name'] || agent_db_hash['hostname']
-
-        playload = {backup_mysql_meta: options}
-        response = RestClient.post(url, playload, default_header.merge(headers))
-        if external_options[:print_log]
-          puts "post #{url}"
-          puts "parameters: \n#{JSON.pretty_generate(playload)}"
-          puts "response code: #{response.code}"
-          puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
-        end
-        {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
-      rescue => e
-        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
-        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
       end
 
       protected
-          
+      
+      def rescue_method(options, &block)
+        yield(options)
+      rescue Errno::ECONNREFUSED, RestClient::BadGateway
+        puts "#" * 25
+        puts "# 请确认网络环境，或 API 服务正常运行"
+        puts "# API: #{options[:url]}"
+        puts "# 中断所有操作"
+        puts "#" * 25
+        exit 1
+      rescue => e
+        puts e.class
+        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        puts options
+
+        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
+      end
+
       def _timestamp
         Time.now.strftime('%y-%m-%d %H:%M:%S')
       end

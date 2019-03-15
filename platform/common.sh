@@ -187,7 +187,6 @@ function fun_agent_caller() {
         agent:task)
             [[ "${sub_type}" = "service" ]] && sypctl service monitor
             fun_execute_bundle_rake_without_logger bundle exec rake agent:${sub_type} $@
-            [[ "${sub_type}" = "info" ]] && fun_print_crontab_and_rclocal
         ;;
         agent:jobs)
             case "${sub_type}" in
@@ -614,13 +613,14 @@ function fun_backup_mysql_caller() {
             echo "${timestamp2} - backup process running(${pid})"
         else
             nohup ruby platform/ruby/backup-mysql-tools.rb "--$2" --home=${SYPCTL_HOME} >> ${log_path} 2>&1 &
+            echo "${timestamp2} - ${SYPCTL_HOME}"
             echo "${timestamp2} - backup process started!"
             echo 
             echo "${timestamp2} - \$ sypctl backup:mysql state"
             echo "${timestamp2} - \$ sypctl backup:mysql view"
         fi
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
-        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/backup-mysql-tools.rb "--$2" "${3:-all}"
+        ruby platform/ruby/backup-mysql-tools.rb "--$2" --home="${SYPCTL_HOME}"
     else
         echo "Error - unknown command: $2, support: ${support_commands[@]}"
     fi

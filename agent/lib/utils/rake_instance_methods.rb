@@ -2,6 +2,7 @@
 require 'json'
 require 'fileutils'
 require 'digest/md5'
+require 'terminal-table'
 require 'lib/utils/http.rb'
 require 'lib/utils/device.rb'
 
@@ -26,10 +27,13 @@ def generate_username_and_password
 end
 
 def print_agent_regisitered_info(print_or_not = true)
-  puts agent_json_path if print_or_not
   if File.exists?(agent_json_path)
     data_hash = JSON.parse(File.read(agent_json_path))
-    puts JSON.pretty_generate(data_hash) if print_or_not
+    if print_or_not
+      table_rows = data_hash.each_with_object([]) { |(key, value), arr| arr.push([key, value]) if value.to_s.length < 80 }
+      puts Terminal::Table.new(headings: %w(键名 键值), rows: table_rows)
+      puts agent_json_path
+    end
   else
     data_hash = {}
     puts "该主机未注册，请执行命令 \`sypctl agent:task guard\`" if print_or_not
