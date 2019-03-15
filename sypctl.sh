@@ -6,12 +6,10 @@
 #
 ########################################
 #
-test -n "${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl
-cd ${SYPCTL_HOME}
 export SYPCTL_EXECUTE_PATH="$(pwd)"
-source linux/bash/common.sh
+source platform/middleware.sh
 
-mkdir -p {logs,tmp}
+mkdir -p {logs,tmp,packages}
 test -f mode || echo default > mode
 sypctl_mode=$(cat mode)
 
@@ -23,6 +21,7 @@ case "$1" in
         fun_print_logo
         echo " Version: ${VERSION}"
         echo "HomePath: ${SYPCTL_HOME}"
+        echo "DiskSize: $(du -sh ${SYPCTL_HOME} | cut -f 1)"
     ;;
     network)
         ping -c 1 sypctl.com > /dev/null 2>&1
@@ -31,14 +30,8 @@ case "$1" in
     git:pull|gp|upgrade|update)
         fun_sypctl_upgrade
     ;;
-    check:dependent:packages)
-        fun_install_dependent_packages
-    ;;
-    device:update)
+    sync:device|update:device)
         fun_update_device
-    ;;
-    clean)
-        fun_clean
     ;;
     deploy)
         fun_deploy_service_guides
@@ -52,21 +45,12 @@ case "$1" in
     bundle) # agent task
         fun_execute_bundle_rake $@
     ;;
-    print_json)
-        test -n "$2" && {
-            cd agent
-            json_path="$2"
-            test -f "${json_path}" || {
-                json_path="${SYPCTL_EXECUTE_PATH}/${json_path}"
-            }
-            bundle exec rake sypctl:print_json filepath="${json_path}"
-        } || {
-            echo "Warning: Please offer json filepath！"
-        }
-    ;;
     crontab:update|schedule:update)
         fun_update_crontab_jobs
         fun_update_rc_local
+    ;;
+    clean)
+        fun_clean
     ;;
     crontab:jobs|schedule:jobs)
         [[ $(date +%H%M) = "0000" ]] && sypctl upgrade
@@ -124,7 +108,7 @@ case "$1" in
     ;;
     sync:mysql)
         shift
-        ruby linux/ruby/sync-mysql-tools.rb $@
+        ruby platform/ruby/sync-mysql-tools.rb $@
     ;;
     app:*)
         fun_app_caller $@

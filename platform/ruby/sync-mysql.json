@@ -1,0 +1,23 @@
+{
+  "from": {
+    "host": "47.107.61.5",
+    "port": "3306",
+    "username": "root",
+    "password": "Eziiot180831",
+    "database": "eziiot_main_db"
+  },
+  "to": {
+    "host": "121.199.38.185",
+    "port": "3700",
+    "username": "eziiot_user",
+    "password": "Eziiot180812",
+    "database": "eziiot_main_db"
+  },
+  "to2": {
+    "host": "127.0.0.1",
+    "port": "3306",
+    "username": "root",
+    "password": "iamjay",
+    "database": "eziiot_main_db"
+  }
+}

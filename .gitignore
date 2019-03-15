@@ -6,19 +6,15 @@
 .install-defender
 *.lock
 *.sql
-*.json
+platform/*.json
 .ruby-version
 .bundle-done
 .sypctl-*
 nohup.out
 mode
 
-linux/packages
+packages/
 linux/bash/sqoop-*
-
-etl/db
-etl/logs
-etl/tmp
 
 agent/.config/
 agent/human-name
