@@ -7,7 +7,7 @@
 ########################################
 
 SYPCTL_HOME=/usr/local/opt/sypctl
-function title() { printf "####################\n# %s\n####################\n" "$1"; }
+function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 
 command -v brew > /dev/null 2>&1 || {
   title "安装 Homebrew"
@@ -55,7 +55,7 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
 
 test -d ${SYPCTL_HOME} || {
     title "安装 sypctl"
-    cd /usr/local/opt/
+    cd /usr/local/
     git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
 

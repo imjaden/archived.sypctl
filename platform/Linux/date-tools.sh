@@ -5,9 +5,6 @@
 #  Linux Date Tool
 #
 ########################################
-
-source platform/Linux/common.sh
-
 #
 # 功能：
 #     自动校正系统时区、日期、时间
@@ -39,17 +36,12 @@ source platform/Linux/common.sh
 # $ bash date-tools.sh view 127.0.0.1
 # ```
 #
-
-api_host=sypctl.com
-remote_api=http://${api_host}/api/v1/linux.date
-
-ping -c 1 ${api_host} > /dev/null 2>&1
-test $? -eq 0 || {
-    echo "警告：无网络环境，退出操作"
-    exit 1
-} 
+source platform/Linux/common.sh
+remote_api=http://sypctl.com/api/v1/linux.date
 
 function fun_check_linux_date() {
+    fun_sypctl_network || exit 1
+
     global_executed_date=$(date +%s)
     test -n "$1" && remote_api="$1"
 
@@ -164,8 +156,9 @@ function fun_check_linux_date() {
 }
 
 function fun_view_linux_date() {
+    fun_sypctl_network || exit 1
+    
     test -n "$1" && remote_api="$1"
-
     echo "对比标准：${remote_api}"
 
     echo "****************************"

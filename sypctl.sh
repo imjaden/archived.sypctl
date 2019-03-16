@@ -8,49 +8,11 @@
 #
 export SYPCTL_EXECUTE_PATH="$(pwd)"
 source platform/middleware.sh
-
-mkdir -p {logs,tmp,packages}
-test -f mode || echo default > mode
 sypctl_mode=$(cat mode)
 
 case "$1" in
     version)
-        echo "${VERSION}"
-    ;;
-    home)
-        fun_print_logo
-        echo " Version: ${VERSION}"
-        echo "HomePath: ${SYPCTL_HOME}"
-        echo "DiskSize: $(du -sh ${SYPCTL_HOME} | cut -f 1)"
-    ;;
-    network)
-        ping -c 1 sypctl.com > /dev/null 2>&1
-        test $? -eq 0 && echo "网络正常" || echo "网络异常"
-    ;;
-    git:pull|gp|upgrade|update)
-        fun_sypctl_upgrade
-    ;;
-    sync:device|update:device)
-        fun_update_device
-    ;;
-    deploy)
-        fun_deploy_service_guides
-    ;;
-    deployed)
-        fun_print_deployed_services
-    ;;
-    env)
-        fun_execute_env_script
-    ;;
-    bundle) # agent task
-        fun_execute_bundle_rake $@
-    ;;
-    crontab:update|schedule:update)
-        fun_update_crontab_jobs
-        fun_update_rc_local
-    ;;
-    clean)
-        fun_clean
+        echo "${sypctl_version}"
     ;;
     crontab:jobs|schedule:jobs)
         [[ $(date +%H%M) = "0000" ]] && sypctl upgrade
@@ -62,59 +24,29 @@ case "$1" in
         bash $0 service     guard
         bash $0 backup:file guard
     ;;
-    rc.local)
-        fun_update_rc_local
-    ;;
-    yum:kill)
-        ps aux | grep yum | grep -v grep | awk '{ print $2 }' | xargs kill -9
-    ;;
-    yum:upgrade)
-        yum provides '*/applydeltarpm'
-        yum install -y deltarpm
-        yum upgrade -y
-    ;;
-    ssh-keygen)
-        fun_generate_sshkey_when_not_exist
-    ;;
-    memory:free|mf)
-        fun_free_memory
-    ;;
-    firewalld:stop|fs)
-        fun_disable_firewalld
+    bundle)
+        fun_execute_bundle_rake $@
     ;;
     variable)
         fun_print_variable "$2"
     ;;
-    etl:import)
-        fun_etl_caller $@
+    home|info|env|network|upgrade|sync:device|deploy|deployed|clean|schedule:update|ssh:keygen|free:memory|disable:firewalld)
+        operation=$(echo $1 | sed 's/:/_/g')
+        fun_sypctl_${operation} $@
     ;;
-    etl:status)
-        fun_etl_status $@
+    toolkit|service|backup:file|backup:mysql)
+        operation=$(echo $1 | sed 's/:/_/g')
+        fun_sypctl_${operation}_caller $@
     ;;
-    etl:tiny_tds)
-        fun_etl_tiny_tds $@
+    app:*)
+        fun_sypctl_app_caller $@
     ;;
-    toolkit)
-        fun_toolkit_caller $@
-    ;;
-    service)
-        fun_service_caller $@
-    ;;
-    backup:file)
-        fun_backup_file_caller $@
-    ;;
-    backup:mysql)
-        fun_backup_mysql_caller $@
+    agent:*|agent)
+        fun_sypctl_agent_caller $@
     ;;
     sync:mysql)
         shift
         ruby platform/ruby/sync-mysql-tools.rb $@
-    ;;
-    app:*)
-        fun_app_caller $@
-    ;;
-    agent:*|agent)
-        fun_agent_caller $@
     ;;
     mode)
         test -f mode || echo default > mode
@@ -131,7 +63,7 @@ case "$1" in
         fi
     ;;
     *)
-        fun_print_sypctl_help
+        fun_sypctl_help
     ;;
 esac
 

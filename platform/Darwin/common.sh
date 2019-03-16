@@ -6,6 +6,8 @@ source platform/common.sh
 # sypctl 版本升级后的处理逻辑
 #
 function fun_sypctl_upgrade() {
+    fun_sypctl_pre_upgrade || exit 1
+    
     # # 升级 sypctl 源代码
     # old_version=$(sypctl version)
     # git_current_branch=$(git rev-parse --abbrev-ref HEAD)
@@ -77,6 +79,26 @@ function fun_print_crontab_and_rclocal() {
     fi
 }
 
+function fun_sypctl_deploy() {
+    echo "$(uname -s) 不支持 deploy 操作"
+}
+
+function fun_sypctl_deployed() {
+    echo "$(uname -s) 不支持 deployed 操作"
+}
+
+function fun_update_rc_local() {
+    echo "$(uname -s) 不支持 rc.local 操作"
+}
+
+function fun_sypctl_free_memory() {
+    echo "$(uname -s) 不支持 free memory 操作"
+}
+
+function fun_sypctl_disable_firewalld() {
+    echo "$(uname -s) 不支持 disabe firewalld 操作"
+}
+
 #
 # 系统偏好设置 - 安全性与隐私 - 隐私 - 完全磁盘访问权限 - 添加应用程序: iterm
 #
@@ -100,7 +122,7 @@ function fun_update_crontab_jobs() {
     crontab -l
 }
 
-function fun_clean() {
+function fun_sypctl_clean() {
     crontab_conf="crontab-${timestamp}.conf"
     crontab -l > tmp/${crontab_conf}
     if [[ $(grep "# Begin sypctl" tmp/${crontab_conf} | wc -l) -gt 0 ]]; then
@@ -112,11 +134,7 @@ function fun_clean() {
     crontab tmp/${crontab_conf}
 }
 
-function fun_update_rc_local() {
-    echo "Darwin do nothing" > /dev/null
-}
-
-function fun_generate_sshkey_when_not_exist() {
+function fun_sypctl_ssh_keygen() {
     test -d ~/.ssh || ssh-keygen  -t rsa -P '' # -f ~/.ssh/id_rsa
     test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
 
@@ -127,7 +145,7 @@ function fun_generate_sshkey_when_not_exist() {
     cat ~/.ssh/id_rsa.pub
 }
 
-function fun_service_caller() {
+function fun_sypctl_service_caller() {
     if [[ "${2}" = "help" ]]; then
         fun_print_sypctl_service_help
         exit 1

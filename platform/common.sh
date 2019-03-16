@@ -1,27 +1,61 @@
 #!/usr/bin/env bash
 
-test -f mode || echo default > mode
-VERSION=$(test -f version && cat version || echo 'unkown')
-sypctl_mode=$(cat mode)
-current_path=$(pwd)
-current_user=$(whoami)
-timestamp=$(date +'%Y%m%d%H%M%S')
-timestamp2=$(date +'%y-%m-%d %H:%M:%S')
-SYPCTL_HOME=/usr/local/src/sypctl
+SYPCTL_HOME=
 
 if [[ "$(uname -s)" = "Darwin" ]]; then
     SYPCTL_HOME=/usr/local/opt/sypctl
 elif [[ "$(uname -s)" = "Linux" ]]; then
     SYPCTL_HOME=/usr/local/src/sypctl
 else
-    SYPCTL_HOME=/unkdown/system/$(uname -s)
+    title "执行预检: 暂不兼容该系统 - $(uname -s)"
+    exit 1
 fi
 
-function title() { printf "\n%s\n\n" "$1"; }
+cd ${SYPCTL_HOME}
+mkdir -p {logs,tmp,packages}
+test -f mode || echo default > mode
+
+sypctl_version=$(cat version)
+sypctl_mode=$(cat mode)
+current_path=$(pwd)
+current_user=$(whoami)
+timestamp=$(date +'%Y%m%d%H%M%S')
+timestamp2=$(date +'%y-%m-%d %H:%M:%S')
+
+function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
 
-function fun_print_sypctl_help() {
+function fun_sypctl_network() {
+    ping -c 1 sypctl.com > /dev/null 2>&1
+    test $? -eq 0 && return 0
+
+    title "网络预检：无网络环境，退出操作"
+    return 1
+}
+
+function fun_sypctl_pre_upgrade() {
+    fun_sypctl_network || exit 1
+    
+    gitlab_version=$(curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/version)
+    release_version=${gitlab_version##*.} 
+    if [[ "${sypctl_version}" = "${gitlab_version}" ]]; then
+        title "升级预检: 当前版本已是最新版本"
+        sypctl home
+        return 1
+    else
+        if [[ "${release_version}" = "8" ]]; then
+            title "升级预检: 有发布新版本 ${gitlab_version}, 当前版本 ${sypctl_version}, 进行升级操作"
+            return 0
+        else
+            title "升级预检: 有发布测试版本 ${gitlab_version}, 暂不操作"
+            sypctl home
+            return 1
+        fi
+    fi
+}
+
+function fun_sypctl_help() {
     echo "Usage: sypctl <command> [args]"
     echo 
     echo "常规操作:"
@@ -43,7 +77,7 @@ function fun_print_sypctl_help() {
     echo "sypctl toolkit -> sypt"
     echo
     fun_print_logo
-    echo "Current version is $VERSION"
+    echo "Current version is ${sypctl_version}"
     echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
 }
 
@@ -64,7 +98,7 @@ function fun_print_init_agent_help() {
     echo 
     fun_print_init_agent_command_help
     echo 
-    echo "Current version is $VERSION"
+    echo "Current version is ${sypctl_version}"
     echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
 }
 
@@ -139,10 +173,18 @@ function fun_print_sypctl_backup_mysql_help() {
     echo "sypctl backup:mysql guard    守护备份操作，功能同 execute"
 }
 
+function fun_sypctl_home() {
+    fun_print_logo
+    echo "  Version: ${sypctl_version}"
+    echo " HomePath: ${SYPCTL_HOME}"
+    echo " DiskSize: $(du -sh ${SYPCTL_HOME} | cut -f 1 | sed s/[[:space:]]//g)"
+    echo "Timestamp: ${timestamp2}"
+}
+
 #
 # 同步设备信息至服务器
 #
-function fun_update_device() {
+function fun_sypctl_sync_device() {
     echo "\$ cd agent"
     cd agent
     mkdir -p {monitor/{index,pages},logs,tmp/pids,db/{jobs,versions},.config}
@@ -170,7 +212,7 @@ function fun_update_device() {
     bundle exec rake agent:device
 }
 
-function fun_agent_caller() {
+function fun_sypctl_agent_caller() {
     mkdir -p agent/db/jobs
     
     main_type="$1"
@@ -214,6 +256,19 @@ function fun_agent_caller() {
             echo "Error - unknown command: $@"
         ;;
     esac
+}
+
+function fun_sypctl_env() {
+    echo "same as execute bash below:"
+    echo
+    echo "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
+    echo 
+    bash env.sh
+}
+
+function fun_sypctl_schedule_update() {
+    fun_update_crontab_jobs
+    fun_update_rc_local
 }
 
 #
@@ -542,7 +597,7 @@ function fun_print_toolkit_list() {
     echo
 }
 
-function fun_toolkit_caller() {
+function fun_sypctl_toolkit_caller() {
     if [[ -z "$2" || "$2" = "help" ]]; then
         fun_print_toolkit_list
         exit 1
@@ -577,7 +632,7 @@ function fun_toolkit_caller() {
     }
 }
 
-function fun_backup_file_caller() {
+function fun_sypctl_backup_file_caller() {
     if [[ "${2}" = "help" ]]; then
         fun_print_sypctl_backup_file_help
         exit 1
@@ -591,7 +646,7 @@ function fun_backup_file_caller() {
     fi
 }
 
-function fun_backup_mysql_caller() {
+function fun_sypctl_backup_mysql_caller() {
     if [[ "${2}" = "help" ]]; then
         fun_print_sypctl_backup_mysql_help
         exit 1

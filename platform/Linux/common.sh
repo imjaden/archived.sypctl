@@ -169,6 +169,8 @@ function fun_prompt_vncserver_already_installed() {
 # sypctl 版本升级后的处理逻辑
 #
 function fun_sypctl_upgrade() {
+    fun_sypctl_pre_upgrade || exit 1
+
     old_version=$(sypctl version)
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     git reset --hard HEAD  > /dev/null 2>&1
@@ -222,7 +224,7 @@ function fun_sypctl_upgrade() {
     sypctl help
 }
 
-function fun_clean() {
+function fun_sypctl_clean() {
     crontab_conf="crontab-${timestamp}.conf"
     crontab -l > tmp/${crontab_conf}
     if [[ $(grep "# Begin sypctl" tmp/${crontab_conf} | wc -l) -gt 0 ]]; then
@@ -246,7 +248,7 @@ function fun_clean() {
     fun_print_crontab_and_rclocal
 }
 
-function fun_generate_sshkey_when_not_exist() {
+function fun_sypctl_ssh_keygen() {
     test -d ~/.ssh || ssh-keygen  -t rsa -P '' # -f ~/.ssh/id_rsa
     test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
 
@@ -290,7 +292,7 @@ function check_install_defenders_include() {
     fi
 }
 
-function fun_deploy_service_guides() {
+function fun_sypctl_deploy() {
     mkdir -p logs
     bash platform/package-tools.sh state
 
@@ -361,7 +363,7 @@ function fun_deploy_service_guides() {
     fun_print_table_footer
 }
 
-function fun_print_deployed_services() {
+function fun_sypctl_deployed() {
     custom_col1_width=22
     custom_col2_width=32
     source platform/Linux/common.sh
@@ -381,7 +383,7 @@ function fun_print_deployed_services() {
     fun_print_table_footer
 }
 
-function fun_free_memory() {  
+function fun_sypctl_free_memory() {  
     free -m
 
     echo
@@ -397,7 +399,7 @@ function fun_free_memory() {
     free -m
 }
 
-function fun_disable_firewalld() {
+function fun_sypctl_disable_firewalld() {
     command -v systemctl > /dev/null 2>&1 && {
         systemctl stop firewalld.service
         systemctl disable firewalld.service
@@ -416,14 +418,6 @@ function fun_disable_firewalld() {
 
         return 0
     }
-}
-
-function fun_execute_env_script() {
-    echo "same as execute bash below:"
-    echo
-    echo "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
-    echo 
-    bash env.sh
 }
 
 function fun_print_crontab_and_rclocal() {
@@ -516,7 +510,7 @@ function fun_update_rc_local() {
     }
 }
 
-function fun_service_caller() {
+function fun_sypctl_service_caller() {
     if [[ "${2}" = "help" ]]; then
         fun_print_sypctl_service_help
         exit 1
