@@ -6,10 +6,18 @@
 #
 ########################################
 #
-export SYPCTL_EXECUTE_PATH="$(pwd)"
+if [[ "$(uname -s)" = "Darwin" ]]; then
+    SYPCTL_HOME=/usr/local/opt/sypctl
+elif [[ "$(uname -s)" = "Linux" ]]; then
+    SYPCTL_HOME=/usr/local/src/sypctl
+else
+    title "执行预检: 暂不兼容该系统 - $(uname -s)"
+    exit 1
+fi
+cd ${SYPCTL_HOME}
 source platform/middleware.sh
-sypctl_mode=$(cat mode)
 
+SYPCTL_EXECUTE_PATH="$(pwd)"
 case "$1" in
     version)
         echo "${sypctl_version}"
@@ -66,5 +74,4 @@ case "$1" in
         fun_sypctl_help
     ;;
 esac
-
 cd ${SYPCTL_EXECUTE_PATH}

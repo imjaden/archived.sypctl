@@ -1,17 +1,5 @@
 #!/usr/bin/env bash
 
-SYPCTL_HOME=
-
-if [[ "$(uname -s)" = "Darwin" ]]; then
-    SYPCTL_HOME=/usr/local/opt/sypctl
-elif [[ "$(uname -s)" = "Linux" ]]; then
-    SYPCTL_HOME=/usr/local/src/sypctl
-else
-    title "执行预检: 暂不兼容该系统 - $(uname -s)"
-    exit 1
-fi
-
-cd ${SYPCTL_HOME}
 mkdir -p {logs,tmp,packages}
 test -f mode || echo default > mode
 
