@@ -150,6 +150,40 @@ module Sypctl
         end
       end
 
+      def send_sms(options = {}, headers = {}, external_options = {print_log: false})
+        params = {}
+        params[:url] = "#{ENV['SYPCTL_API']}/api/v1/send_sms"
+        params[:headers] = headers
+        params[:external_options] = external_options
+
+        rescue_method params do |params|
+          unless File.exists?(agent_db_path)
+            puts "该主机未注册，中断提交行为记录"
+            return false 
+          end
+
+          agent_db_hash = JSON.parse(File.read(agent_db_path))
+          playload = {
+            behavior: {
+              device_uuid: agent_db_hash['uuid'],
+              device_name: agent_db_hash['human_name'] || agent_db_hash['hostname'],
+              behavior: options[:behavior] || '',
+              object_type: options[:object_type] || '',
+              object_id: options[:object_id] || '',
+              description: options[:description] || ''
+            }
+          }
+          response = RestClient.post(params[:url], playload, default_header.merge(params[:headers]))
+          if params[:external_options][:print_log]
+            puts "post #{params[:url]}"
+            puts "parameters: \n#{JSON.pretty_generate(playload)}"
+            puts "response code: #{response.code}"
+            puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
+          end
+          {'code' => response.code, 'body' => response.body, 'hash' => JSON.parse(response.body)}
+        end
+      end
+
       protected
       
       def rescue_method(options, &block)

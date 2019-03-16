@@ -28,10 +28,14 @@ case "$1" in
         [[ $(date +%H%M) = "0200" ]] && sypctl backup:mysql guard
         [[ $(date +%H%M) = "0400" ]] && sypctl backup:mysql killer
 
+        bash $0 service     guard
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard
-        bash $0 service     guard
         bash $0 backup:file guard
+    ;;
+    schedule-jobs)
+        shift
+        cd schedule-jobs && bash guard.sh $@ #>> logs/schedule-jobs.log 2>&1
     ;;
     bundle)
         fun_execute_bundle_rake $@

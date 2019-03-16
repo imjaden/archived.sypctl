@@ -14,7 +14,7 @@ nohup.out
 mode
 
 packages/
-linux/bash/sqoop-*
+schedule-jobs/
 
 agent/.config/
 agent/human-name
