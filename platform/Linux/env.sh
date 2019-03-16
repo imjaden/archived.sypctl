@@ -6,7 +6,9 @@
 #
 ########################################
 
-SYPCTL_HOME=/usr/local/src/sypctl
+SYPCTL_BRANCH=dev-0.0.1
+SYPCTL_PREFIX=/usr/local/src
+SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 test -f ~/.bash_profile && source ~/.bash_profile
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 
@@ -84,8 +86,8 @@ fun_install_dependent_packages
 title "安装/更新 sypctl..."
 sudo mkdir -p /usr/local/src
 test -d ${SYPCTL_HOME} || {
-    cd /usr/local/src
-    sudo git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
+    cd ${SYPCTL_PREFIX}
+    sudo git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
 
 if [[ "$(whoami)" != "root" ]]; then
@@ -94,8 +96,7 @@ if [[ "$(whoami)" != "root" ]]; then
 fi
 
 cd ${SYPCTL_HOME}
-git remote set-url origin http://gitlab.ibi.ren/syp-apps/sypctl.git
-git pull origin dev-0.0.1 > /dev/null 2>&1
+git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
 
 sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
 sudo ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/bin/syps

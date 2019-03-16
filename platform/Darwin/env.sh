@@ -6,7 +6,9 @@
 #
 ########################################
 
-SYPCTL_HOME=/usr/local/opt/sypctl
+SYPCTL_BRANCH=dev-0.0.1
+SYPCTL_PREFIX=/usr/local/opt/
+SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 
 command -v brew > /dev/null 2>&1 || {
@@ -15,7 +17,7 @@ command -v brew > /dev/null 2>&1 || {
   ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 }
 
-package_list=(git wget curl)
+package_list=(git wget curl openssl)
 for package in ${package_list[@]}; do
     command -v ${package} > /dev/null 2>&1 || {
       title "安装 ${package}"
@@ -55,13 +57,13 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
 
 test -d ${SYPCTL_HOME} || {
     title "安装 sypctl"
-    cd /usr/local/
-    git clone --branch dev-0.0.1 --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
+    cd ${SYPCTL_PREFIX}
+    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
 
 title "更新 sypctl"
 cd ${SYPCTL_HOME}
-git pull origin dev-0.0.1 > /dev/null 2>&1
+git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
 
 sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
 sudo ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
@@ -69,7 +71,9 @@ sudo ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
 
 cd agent
 mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
-bundle install > /dev/null 2>&1
+
+sudo gem install mysql2 -- --with-opt-dir="$(brew --prefix openssl)"
+sudo bundle install > /dev/null 2>&1
 cd ..
 
 title "已安装软件清单..."

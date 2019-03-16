@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 source platform/common.sh
+
 test -f .env-files && while read filepath; do
     test -f "${filepath}" && source "${filepath}"
 done < .env-files
 test -f ~/.bash_profile && source ~/.bash_profile
-cd ${current_path}
+cd ${SYPCTL_HOME}
 
 function fun_install() {
     command -v yum > /dev/null && {

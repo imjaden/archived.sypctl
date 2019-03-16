@@ -5,7 +5,6 @@ test -f mode || echo default > mode
 
 sypctl_version=$(cat version)
 sypctl_mode=$(cat mode)
-current_path=$(pwd)
 current_user=$(whoami)
 timestamp=$(date +'%Y%m%d%H%M%S')
 timestamp2=$(date +'%y-%m-%d %H:%M:%S')

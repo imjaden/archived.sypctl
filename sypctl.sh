@@ -7,17 +7,18 @@
 ########################################
 #
 if [[ "$(uname -s)" = "Darwin" ]]; then
-    SYPCTL_HOME=/usr/local/opt/sypctl
+    SYPCTL_PREFIX=/usr/local/opt/
 elif [[ "$(uname -s)" = "Linux" ]]; then
-    SYPCTL_HOME=/usr/local/src/sypctl
+    SYPCTL_PREFIX=/usr/local/src/
 else
     title "执行预检: 暂不兼容该系统 - $(uname -s)"
     exit 1
 fi
-cd ${SYPCTL_HOME}
-source platform/middleware.sh
-
+SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_EXECUTE_PATH="$(pwd)"
+cd ${SYPCTL_HOME}
+
+source platform/middleware.sh
 case "$1" in
     version)
         echo "${sypctl_version}"
