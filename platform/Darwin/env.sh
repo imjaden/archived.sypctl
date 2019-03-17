@@ -7,7 +7,7 @@
 ########################################
 
 SYPCTL_BRANCH=dev-0.0.1
-SYPCTL_PREFIX=/usr/local/opt/
+SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/opt}
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 

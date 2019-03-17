@@ -7,7 +7,7 @@
 ########################################
 
 SYPCTL_BRANCH=dev-0.0.1
-SYPCTL_PREFIX=/usr/local/src
+SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/src}
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 test -f ~/.bash_profile && source ~/.bash_profile
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
