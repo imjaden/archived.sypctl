@@ -140,6 +140,7 @@ function fun_check_linux_date() {
         fun_executed_date=$(date +%s)
         echo "修正时间 ${local_tstr} => ${remote_tstr}"
 
+        # TODO: not for mac
         /bin/date -s ${remote_tstr}
         /sbin/clock -w > /dev/null 2>&1
 

@@ -33,11 +33,12 @@ case "$1" in
         bash $0 agent:jobs  guard
         bash $0 backup:file guard
     ;;
-    schedule-jobs)
+    schedule-jobs:*)
+        job=${1##*:}
         shift
         cd schedule-jobs
         mkdir -p {logs,db/$(date +'%y%m%d')}
-        bash guard.sh $@ #>> logs/schedule-jobs.log 2>&1
+        bash guard.sh ${job} $@ #>> logs/schedule-jobs.log 2>&1
     ;;
     bundle)
         fun_execute_bundle_rake $@
