@@ -55,9 +55,9 @@ function fun_sypctl_help() {
     echo "sypctl agent   help      #代理# 配置"
     echo "sypctl toolkit help      #工具# 箱"
     echo "sypctl service help      #服务# 管理"
-    echo "sypctl backup:file help  #备份文件# 工具"
+    echo "sypctl backup:file  help #备份文件# 工具"
     echo "sypctl backup:mysql help #备份MySQL# 工具"
-    echo "sypctl sync:mysql help   #迁移MySQL# 工具"
+    echo "sypctl sync:mysql   help #迁移MySQL# 工具"
     echo
     echo "命令缩写:"
     echo "sypctl service -> syps"

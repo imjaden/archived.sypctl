@@ -33,22 +33,11 @@ case "$1" in
         bash $0 agent:jobs  guard
         bash $0 backup:file guard
     ;;
-    schedule-jobs:*)
-        job=${1##*:}
-        shift
-        cd schedule-jobs
-        mkdir -p {logs,db/$(date +'%y%m%d')}
-        bash guard.sh ${job} $@ #>> logs/schedule-jobs.log 2>&1
-    ;;
     bundle)
         fun_execute_bundle_rake $@
     ;;
     variable)
         fun_print_variable "$2"
-    ;;
-    home|info|env|network|upgrade|sync:device|deploy|deployed|clean|schedule:update|ssh:keygen|free:memory|disable:firewalld)
-        operation=$(echo $1 | sed 's/:/_/g')
-        fun_sypctl_${operation} $@
     ;;
     toolkit|service|backup:file|backup:mysql)
         operation=$(echo $1 | sed 's/:/_/g')
@@ -59,6 +48,13 @@ case "$1" in
     ;;
     agent:*|agent)
         fun_sypctl_agent_caller $@
+    ;;
+    schedule-jobs:*)
+        job=${1##*:}
+        shift
+        cd schedule-jobs
+        mkdir -p {logs,db/$(date +'%y%m%d')}
+        bash guard.sh ${job} $@ #>> logs/schedule-jobs.log 2>&1
     ;;
     sync:mysql)
         shift
@@ -78,8 +74,18 @@ case "$1" in
             echo "当前模式: $(cat mode)"
         fi
     ;;
-    *)
+    help)
         fun_sypctl_help
+    ;;
+    *)
+        fun_name="fun_sypctl_$(echo $1 | sed 's/:/_/g')"
+        type ${fun_name} > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            ${fun_name} $@
+        else
+            echo -e "未知参数 $1\n"
+            fun_sypctl_help
+        fi
     ;;
 esac
 cd ${SYPCTL_EXECUTE_PATH}

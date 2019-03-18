@@ -83,17 +83,17 @@ function fun_install_dependent_packages() {
 
 fun_install_dependent_packages
 
-title "安装/更新 sypctl..."
-sudo mkdir -p /usr/local/src
 test -d ${SYPCTL_HOME} || {
+    mkdir -p ${SYPCTL_PREFIX}
     cd ${SYPCTL_PREFIX}
+    title "安装 sypctl..."
     sudo git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
-}
 
-if [[ "$(whoami)" != "root" ]]; then
-    current_user=$(whoami)
-    sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
-fi
+    if [[ "$(whoami)" != "root" ]]; then
+        current_user=$(whoami)
+        sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
+    fi
+}
 
 cd ${SYPCTL_HOME}
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
@@ -102,11 +102,15 @@ sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
 sudo ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/bin/syps
 sudo ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/bin/sypt
 
-title "检查/安装 JDK..."
-command -v java > /dev/null || bash platform/Linux/jdk-tools.sh install:jdk
-command -v javac > /dev/null || bash platform/Linux/jdk-tools.sh install:javac
+command -v java > /dev/null || {
+    title "安装 JDK..."
+    bash platform/Linux/jdk-tools.sh install:jdk
+}
+command -v javac > /dev/null || {
+    title "安装 JAVAC..."
+    bash platform/Linux/jdk-tools.sh install:javac
+}
 
-title "检查/安装 Rbenv/Ruby..."
 function fun_rbenv_install_ruby() {
     rbenv install --skip-existing 2.3.0 
     rbenv rehash
@@ -121,6 +125,7 @@ function fun_rbenv_install_ruby() {
 }
 
 command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || { 
+    title "安装 Rbenv..."
     git clone --depth 1 git://github.com/sstephenson/rbenv.git ~/.rbenv
     git clone --depth 1 git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
     git clone --depth 1 git://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
@@ -135,6 +140,7 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
 }
 
 command -v ruby >/dev/null 2>&1 && ruby -v || { 
+    title "安装 Ruby..."
     fun_rbenv_install_ruby
 }
 
@@ -143,10 +149,18 @@ mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
 bundle install > /dev/null 2>&1
 cd ..
 
-title "已安装软件清单..."
+title "配置 SSH Key..."
+sypctl ssh-keygen
+
+title "配置基础服务..."
+sypctl toolkit date check
+sypctl schedule:update
+sypctl schedule:jobs
+
+source platform/Linux/common.sh
+title "安装列表清单"
 custom_col1_width=22
 custom_col2_width=32
-source platform/Linux/common.sh
 
 fun_print_table_header "Installed State" "Component" "Version"
 dependency_commands=(git rbenv ruby gem bundle)
@@ -156,14 +170,6 @@ for cmd in ${dependency_commands[@]}; do
 done
 fun_prompt_java_already_installed
 fun_print_table_footer
-
-title "sypctl 约束配置..."
-sypctl ssh-keygen
-
-title "sypctl 基础服务配置..."
-sypctl toolkit date check
-sypctl schedule:update
-sypctl schedule:jobs
 
 title "sypctl 安装完成"
 sypctl help

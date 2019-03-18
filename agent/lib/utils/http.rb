@@ -6,6 +6,8 @@ require 'securerandom'
 require File.expand_path('../../core_ext/string.rb', __FILE__)
 require File.expand_path('../../core_ext/numberic.rb', __FILE__)
 
+ENV["SYPCTL_API"] = "http://sypctl.com" #ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+
 module Sypctl
   class Http
     class << self
@@ -163,20 +165,13 @@ module Sypctl
           end
 
           agent_db_hash = JSON.parse(File.read(agent_db_path))
-          playload = {
-            behavior: {
-              device_uuid: agent_db_hash['uuid'],
-              device_name: agent_db_hash['human_name'] || agent_db_hash['hostname'],
-              behavior: options[:behavior] || '',
-              object_type: options[:object_type] || '',
-              object_id: options[:object_id] || '',
-              description: options[:description] || ''
-            }
-          }
-          response = RestClient.post(params[:url], playload, default_header.merge(params[:headers]))
+          options[:creater_uuid] = agent_db_hash['uuid']
+          options[:creater_name] = "sypaget@" + (agent_db_hash['human_name'] || agent_db_hash['hostname'])
+
+          response = RestClient.post(params[:url], options, default_header.merge(params[:headers]))
           if params[:external_options][:print_log]
             puts "post #{params[:url]}"
-            puts "parameters: \n#{JSON.pretty_generate(playload)}"
+            puts "parameters: \n#{JSON.pretty_generate(options)}"
             puts "response code: #{response.code}"
             puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
           end

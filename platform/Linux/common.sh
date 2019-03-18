@@ -21,7 +21,7 @@ function fun_install() {
 
 command -v lsb_release > /dev/null || fun_install redhat-lsb
 
-function fun_install_dependent_packages() {
+function fun_sypctl_check_dependent_packages() {
     command -v yum > /dev/null && {
         declare -a packages
         packages[0]=git
@@ -186,7 +186,7 @@ function fun_sypctl_upgrade() {
         sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
     fi
 
-    sypctl check:dependent:packages
+    sypctl check:dependent_packages
 
     # 编译 sypctl 代理端服务
     # bundle 操作必须执行，所 ruby 脚本依赖的包都维护在该 Gemfile 中
