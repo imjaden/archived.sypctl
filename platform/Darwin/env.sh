@@ -2,7 +2,7 @@
 #
 ########################################
 #  
-#  SYPCTL Environment Script
+#  SYPCTL Environment Script@Deprecated
 #
 ########################################
 
@@ -71,8 +71,6 @@ sudo ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
 
 cd agent
 mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
-
-sudo gem install mysql2 -- --with-opt-dir="$(brew --prefix openssl)"
 sudo bundle install > /dev/null 2>&1
 cd ..
 
@@ -100,3 +98,9 @@ sypctl schedule:jobs
 
 title "sypctl 安装完成"
 sypctl help
+
+
+command -v mysql > /dev/null || {
+    title "mysql2 安装方案"
+    echo "sudo gem install mysql2 -- --with-opt-dir=\"\$(brew --prefix openssl)\""
+}

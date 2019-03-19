@@ -2,7 +2,7 @@
 #
 ########################################
 #  
-#  SYPCTL Environment Script
+#  SYPCTL Environment Script@Deprecated
 #
 ########################################
 
@@ -131,13 +131,31 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
     git clone --depth 1 git://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
     git clone --depth 1 https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
     git clone --depth 1 https://github.com/andorchen/rbenv-china-mirror.git ~/.rbenv/plugins/rbenv-china-mirror
-    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
-    echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
-    source ~/.bash_profile
-    type rbenv
 
+    test -f ~/.zshrc && {
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.zshrc
+        echo 'eval "$(rbenv init -)"' >> ~/.zshrc
+        source ~/.zshrc
+    }
+    test -f ~/.bashrc && {
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+        echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+        source ~/.bashrc
+    }
+    test -f ~/.bash_profile && {
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
+        echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
+        source ~/.bash_profile
+    }
+
+    type rbenv
+    eval "$(rbenv init -)"
     fun_rbenv_install_ruby
 }
+
+cd ~/.rbenv
+git pull
+curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
 
 command -v ruby >/dev/null 2>&1 && ruby -v || { 
     title "安装 Ruby..."

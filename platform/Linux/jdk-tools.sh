@@ -33,17 +33,7 @@ case "$1" in
             exit 1
         }
 
-        case "${os_platform}" in
-            CentOS*)
-                sudo yum install -y java-devel
-            ;;
-            Ubuntu16)
-                echo "not support this system($os_platform)"
-            ;;
-            *)
-                echo "unknown system($os_platform)"
-            ;;
-        esac
+        sudo yum install -y java-devel
     ;;
     install:jdk)
         command -v java >/dev/null 2>&1 && {

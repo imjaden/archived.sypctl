@@ -6,5 +6,183 @@
 #
 ########################################
 
-# source platform/$(uname -s)/env.sh
-curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/platform/$(uname -s)/env.sh | bash
+test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/opt}
+test "$(uname -s)" = "Linux" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/src}
+SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
+SYPCTL_BRANCH=dev-0.0.1
+
+if [[ -z "${SYPCTL_PREFIX}" ]]; then
+    title "执行预检: 暂不兼容该系统 - $(uname -s)"
+    exit 1
+fi
+
+test -f ~/.zshrc && source ~/.zshrc > /dev/null 2>&1
+test -f ~/.bashrc && source ~/.bashrc > /dev/null 2>&1
+test -f ~/.bash_profile && source ~/.bash_profile > /dev/null 2>&1
+function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
+
+title "安装系统依赖..."
+command -v yum > /dev/null && {
+    declare -a packages
+    packages[0]=git
+    packages[1]=tree
+    packages[2]=wget
+    packages[3]=make
+    packages[4]=rdate
+    packages[5]=dos2unix
+    packages[6]=net-tools
+    packages[7]=bzip2
+    packages[8]=gcc
+    packages[9]=gcc-c++
+    packages[10]=automake
+    packages[11]=autoconf
+    packages[12]=libtool
+    packages[13]=openssl
+    packages[14]=vim-enhanced
+    packages[15]=zlib-devel
+    packages[16]=mysql-devel
+    packages[17]=openssl-devel
+    packages[18]=readline-devel
+    packages[19]=iptables-services
+    packages[20]=libxslt-devel.x86_64
+    packages[21]=libxml2-devel.x86_64
+    packages[22]=yum-plugin-downloadonly
+    packages[23]=redhat-lsb
+    sudo yum install -y ${packages[@]}
+}
+
+if [[ "$(uname -s)" = "Darwin" ]]; then
+    command -v brew > /dev/null || {
+        title "安装 Homebrew"
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    }
+fi
+
+command -v brew > /dev/null && {
+    declare -a packages
+    packages[0]=git
+    packages[1]=tree
+    packages[2]=wget
+    packages[3]=curl
+    packages[4]=openssl
+    package_list=(git wget curl openssl)
+    for package in ${package_list[@]}; do
+        command -v ${package} > /dev/null 2>&1 || {
+          title "安装 ${package}"
+          brew install ${package}
+        }
+    done
+}
+
+test -d ${SYPCTL_HOME} || {
+    mkdir -p ${SYPCTL_PREFIX}
+    cd ${SYPCTL_PREFIX}
+    title "安装 sypctl..."
+    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
+
+    if [[ "$(whoami)" != "root" ]]; then
+        current_user=$(whoami)
+        chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
+    fi
+}
+
+cd ${SYPCTL_HOME}
+git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
+source platform/Linux/common.sh
+
+ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
+ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
+ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
+
+command -v java > /dev/null || {
+    title "安装 JDK..."
+    bash platform/Linux/jdk-tools.sh install:jdk
+}
+command -v javac > /dev/null || {
+    title "安装 JAVAC..."
+    bash platform/Linux/jdk-tools.sh install:javac
+}
+
+function fun_rbenv_install_ruby() {
+    rbenv install --skip-existing 2.3.0 
+    rbenv rehash
+    rbenv global 2.3.0
+
+    gem install bundle
+    bundle config mirror.https://rubygems.org https://gems.ruby-china.com
+    bundle config build.nokogiri --use-system-libraries
+
+    ruby -v
+    bundler -v
+}
+
+command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || { 
+    title "安装 Rbenv..."
+    git clone --depth 1 git://github.com/sstephenson/rbenv.git ~/.rbenv
+    git clone --depth 1 git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+    git clone --depth 1 git://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
+    git clone --depth 1 https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
+    git clone --depth 1 https://github.com/andorchen/rbenv-china-mirror.git ~/.rbenv/plugins/rbenv-china-mirror
+
+    test -f ~/.zshrc && {
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.zshrc
+        echo 'eval "$(rbenv init -)"' >> ~/.zshrc
+        source ~/.zshrc
+    }
+    test -f ~/.bashrc && {
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+        echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+        source ~/.bashrc
+    }
+    test -f ~/.bash_profile && {
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
+        echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
+        source ~/.bash_profile
+    }
+
+    type rbenv
+    eval "$(rbenv init -)"
+    fun_rbenv_install_ruby
+}
+
+title "升级 Rbenv..."
+cd ~/.rbenv
+git pull > /dev/null 2>&1
+title "检测 Rbenv..."
+curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
+
+command -v ruby >/dev/null 2>&1 && ruby -v || { 
+    title "安装 Ruby..."
+    fun_rbenv_install_ruby
+}
+
+title "安装代理依赖..."
+cd ${SYPCTL_HOME}
+cd agent
+mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
+bundle install > /dev/null 2>&1
+cd ..
+
+title "配置 SSH Key..."
+sypctl ssh:keygen
+
+title "配置基础服务..."
+sypctl toolkit date check
+sypctl schedule:update
+sypctl schedule:jobs
+
+title "安装列表清单"
+custom_col1_width=22
+custom_col2_width=32
+
+fun_print_table_header "Installed State" "Component" "Version"
+dependency_commands=(git rbenv ruby gem bundle)
+for cmd in ${dependency_commands[@]}; do
+    version=$(${cmd} --version)
+    printf "$two_cols_table_format" "${cmd}" "${version:0:30}"
+done
+fun_prompt_java_already_installed
+fun_print_table_footer
+
+title "sypctl 安装完成"
+sypctl help

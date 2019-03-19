@@ -11,8 +11,6 @@ gem 'rest-client', '~> 2.0.2'
 gem 'terminal-table', '~> 1.8.0'
 gem 'mysql2', '~> 0.4.10'
 
-gem 'httparty', '~> 0.13.7' # todo: remove
-
 if File.exists?(".config/local-server")
   gem 'sinatra', '~> 2.0.0'
   gem 'sinatra-flash', '~> 0.3.0'
@@ -26,9 +24,3 @@ if File.exists?(".config/local-server")
   gem 'yui-compressor', '~> 0.12.0'
   gem 'therubyracer', '~> 0.12.2'
 end
-
-if `uname -s`.strip == 'Darwin'
-  gem 'net-ssh', '~>4.2.0'
-  gem 'net-scp', '~>1.2.1'
-end
-
