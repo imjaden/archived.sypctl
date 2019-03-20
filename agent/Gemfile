@@ -9,7 +9,7 @@ end
 gem 'rake', '~> 12.3.0'
 gem 'rest-client', '~> 2.0.2'
 gem 'terminal-table', '~> 1.8.0'
-gem 'mysql2', '~> 0.4.10'
+gem 'mysql2', '~> 0.5.2'
 
 if File.exists?(".config/local-server")
   gem 'sinatra', '~> 2.0.0'
