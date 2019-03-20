@@ -151,7 +151,7 @@ function fun_sypctl_service_caller() {
         exit 1
     fi
 
-    sudo mkdir -p /etc/sypctl/
+    mkdir -p /etc/sypctl/
     support_commands=(render list start stop status restart monitor edit guard)
     if [[ "$2" = "edit" ]]; then
         vim /etc/sypctl/services.json

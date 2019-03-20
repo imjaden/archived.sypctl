@@ -147,7 +147,9 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
 
 title "升级 Rbenv..."
 cd ~/.rbenv
+rbenv_version=$(rbenv -v | cut -d ' ' -f 2)
 git pull > /dev/null 2>&1
+echo "rbenv ${rbenv_version} => $(rbenv -v | cut -d ' ' -f 2)"
 title "检测 Rbenv..."
 curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
 
@@ -164,7 +166,7 @@ bundle install > /dev/null 2>&1
 cd ..
 
 title "配置 SSH Key..."
-sypctl ssh:keygen
+sypctl ssh:keygen > /dev/null 2>&1
 
 title "配置基础服务..."
 sypctl toolkit date check

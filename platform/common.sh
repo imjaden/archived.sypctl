@@ -654,12 +654,18 @@ function fun_sypctl_backup_mysql_caller() {
         if [[ "${process_state}" = "running" ]]; then
             echo "${timestamp2} - backup process running(${pid})"
         else
-            nohup ruby platform/ruby/backup-mysql-tools.rb "--$2" --home=${SYPCTL_HOME} >> ${log_path} 2>&1 &
-            echo "${timestamp2} - ${SYPCTL_HOME}"
-            echo "${timestamp2} - backup process started!"
-            echo 
-            echo "${timestamp2} - \$ sypctl backup:mysql state"
-            echo "${timestamp2} - \$ sypctl backup:mysql view"
+            [[ $@ =~ "scope=hour" ]] && scope=hour || scope=day
+            nohup ruby platform/ruby/backup-mysql-tools.rb "--$2" --home=${SYPCTL_HOME} --scope=${scope} >> ${log_path} 2>&1 &
+            echo "--scope=${scope}"
+            echo "--home=${SYPCTL_HOME}"
+            echo "--timestamp=${timestamp2}"
+            echo
+            sleep 3
+            sypctl backup:mysql state
+            echo
+            echo "command list:"
+            echo "\$ sypctl backup:mysql state"
+            echo "\$ sypctl backup:mysql view"
         fi
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
         ruby platform/ruby/backup-mysql-tools.rb "--$2" --home="${SYPCTL_HOME}"

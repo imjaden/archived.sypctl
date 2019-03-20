@@ -52,6 +52,9 @@ option_parser = OptionParser.new do |opts|
   opts.on('-h', "--home path", 'SYPCTL_HOME') do |value|
     options[:home] = value
   end
+  opts.on('-p', "--scope scope", '备份类型day/hour, 默认天') do |value|
+    options[:scope] = value
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -68,6 +71,7 @@ class BackupMySQL
       ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
 
       @options[:home] ||= Dir.pwd
+      @options[:scope] ||= 'day'
       `mkdir -p #{@options[:home]}/{tmp,logs}`
     end
 
@@ -82,7 +86,7 @@ class BackupMySQL
     def view
       @backup_list.each do |backup_config|
         config = backup_config['config']
-        backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", Time.now.strftime('%y%m%d'))
+        backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", ymd_scope)
         FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
         output_path = File.join(backup_path, 'mysqldump.json')
         databases_path = File.join(backup_path, 'databases.json')
@@ -127,7 +131,7 @@ class BackupMySQL
         databases = client.query("show databases").map { |h| h.values }.flatten
         client.close
 
-        backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", Time.now.strftime('%y%m%d'))
+        backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", ymd_scope)
         FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
         databases.each do |database|
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
@@ -177,7 +181,7 @@ class BackupMySQL
         databases = client.query("show databases").map { |h| h.values }.flatten
         client.close
 
-        backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", Time.now.strftime('%y%m%d'))
+        backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", ymd_scope)
         FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
         output_path = File.join(backup_path, 'mysqldump.json')
         databases_path = File.join(backup_path, 'databases.json')
@@ -218,7 +222,7 @@ class BackupMySQL
 
           options = {
             uuid: SecureRandom.uuid.gsub('-', ''),
-            ymd: Time.now.strftime("%y%m%d"),
+            ymd: ymd_scope,
             host: config['host'],
             port: config['port'],
             database_name: database,
@@ -237,7 +241,7 @@ class BackupMySQL
           params = {
             device_uuid: Sypctl::Device.uuid,
             host: "#{config['host']}-#{config['port']||3306}",
-            ymd: Time.now.strftime("%y%m%d"),
+            ymd: ymd_scope,
             backup_name: File.basename(file_path),
             backup_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'NotExist'),
             backup_file: File.new(file_path, 'rb')
@@ -257,7 +261,7 @@ class BackupMySQL
         state_grouped_hash = backup_hash.values.group_by { |h| h[:backup_state] }
         options = {
           uuid: SecureRandom.uuid.gsub('-', ''),
-          ymd: Time.now.strftime("%y%m%d"),
+          ymd: ymd_scope,
           database_count: databases.length,
           backup_count: backup_hash.keys.length,
           backup_duration: "#{(Time.now-databases_btime).round(2)}s",
@@ -274,6 +278,10 @@ class BackupMySQL
       end
 
       FileUtils.rm_f(pid_path) if File.exists?(pid_path)
+    end
+
+    def ymd_scope
+      Time.now.strftime(@options[:scope] == 'day' ? "%y%m%d" : "%y%m%d%H")
     end
 
     def du_sh(path)

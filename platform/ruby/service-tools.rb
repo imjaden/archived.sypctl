@@ -60,22 +60,27 @@ puts `ruby #{__FILE__} -h` if options.keys.empty?
 
 class Service
   class << self
+    def title(text)
+      puts format("########################################\n# %s\n########################################\n", text)
+    end
+
     def options(options)
       @options = options
 
       @service_config_path = "/etc/sypctl/services.json"
       @service_output_path = "/etc/sypctl/services.output"
       unless File.exists?(@service_config_path)
-        puts "警告：本机暂未同步监控服务元信息\n退出操作"
+        title("警告：本机暂未同步监控服务元信息, 退出操作")
         exit 1
       end
 
       @data_hash = JSON.parse(File.read(@service_config_path))
-      @services  = @data_hash['services']
       @hosts     = @data_hash['hosts'] || {}
       @config    = @data_hash['config'] || {}
       @extra     = @data_hash['extra'] || {}
-
+      @services  = @data_hash['services'] || []
+      @services = @services.each { |service| service['user'] = whoami if service['user'].to_s.strip.empty? }
+      
       ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
     end
 
@@ -101,7 +106,7 @@ class Service
       services = services.select { |hsh| target_service.split(",").include?(hsh['id'])  } if target_service != 'all'
 
       if services.empty?
-        puts "Warning: 未匹配到服务 #{target_service}! \n\n本机配置的服务列表:"
+        title("Warning: 未匹配到服务 #{target_service}! \n\n本机配置的服务列表:")
         puts @data_hash['services'].map { |hsh| "- #{hsh['id']}\n" }.join
         exit
       end
@@ -130,7 +135,7 @@ class Service
 
     def start(target_service = nil)
       list(false, @options[:start] || target_service || 'all').each do |service|
-        puts "\n# 启动 #{service['name']}\n\n"
+        title("启动 #{service['name']}")
         pid_path = render_command(service['pid_path'], service)
         state, message = process_status_by_pid(pid_path)
         if state
@@ -160,11 +165,11 @@ class Service
 
     def stop(target_service = nil)
       list(false, @options[:stop] || target_service || 'all').reverse.each do |service|
-        puts "\n## 关闭 #{service['name']}\n\n"
+        title("关闭 #{service['name']}")
         service['stop'].each do |command|
           command = render_command(command, service)
 
-          if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
+          if service['user'] != whoami && need_su_to_execute_command?(command, service)
             command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\""
           end
           run_command(command)
@@ -188,7 +193,7 @@ class Service
         state, message = process_status_by_pid(pid_path)
         next if state
 
-        puts "\n# 启动 #{service['name']}"
+        title("启动 #{service['name']}")
         start_service(service)
 
         Sypctl::Http.post_behavior({
@@ -310,7 +315,7 @@ class Service
 
     def kill_process_by_pid(pid_path, try_time = 1)
       if try_time > 3
-        puts "中止尝试 Kill 进程 #{pid_path}"
+        title("中止尝试 Kill 进程 #{pid_path}")
         return false 
       end
 
@@ -336,7 +341,7 @@ class Service
         # 使用 su 切换用户执行命令，需要满足以下两点:
         # 1. 运行账号不是当前用户
         # 2. 没有指明不需要切换用户操作命令(开头命令)
-        if (service['user'] || whoami) != whoami && need_su_to_execute_command?(command, service)
+        if service['user'] != whoami && need_su_to_execute_command?(command, service)
           command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\"" 
         end
         run_command(command)
