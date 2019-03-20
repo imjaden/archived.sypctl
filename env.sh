@@ -12,13 +12,21 @@ SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BRANCH=dev-0.0.1
 
 if [[ -z "${SYPCTL_PREFIX}" ]]; then
-    title "执行预检: 暂不兼容该系统 - $(uname -s)"
+    title "执行预检: 暂未兼容该系统 - $(uname -s)"
     exit 1
 fi
 
-test -f ~/.zshrc && source ~/.zshrc > /dev/null 2>&1
-test -f ~/.bashrc && source ~/.bashrc > /dev/null 2>&1
-test -f ~/.bash_profile && source ~/.bash_profile > /dev/null 2>&1
+system_shell=${SHELL##*/}
+if [[ "${system_shell}" = "zsh" ]]; then
+    source ~/.zshrc > /dev/null 2>&1
+elif [[ "${system_shell}" = "baseh" ]] || [[ "${system_shell}" = "sh" ]]; then
+    test -f ~/.bashrc && source ~/.bashrc > /dev/null 2>&1
+    test -f ~/.bash_profile && source ~/.bash_profile > /dev/null 2>&1
+else
+    title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
+    exit 1
+fi
+
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 
 title "安装系统依赖..."
@@ -88,7 +96,7 @@ test -d ${SYPCTL_HOME} || {
 
 cd ${SYPCTL_HOME}
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
-source platform/Linux/common.sh
+source platform/middleware.sh > /dev/null 2>&1
 
 ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
 ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
@@ -124,21 +132,15 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
     git clone --depth 1 https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
     git clone --depth 1 https://github.com/andorchen/rbenv-china-mirror.git ~/.rbenv/plugins/rbenv-china-mirror
 
-    test -f ~/.zshrc && {
+    if [[ "${system_shell}" = "zsh" ]]; then
         echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.zshrc
         echo 'eval "$(rbenv init -)"' >> ~/.zshrc
         source ~/.zshrc
-    }
-    test -f ~/.bashrc && {
-        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
-        echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-        source ~/.bashrc
-    }
-    test -f ~/.bash_profile && {
+    elif [[ "${system_shell}" = "baseh" ]] || [[ "${system_shell}" = "sh" ]]; then
         echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
         echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
         source ~/.bash_profile
-    }
+    fi
 
     type rbenv
     eval "$(rbenv init -)"

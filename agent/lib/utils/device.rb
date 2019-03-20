@@ -199,7 +199,7 @@ module Sypctl
       end
 
       def wan_ip
-        `curl http://sypctl-api.ibi.ren/api/v1/ifconfig.me`.strip
+        `curl http://sypctl.com/api/v1/ifconfig.me`.strip
       end
     end
   end
