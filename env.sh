@@ -53,6 +53,10 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
         title "安装 Homebrew"
         ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     }
+    command -v greadlink > /dev/null || {
+        title "安装 coreutils"
+        brew install coreutils
+    }
 fi
 
 command -v brew > /dev/null && {
@@ -142,7 +146,7 @@ cat .env-files | uniq > .env-files
 if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then
     echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${shell_profile}
     echo 'eval "$(rbenv init -)"' >> ${shell_profile}
-    source ${shell_profile}
+    source ${shell_profile} > /dev/null 2>&1
 fi
 
 title "升级 Rbenv..."
