@@ -6,26 +6,15 @@
 #
 ########################################
 
-test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/opt}
-test "$(uname -s)" = "Linux" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/src}
+SYPCTL_EXECUTE_PATH="$(pwd)"
+test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=/usr/local/opt
+test "$(uname -s)" = "Linux" && SYPCTL_PREFIX=/usr/local/src
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BRANCH=dev-0.0.1
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 
-export PATH="/usr/local/bin:$PATH"
 if [[ -z "${SYPCTL_PREFIX}" ]]; then
     title "执行预检: 暂未兼容该系统 - $(uname -s)"
-    exit 1
-fi
-
-system_shell=${SHELL##*/}
-if [[ "${system_shell}" = "zsh" ]]; then
-    source ~/.zshrc > /dev/null 2>&1
-elif [[ "${system_shell}" = "baseh" ]] || [[ "${system_shell}" = "sh" ]]; then
-    test -f ~/.bashrc && source ~/.bashrc > /dev/null 2>&1
-    test -f ~/.bash_profile && source ~/.bash_profile > /dev/null 2>&1
-else
-    title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
     exit 1
 fi
 
@@ -104,11 +93,11 @@ ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
 
 command -v java > /dev/null || {
     title "安装 JDK..."
-    bash platform/Linux/jdk-tools.sh install:jdk
+    bash platform/$(uname -s)/jdk-tools.sh install:jdk
 }
 command -v javac > /dev/null || {
     title "安装 JAVAC..."
-    bash platform/Linux/jdk-tools.sh install:javac
+    bash platform/$(uname -s)/jdk-tools.sh install:javac
 }
 
 function fun_rbenv_install_ruby() {
@@ -132,20 +121,29 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
     git clone --depth 1 https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
     git clone --depth 1 https://github.com/andorchen/rbenv-china-mirror.git ~/.rbenv/plugins/rbenv-china-mirror
 
-    if [[ "${system_shell}" = "zsh" ]]; then
-        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.zshrc
-        echo 'eval "$(rbenv init -)"' >> ~/.zshrc
-        source ~/.zshrc
-    elif [[ "${system_shell}" = "baseh" ]] || [[ "${system_shell}" = "sh" ]]; then
-        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
-        echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
-        source ~/.bash_profile
-    fi
-
     type rbenv
     eval "$(rbenv init -)"
     fun_rbenv_install_ruby
 }
+
+system_shell=${SHELL##*/}
+shell_profile=
+if [[ "${system_shell}" = "zsh" ]]; then
+    shell_profile=~/.zshrc
+elif [[ "${system_shell}" = "bash" ]] || [[ "${system_shell}" = "sh" ]]; then
+    shell_profile=~/.bash_profile
+else
+    title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
+    exit 1
+fi
+
+echo "$(readlink ${shell_profile})" >> .env-files
+cat .env-files | uniq > .env-files
+if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then
+    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${shell_profile}
+    echo 'eval "$(rbenv init -)"' >> ${shell_profile}
+    source ${shell_profile}
+fi
 
 title "升级 Rbenv..."
 cd ~/.rbenv
@@ -160,8 +158,8 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
     fun_rbenv_install_ruby
 }
 
-title "安装代理依赖..."
 cd ${SYPCTL_HOME}
+title "安装代理依赖..."
 cd agent
 mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
 bundle install > /dev/null 2>&1
@@ -189,4 +187,6 @@ fun_prompt_java_already_installed
 fun_print_table_footer
 
 title "sypctl 安装完成"
+
 sypctl help
+cd ${SYPCTL_EXECUTE_PATH}

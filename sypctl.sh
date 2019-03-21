@@ -6,19 +6,14 @@
 #
 ########################################
 #
-test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/opt}
-test "$(uname -s)" = "Linux" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/src}
 
-if [[ -z "${SYPCTL_PREFIX}" ]]; then
-    title "执行预检: 暂不兼容该系统 - $(uname -s)"
-    exit 1
-fi
-
-SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_EXECUTE_PATH="$(pwd)"
+SYPCTL_BASH=$(readlink -f /usr/local/bin/sypctl)
+SYPCTL_HOME=$(dirname ${SYPCTL_BASH})
 cd ${SYPCTL_HOME}
 
 source platform/middleware.sh
+
 case "$1" in
     version)
         echo "${sypctl_version}"

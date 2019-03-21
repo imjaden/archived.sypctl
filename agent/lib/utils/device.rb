@@ -11,19 +11,20 @@ module Sypctl
       end
 
       def device_uuid
-        "random-#{SecureRandom.uuid}@#{hostname}"
+        `system_profiler SPHardwareDataType | awk '/UUID/ { print $3; }'`.strip
       end
 
       def memory
-        -1
+        g = `system_profiler SPHardwareDataType | awk '/Memory/ { print $2; }'`.strip.to_i
+        g ** 1024
       end
 
       def cpu
-        -1
+        `sysctl -n machdep.cpu.core_count`.strip.to_i * `sysctl -n machdep.cpu.thread_count`.strip.to_i
       end
 
       def disk
-        -1
+        `diskutil list | grep GB | head -n 1`.strip.scan(/(\d+).\d+ GB/).flatten[0].to_i ** 1024
       end
 
       def hostname
@@ -35,27 +36,41 @@ module Sypctl
       end
 
       def os_version
-        0
+        `sw_vers -productName`.strip + '@' +`sw_vers -productVersion`.strip
       end
 
       def free_m
-        {"total"=>"32011", "used"=>"10976", "free"=>"20174", "shared"=>"24", "buff/cache"=>"861", "available"=>"20338"}
+        total, wired, free  = `top -l 1 -s 0 | grep PhysMem`.scan(/(\S+) used \((\S+) wired\), (\S+) unused/)
+        {"total"=> total, "wired"=>wired, "free"=> free}
       end
 
       def df_h
-        [{"Filesystem":"/dev/mapper/centos_java1-root","Size":"50G","Used":"567M","Avail":"50G","Use%":"2%","MountedOn":"/"},{"Filesystem":"devtmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/dev"},{"Filesystem":"tmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/dev/shm"},{"Filesystem":"tmpfs","Size":"16G","Used":"25M","Avail":"16G","Use%":"1%","MountedOn":"/run"},{"Filesystem":"tmpfs","Size":"16G","Used":"0","Avail":"16G","Use%":"0%","MountedOn":"/sys/fs/cgroup"},{"Filesystem":"/dev/mapper/centos_java1-usr","Size":"100G","Used":"3.1G","Avail":"97G","Use%":"4%","MountedOn":"/usr"},{"Filesystem":"/dev/sda1","Size":"1014M","Used":"167M","Avail":"848M","Use%":"17%","MountedOn":"/boot"},{"Filesystem":"/dev/mapper/centos_java1-tmp","Size":"10G","Used":"33M","Avail":"10G","Use%":"1%","MountedOn":"/tmp"},{"Filesystem":"/dev/mapper/centos_java1-opt","Size":"10G","Used":"67M","Avail":"10G","Use%":"1%","MountedOn":"/opt"},{"Filesystem":"/dev/mapper/centos_java1-home","Size":"100G","Used":"33M","Avail":"100G","Use%":"1%","MountedOn":"/home"},{"Filesystem":"/dev/mapper/centos_java1-data","Size":"600G","Used":"35M","Avail":"600G","Use%":"1%","MountedOn":"/data"},{"Filesystem":"/dev/mapper/centos_java1-var","Size":"100G","Used":"1.4G","Avail":"99G","Use%":"2%","MountedOn":"/var"},{"Filesystem":"tmpfs","Size":"3.2G","Used":"0","Avail":"3.2G","Use%":"0%","MountedOn":"/run/user/0"}]
+        titles, *disks = `df -h`.sub("Mounted on", "MountedOn").split("\n").map { |line| line.split(/\s+/) }
+        disks.map do |disk|
+          titles.each_with_object({}).with_index do |(title, hsh), index|
+            hsh[title] = disk[index]
+          end
+        end
       end
 
-      def uptime
-        (`uptime`.strip.scan(/(.*?)\s+up\s+(.*?),\s+(\d+)\suser[s],\s+load\saverage[s]:(.*?)$/) || []).flatten
+      def uptime  
+        (`uptime`.strip.scan(/^(.*?)\s+up\s+(.*?),\s+(\d+)\susers?,\s+load\saverages?:\s?(.*?)$/) || []).flatten
       end
 
       def lan_ip
-        '0.0.0.0'
+        ips = `ifconfig`.scan(/\d+\.\d+\.\d+\.\d+/).flatten
+
+        ips_10 = ips.select { |ip| ip.start_with?('10.') }
+        return ips_10[0] unless ips_10.empty?
+
+        ips_192 = ips.select { |ip| ip.start_with?('192.') }
+        return ips_192[0] unless ips_192.empty?
+
+        ips[0]
       end
 
       def wan_ip
-        '0.0.0.0'
+        `curl http://sypctl.com/api/v1/ifconfig.me`.strip
       end
     end
   end
@@ -101,7 +116,7 @@ module Sypctl
       end
 
       def memory
-        free_m['total'].to_i * 1024 * 1024
+        free_m['total'].to_i ** 1024
       end
 
       def cpu
@@ -195,7 +210,15 @@ module Sypctl
       end
 
       def lan_ip
-        `ifconfig`.scan(/\d+\.\d+\.\d+\.\d+/).flatten.first
+        ips = `ifconfig`.scan(/\d+\.\d+\.\d+\.\d+/).flatten
+
+        ips_10 = ips.select { |ip| ip.start_with?('10.') }
+        return ips_10[0] unless ips_10.empty?
+
+        ips_192 = ips.select { |ip| ip.start_with?('192.') }
+        return ips_192[0] unless ips_192.empty?
+
+        ips[0]
       end
 
       def wan_ip

@@ -1,25 +1,15 @@
 #!/usr/bin/env bash
 
-function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
+function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
 
-system_shell=${SHELL##*/}
-if [[ "${system_shell}" = "zsh" ]]; then
-    source ~/.zshrc > /dev/null 2>&1
-elif [[ "${system_shell}" = "baseh" ]] || [[ "${system_shell}" = "sh" ]]; then
-    test -f ~/.bashrc && source ~/.bashrc > /dev/null 2>&1
-    test -f ~/.bash_profile && source ~/.bash_profile > /dev/null 2>&1
-else
-    title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
-    exit 1
-fi
-
-export PATH="/usr/local/bin:$PATH"
-test -f .env-files && while read filepath; do
-    test -f "${filepath}" && source "${filepath}"
+test -f .env-files || touch .env-files
+while read filepath; do
+    source "${filepath}" > /dev/null 2>&1
 done < .env-files
 
+cd ${SYPCTL_HOME}
 mkdir -p {logs,tmp,packages}
 test -f mode || echo default > mode
 

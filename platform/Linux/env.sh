@@ -7,7 +7,7 @@
 ########################################
 
 SYPCTL_BRANCH=dev-0.0.1
-SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/src}
+SYPCTL_PREFIX=/usr/local/src
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 test -f ~/.bash_profile && source ~/.bash_profile
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
@@ -168,7 +168,7 @@ bundle install > /dev/null 2>&1
 cd ..
 
 title "配置 SSH Key..."
-sypctl ssh-keygen
+sypctl ssh-keygen > /dev/null 2>&1
 
 title "配置基础服务..."
 sypctl toolkit date check
