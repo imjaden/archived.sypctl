@@ -69,10 +69,7 @@ class Service
 
       @service_config_path = "/etc/sypctl/services.json"
       @service_output_path = "/etc/sypctl/services.output"
-      unless File.exists?(@service_config_path)
-        title("警告：本机暂未同步监控服务元信息, 退出操作")
-        exit 1
-      end
+      exit 1 unless File.exists?(@service_config_path)
 
       @data_hash = JSON.parse(File.read(@service_config_path))
       @hosts     = @data_hash['hosts'] || {}

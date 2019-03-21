@@ -2,12 +2,6 @@
 
 source platform/common.sh
 
-test -f .env-files && while read filepath; do
-    test -f "${filepath}" && source "${filepath}"
-done < .env-files
-test -f ~/.bash_profile && source ~/.bash_profile
-cd ${SYPCTL_HOME}
-
 function fun_install() {
     command -v yum > /dev/null && {
         title "\$ sudo yum install -y $1"
@@ -98,9 +92,9 @@ function fun_sypctl_upgrade() {
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     git reset --hard HEAD  > /dev/null 2>&1
     git pull origin ${git_current_branch} > /dev/null 2>&1
-    sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/bin/sypctl
-    sudo ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/bin/syps
-    sudo ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/bin/sypt
+    sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
+    sudo ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
+    sudo ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
 
     # 分配源代码权限
     if [[ "$(whoami)" != "root" ]]; then
@@ -389,7 +383,7 @@ function fun_update_crontab_jobs() {
 
     echo "" >> tmp/${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> tmp/${crontab_conf}
-    echo "*/5 * * * * sypctl schedule:jobs" >> tmp/${crontab_conf}
+    echo "*/5 * * * * /usr/local/bin/sypctl schedule:jobs" >> tmp/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> tmp/${crontab_conf}
 
     crontab tmp/${crontab_conf}
@@ -421,8 +415,8 @@ function fun_update_rc_local() {
         sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
         sudo echo "test -n \"\${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl" >> ${rc_local_filepath}
         sudo echo "mkdir -p \${SYPCTL_HOME}/logs" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl schedule:jobs\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"sypctl schedule:update\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:jobs\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
+        sudo echo "su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:update\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
         sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
 
         sudo chmod +x ${rc_local_filepath}

@@ -115,7 +115,7 @@ function fun_update_crontab_jobs() {
 
     echo "" >> tmp/${crontab_conf}
     echo "# Begin sypctl crontab jobs at: ${timestamp}" >> tmp/${crontab_conf}
-    echo "*/5 * * * * sypctl schedule:jobs" >> tmp/${crontab_conf}
+    echo "*/5 * * * * /usr/local/bin/sypctl schedule:jobs" >> tmp/${crontab_conf}
     echo "# End sypctl crontab jobs at: ${timestamp}" >> tmp/${crontab_conf}
 
     crontab tmp/${crontab_conf}

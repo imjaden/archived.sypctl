@@ -10,7 +10,9 @@ test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/loca
 test "$(uname -s)" = "Linux" && SYPCTL_PREFIX=${SYPCTL_PREFIX_CUSTOM:-/usr/local/src}
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BRANCH=dev-0.0.1
+function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 
+export PATH="/usr/local/bin:$PATH"
 if [[ -z "${SYPCTL_PREFIX}" ]]; then
     title "执行预检: 暂未兼容该系统 - $(uname -s)"
     exit 1
@@ -26,8 +28,6 @@ else
     title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
     exit 1
 fi
-
-function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 
 title "安装系统依赖..."
 command -v yum > /dev/null && {

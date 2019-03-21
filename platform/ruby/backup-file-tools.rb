@@ -54,6 +54,7 @@ class BackupFile
       @synced_json_path = File.join(@db_path, 'synced.json')
       @synced_hash_path = File.join(@db_path, 'synced.hash')
 
+      FileUtils.mkdir_p(@db_path) unless File.exists?(@db_path)
       if !File.exists?(@db_hash_path) || !File.exists?(@db_json_path)
         puts "警告：本机暂未同步备份元信息\n退出操作"
         exit 1
@@ -193,7 +194,7 @@ class BackupFile
       end
     
       file_uuids = @db_json.map { |hsh| hsh['uuid'] }
-      @synced_json = JSON.parse(File.read(@synced_json_path))
+      @synced_json = JSON.parse(File.read(@synced_json_path)) rescue {}
       deprecated_uuids = (@synced_json.keys - file_uuids)
       deprecated_uuids.each { |file_uuid| @synced_json.delete(file_uuid) }
       File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) } unless deprecated_uuids.empty?
