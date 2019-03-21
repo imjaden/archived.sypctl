@@ -165,7 +165,7 @@ command -v ruby >/dev/null 2>&1 && ruby -v || {
 cd ${SYPCTL_HOME}
 title "安装代理依赖..."
 cd agent
-mkdir -p {monitor/{index,pages},logs,tmp/pids,db}
+mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
 bundle install > /dev/null 2>&1
 cd ..
 
