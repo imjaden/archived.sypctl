@@ -92,6 +92,8 @@ function fun_sypctl_upgrade() {
     git_current_branch=$(git rev-parse --abbrev-ref HEAD)
     git reset --hard HEAD  > /dev/null 2>&1
     git pull origin ${git_current_branch} > /dev/null 2>&1
+    
+    command -v sypctl && rm -f $(which sypctl)
     sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
     sudo ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
     sudo ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt

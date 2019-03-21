@@ -89,11 +89,13 @@ test -d ${SYPCTL_HOME} || {
 
 cd ${SYPCTL_HOME}
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
-source platform/middleware.sh > /dev/null 2>&1
 
+command -v sypctl && rm -f $(which sypctl)
 ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
 ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
 ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
+
+source platform/middleware.sh > /dev/null 2>&1
 
 command -v java > /dev/null || {
     title "安装 JDK..."
