@@ -9,7 +9,7 @@
 
 SYPCTL_EXECUTE_PATH="$(pwd)"
 # command -v greadlink > /dev/null && alias readlink=greadlink
-SYPCTL_BASH=$(readlink -f /usr/local/bin/sypctl)
+SYPCTL_BASH=$(readlink /usr/local/bin/sypctl)
 SYPCTL_HOME=$(dirname ${SYPCTL_BASH})
 cd ${SYPCTL_HOME}
 
