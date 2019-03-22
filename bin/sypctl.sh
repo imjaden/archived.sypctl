@@ -8,11 +8,12 @@
 #
 
 SYPCTL_EXECUTE_PATH="$(pwd)"
-# command -v greadlink > /dev/null && alias readlink=greadlink
 SYPCTL_BASH=$(readlink /usr/local/bin/sypctl)
-SYPCTL_HOME=$(dirname ${SYPCTL_BASH})
-cd ${SYPCTL_HOME}
+SYPCTL_BIN=$(dirname ${SYPCTL_BASH})
+SYPCTL_HOME=$(dirname ${SYPCTL_BIN})
+command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
 
+cd ${SYPCTL_HOME}
 source platform/middleware.sh
 
 case "$1" in
@@ -75,6 +76,7 @@ case "$1" in
     ;;
     *)
         fun_name="fun_sypctl_$(echo $1 | sed 's/:/_/g')"
+        echo "fun_name: $fun_name"
         type ${fun_name} > /dev/null 2>&1
         if [[ $? -eq 0 ]]; then
             ${fun_name} $@

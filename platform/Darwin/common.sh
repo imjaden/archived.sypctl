@@ -2,67 +2,6 @@
 
 source platform/common.sh
 
-#
-# sypctl 版本升级后的处理逻辑
-#
-function fun_sypctl_upgrade() {
-    fun_sypctl_pre_upgrade || exit 1
-    
-    # # 升级 sypctl 源代码
-    # old_version=$(sypctl version)
-    # git_current_branch=$(git rev-parse --abbrev-ref HEAD)
-    # git reset --hard HEAD  > /dev/null 2>&1
-    # git pull origin ${git_current_branch} > /dev/null 2>&1
-    command -v sypctl && rm -f $(which sypctl)
-    ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
-    ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
-    ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
-
-    # # 分配源代码权限
-    # if [[ "$(whoami)" != "root" ]]; then
-    #     sudo chmod -R go+w ${SYPCTL_HOME}
-    #     sudo chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
-    # fi
-
-    sypctl check:dependent_packages
-
-    # 编译 sypctl 代理端服务
-    # bundle 操作必须执行，所 ruby 脚本依赖的包都维护在该 Gemfile 中
-    cd agent
-    mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
-    rm -f .config/bundle-done
-    bundle install > /dev/null 2>&1
-    test $? -eq 0 && echo ${timestamp} > .config/bundle-done
-    test -f .config/local-server && bash tool.sh restart
-    cd ..
-
-    if [[ "${old_version}" = "$(sypctl version)" ]]; then
-        fun_print_logo
-        title "current version ${old_version} already is latest version!"
-        exit 1
-    fi
-
-    # if [[ "${sypctl_mode}" = "server" ]]; then
-    #     # 升级后重新提交主机信息
-    #     test -f agent/db/agent.json && mv agent/db/agent.json agent/db/agent.json-${timestamp}
-
-    #     # 升级生重新备份配置档
-    #     test -f agent/db/file-backups/synced.hash && rm -f agent/db/file-backups/synced.hash
-    #     test -f agent/db/file-backups/synced.json && mv agent/db/file-backups/synced.json agent/db/file-backups/synced.json-${timestamp}
-
-    #     # 升级后重要实时同步的操作
-    #     sypctl toolkit date check > /dev/null 2>&1
-    #     sypctl memory:free > /dev/null 2>&1
-    #     sypctl schedule:update > /dev/null 2>&1
-    #     sypctl schedule:jobs > /dev/null 2>&1
-    # fi
-
-    title "upgrade from ${old_version} => $(sypctl version) successfully!"
-    ruby platform/ruby/behavior.rb --old="${old_version}" --new="$(sypctl version)"
-
-    sypctl help
-}
-
 function fun_sypctl_check_dependent_packages() {
     echo "TODO"
 }

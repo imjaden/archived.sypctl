@@ -6,17 +6,15 @@
 #
 ########################################
 
-SYPCTL_EXECUTE_PATH="$(pwd)"
-test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=/usr/local/opt
-test "$(uname -s)" = "Linux" && SYPCTL_PREFIX=/usr/local/src
-SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
-SYPCTL_BRANCH=dev-0.0.1
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
-
-if [[ -z "${SYPCTL_PREFIX}" ]]; then
-    title "执行预检: 暂未兼容该系统 - $(uname -s)"
-    exit 1
-fi
+SYPCTL_EXECUTE_PATH="$(pwd)"
+SYPCTL_BRANCH=dev-0.0.1
+SYPCTL_PREFIX=/usr/local/src
+test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=/usr/local/opt
+SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
+SYPCTL_BIN=${SYPCTL_HOME}/bin
+current_user=$(whoami)
+current_group=$(groups ${current_user} | awk '{ print $1 }')
 
 title "安装系统依赖..."
 command -v yum > /dev/null && {
@@ -81,20 +79,24 @@ test -d ${SYPCTL_HOME} || {
     title "安装 sypctl..."
     git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 
-    if [[ "$(whoami)" != "root" ]]; then
-        current_user=$(whoami)
-        chown -R ${current_user}:${current_user} ${SYPCTL_HOME}
+    if [[ "${current_user}" != "root" ]]; then
+        chmod -R go+w ${SYPCTL_HOME}
+        chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
     fi
 }
 
 cd ${SYPCTL_HOME}
+echo "${current_user}:${current_group}" > .installer
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
 
-command -v sypctl && rm -f $(which sypctl)
-ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
-ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
-ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
+# force relink /usr/local/bin/
+sypctl_commands=(sypctl syps sypt)
+for sypctl_command in ${sypctl_commands[@]}; do
+    command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
+    ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
+done
 
+command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
 source platform/middleware.sh > /dev/null 2>&1
 
 command -v java > /dev/null || {
@@ -193,6 +195,5 @@ fun_prompt_java_already_installed
 fun_print_table_footer
 
 title "sypctl 安装完成"
-
 sypctl help
 cd ${SYPCTL_EXECUTE_PATH}

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-sypctl service $@
+/usr/local/bin/sypctl service $@

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-sypctl toolkit $@
+/usr/local/bin/sypctl toolkit $@
