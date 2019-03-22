@@ -16,10 +16,6 @@ cd ${SYPCTL_HOME}
 mkdir -p {logs,tmp,packages}
 test -f mode || echo default > mode
 
-test -f .env-files || touch .env-files
-while read filepath; do
-    source "${filepath}" > /dev/null 2>&1
-done < .env-files
 sypctl_version=$(cat version)
 sypctl_mode=$(cat mode)
 current_user=$(whoami)
@@ -472,10 +468,6 @@ function fun_print_variable() {
 #
 function fun_agent_server_daemon() {
     cd agent
-    
-    test -f ~/.bash_profile && readlink -f ~/.bash_profile > .config/env-files
-    test -f .config/env-files || touch .config/env-files
-    test -f .config/app-port || echo 8086 > .config/app-port
 
     bash tool.sh process:defender
 }

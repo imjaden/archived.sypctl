@@ -148,9 +148,9 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
 system_shell=${SHELL##*/}
 shell_profile=
 if [[ "${system_shell}" = "zsh" ]]; then
-    shell_profile=~/.zshrc
+    shell_profile=${HOME}/.zshrc
 elif [[ "${system_shell}" = "bash" ]] || [[ "${system_shell}" = "sh" ]]; then
-    shell_profile=~/.bash_profile
+    shell_profile=${HOME}/.bash_profile
 else
     title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
     exit 1
@@ -158,7 +158,7 @@ fi
 
 cd ${SYPCTL_HOME}
 echo "${current_user}:${current_group}" > .installer
-echo "$(readlink ${shell_profile})" >> .env-files
+echo "${shell_profile}" >> .env-files
 cat .env-files | uniq > .env-files
 if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then
     echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${shell_profile}
