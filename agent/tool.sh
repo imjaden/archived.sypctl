@@ -26,8 +26,8 @@ unicorn_pid_file=tmp/pids/unicorn.pid
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function check_deploy_tate() {
     if [[ -f .config/local-server ]]; then
-        test .config/app-port || echo 8086 > .config/app-port
-        test .config/app-workers || echo 1 > .config/app-workers
+        test -f .config/app-port || echo 8086 > .config/app-port
+        test -f .config/app-workers || echo 1 > .config/app-workers
     else
         echo
         title "提示：本地未部署代理端服务"
@@ -108,6 +108,7 @@ case "$1" in
         bundle exec unicorn -p ${app_port}
     ;;
     start)
+        title '启动代理服务'
         check_deploy_tate
     
         app_port=$(cat .config/app-port)
@@ -116,20 +117,23 @@ case "$1" in
         bundle exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D
         test  $? -eq 0 && echo "启动代理服务成功" || echo "启动代理服务失败"
 
-        curl http://127.0.0.1:${app_port}/ > /dev/null 2>&1
+        echo
+        bash $0 state
     ;;
     stop)
+        title '关闭代理服务'
         check_deploy_tate
 
         if [[ -f ${unicorn_pid_file} ]]; then
             cat ${unicorn_pid_file} | xargs kill -9 > /dev/null 2>&1
+            echo "关闭代理服务成功($(cat $unicorn_pid_file))"
             rm -f ${unicorn_pid_file}
-            echo "关闭代理服务成功"
         else 
             echo "代理服务未启动"
         fi
     ;;
     restart)
+        title '重启代理服务'
         check_deploy_tate
 
         bash $0 stop
@@ -146,21 +150,21 @@ case "$1" in
     state|status)
         check_deploy_tate
 
-        title "本地已部署代理端服务："
-        echo "代理服务端口号: $(cat .config/app-port)"
-        echo "代理端服务进程: $(cat .config/app-workers)"
+        title "代理服务状态"
+        echo "端口号: $(cat .config/app-port)"
+        echo "进程数: $(cat .config/app-workers)"
         
         if [[ -f ${unicorn_pid_file} ]]; then
             pid=$(cat ${unicorn_pid_file})
             /bin/ps ax | awk '{print $1}' | grep -e "^${pid}$" &> /dev/null
             if [[ $? -eq 0 ]]; then
-                echo "代理服务进程ID: $pid"
+                echo "进程ID: $pid"
             else
                 rm -f ${unicorn_pid_file}
-                echo "代理服务进程ID: 未运行"
+                echo "进程ID: 未运行"
             fi
         else
-            echo "代理服务进程已关闭"
+            echo "服务进程已关闭"
         fi
     ;;
     process:defender|daemon)
@@ -182,6 +186,7 @@ case "$1" in
         fi
     ;;
     remove)
+        title '移除代理服务'
         check_deploy_tate
 
         read -p "确定移除代理端服务? y/n: " user_input
