@@ -96,11 +96,9 @@ if [[ ! -z "${local_modified}" ]]; then
 fi
 
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
-if [[ "${current_user}" != "root" ]]; then
-    chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-    chmod -R +w ${SYPCTL_HOME}
-    chmod -R +x ${SYPCTL_HOME}/bin/
-fi
+test "${current_user}" != "root" ]] && chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+chmod -R +w ${SYPCTL_HOME}
+chmod -R +x ${SYPCTL_HOME}/bin/
 
 # force relink /usr/local/bin/
 sypctl_commands=(sypctl syps sypt)

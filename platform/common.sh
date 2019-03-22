@@ -72,18 +72,18 @@ function fun_sypctl_upgrade_action() {
     
     old_version=$(sypctl version)
     git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
-    
-    command -v sypctl && rm -f $(which sypctl)
-    sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl
-    sudo ln -snf ${SYPCTL_HOME}/bin/syps.sh /usr/local/bin/syps
-    sudo ln -snf ${SYPCTL_HOME}/bin/sypt.sh /usr/local/bin/sypt
 
-    # 分配源代码权限
-    if [[ "${current_user}" != "root" ]]; then
-        chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-        chmod -R +w ${SYPCTL_HOME}
-        chmod -R +x ${SYPCTL_HOME}/bin/
-    fi
+    test "${current_user}" != "root" ]] && chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+    chmod -R +w ${SYPCTL_HOME}
+    chmod -R +x ${SYPCTL_HOME}/bin/
+
+    # force relink /usr/local/bin/
+    sypctl_commands=(sypctl syps sypt)
+    for sypctl_command in ${sypctl_commands[@]}; do
+        command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
+        ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
+    done
+    command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
 
     sypctl check:dependent_packages
 
