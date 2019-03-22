@@ -76,7 +76,6 @@ case "$1" in
     ;;
     *)
         fun_name="fun_sypctl_$(echo $1 | sed 's/:/_/g')"
-        echo "fun_name: $fun_name"
         type ${fun_name} > /dev/null 2>&1
         if [[ $? -eq 0 ]]; then
             ${fun_name} $@

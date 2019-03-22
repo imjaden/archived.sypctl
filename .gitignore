@@ -4,6 +4,7 @@
 .saasrc
 .env-files
 .install-defender
+.installer
 *.lock
 *.sql
 platform/*.json

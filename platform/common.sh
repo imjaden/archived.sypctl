@@ -4,15 +4,20 @@ function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
 
-test -f .env-files || touch .env-files
-while read filepath; do
-    source "${filepath}" > /dev/null 2>&1
-done < .env-files
+SYPCTL_BRANCH=dev-0.0.1
+SYPCTL_BASH=$(readlink /usr/local/bin/sypctl)
+SYPCTL_BIN=$(dirname ${SYPCTL_BASH})
+SYPCTL_HOME=$(dirname ${SYPCTL_BIN})
+command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
 
 cd ${SYPCTL_HOME}
 mkdir -p {logs,tmp,packages}
 test -f mode || echo default > mode
 
+test -f .env-files || touch .env-files
+while read filepath; do
+    source "${filepath}" > /dev/null 2>&1
+done < .env-files
 sypctl_version=$(cat version)
 sypctl_mode=$(cat mode)
 current_user=$(whoami)
@@ -53,12 +58,20 @@ function fun_sypctl_pre_upgrade() {
 # sypctl 版本升级后的处理逻辑
 #
 function fun_sypctl_upgrade_action() {
-    fun_sypctl_pre_upgrade || exit 1
+    local_modified=$(git status -s)
+    if [[ ! -z "${local_modified}" ]]; then
+        git status
+        read -p "本地代码有修改，可能会产生冲突，是否继续？y/n " user_input
+        if [[ "${user_input}" != "y" ]]; then
+            echo "退出操作！"
+            exit 2
+        fi
 
+        git reset --hard HEAD
+    fi
+    
     old_version=$(sypctl version)
-    git_current_branch=$(git rev-parse --abbrev-ref HEAD)
-    git reset --hard HEAD  > /dev/null 2>&1
-    git pull origin ${git_current_branch} > /dev/null 2>&1
+    git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
     
     command -v sypctl && rm -f $(which sypctl)
     sudo ln -snf ${SYPCTL_HOME}/sypctl.sh /usr/local/bin/sypctl

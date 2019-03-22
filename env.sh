@@ -82,8 +82,20 @@ test -d ${SYPCTL_HOME} || {
 
 cd ${SYPCTL_HOME}
 echo "${current_user}:${current_group}" > .installer
-git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
 
+local_modified=$(git status -s)
+if [[ ! -z "${local_modified}" ]]; then
+    git status
+    read -p "本地代码有修改，可能会产生冲突，是否继续？y/n " user_input
+    if [[ "${user_input}" != "y" ]]; then
+        echo "退出操作！"
+        exit 2
+    fi
+
+    git reset --hard HEAD
+fi
+
+git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
 if [[ "${current_user}" != "root" ]]; then
     chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
     chmod -R +w ${SYPCTL_HOME}
