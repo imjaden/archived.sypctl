@@ -159,7 +159,8 @@ fi
 cd ${SYPCTL_HOME}
 echo "${current_user}:${current_group}" > .installer
 echo "${shell_profile}" >> .env-files
-cat .env-files | uniq > .env-files
+cat .env-files | uniq > .env-files-uniq
+mv .env-files-uniq .env-files
 if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then
     echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${shell_profile}
     echo 'eval "$(rbenv init -)"' >> ${shell_profile}

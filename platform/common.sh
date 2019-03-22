@@ -19,6 +19,7 @@ test -f mode || echo default > mode
 sypctl_version=$(cat version)
 sypctl_mode=$(cat mode)
 current_user=$(whoami)
+
 current_group=$(groups ${current_user} | awk '{ print $1 }')
 timestamp=$(date +'%Y%m%d%H%M%S')
 timestamp2=$(date +'%y-%m-%d %H:%M:%S')
