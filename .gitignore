@@ -30,6 +30,7 @@ agent/db/jobs/
 agent/db/versions/
 agent/db/file-backups/
 agent/db/*.json
+agent/db/agent.json*
 agent/db/records-*
 agent/monitor/
 

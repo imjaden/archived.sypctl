@@ -57,19 +57,8 @@ function fun_sypctl_pre_upgrade() {
 # sypctl 版本升级后的处理逻辑
 #
 function fun_sypctl_upgrade_action() {
-    local_modified=$(git status -s)
-    if [[ ! -z "${local_modified}" ]]; then
-        git status
-        read -p "本地代码有修改，可能会产生冲突，是否继续？y/n " user_input
-        if [[ "${user_input}" != "y" ]]; then
-            echo "退出操作！"
-            exit 2
-        fi
-
-        git reset --hard HEAD
-    fi
-    
     old_version=$(sypctl version)
+    git reset --hard HEAD
     git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
 
     test "${current_user}" != "root" && chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
