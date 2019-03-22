@@ -78,16 +78,17 @@ test -d ${SYPCTL_HOME} || {
     cd ${SYPCTL_PREFIX}
     title "安装 sypctl..."
     git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
-
-    if [[ "${current_user}" != "root" ]]; then
-        chmod -R go+w ${SYPCTL_HOME}
-        chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-    fi
 }
 
 cd ${SYPCTL_HOME}
 echo "${current_user}:${current_group}" > .installer
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
+
+if [[ "${current_user}" != "root" ]]; then
+    chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+    chmod -R +w ${SYPCTL_HOME}
+    chmod -R +x ${SYPCTL_HOME}/bin/
+fi
 
 # force relink /usr/local/bin/
 sypctl_commands=(sypctl syps sypt)

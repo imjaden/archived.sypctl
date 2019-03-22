@@ -67,8 +67,9 @@ function fun_sypctl_upgrade_action() {
 
     # 分配源代码权限
     if [[ "${current_user}" != "root" ]]; then
-        chmod -R go+w ${SYPCTL_HOME}
         chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+        chmod -R +w ${SYPCTL_HOME}
+        chmod -R +x ${SYPCTL_HOME}/bin/
     fi
 
     sypctl check:dependent_packages
