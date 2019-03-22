@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LANG=zh_CN.UTF-8
+
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }

@@ -6,6 +6,8 @@
 #
 ########################################
 
+export LANG=zh_CN.UTF-8
+
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 SYPCTL_EXECUTE_PATH="$(pwd)"
 SYPCTL_BRANCH=dev-0.0.1
@@ -81,8 +83,6 @@ test -d ${SYPCTL_HOME} || {
 }
 
 cd ${SYPCTL_HOME}
-echo "${current_user}:${current_group}" > .installer
-
 local_modified=$(git status -s)
 if [[ ! -z "${local_modified}" ]]; then
     git status
@@ -156,6 +156,8 @@ else
     exit 1
 fi
 
+cd ${SYPCTL_HOME}
+echo "${current_user}:${current_group}" > .installer
 echo "$(readlink ${shell_profile})" >> .env-files
 cat .env-files | uniq > .env-files
 if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then

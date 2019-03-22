@@ -10,26 +10,27 @@
 #
 # bash /tool.sh {config|start|stop|start_redis|stop_redis|restart|deploy}
 #
-app_root_path="$(pwd)"
 export LANG=zh_CN.UTF-8
-test -f env-files && while read filepath; do
-    test -f "${filepath}" && source "${filepath}"
-done < env-files
+
+app_root_path="$(pwd)"
+test -f ../.env-files || touch ../.env-files
+while read filepath; do
+    source "${filepath}" > /dev/null 2>&1
+done < ../.env-files
 cd ${app_root_path}
 
-test -d .config || mkdir .config
-test -f .config/app-port && app_default_port=$(cat .config/app-port) || app_default_port=8086
-app_port=${2:-${app_default_port}}
-app_env=${3:-'production'}
-
+mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs,.config}
 unicorn_config_file=config/unicorn.rb
 unicorn_pid_file=tmp/pids/unicorn.pid
 
-function title() { printf "\n%s\n\n" "$1"; }
+function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function check_deploy_tate() {
-    if [[ ! -f .config/local-server ]]; then
+    if [[ -f .config/local-server ]]; then
+        test .config/app-port || echo 8086 > .config/app-port
+        test .config/app-workers || echo 1 > .config/app-workers
+    else
         echo
-        echo "提示：本地未部署代理端服务"
+        title "提示：本地未部署代理端服务"
         echo
         echo "部署服务请执行："
         echo "\$ sypctl agent:server deploy"
@@ -100,15 +101,18 @@ case "$1" in
         fi
     ;;
     start:dev)
+        check_deploy_tate
+    
+        app_port=$(cat .config/app-port)
         echo "\$ bundle exec unicorn -p ${app_port}"
         bundle exec unicorn -p ${app_port}
     ;;
     start)
         check_deploy_tate
+    
+        app_port=$(cat .config/app-port)
 
-        mkdir -p {monitor/{index,pages},logs,tmp/pids,db,jobs}
         bash $0 bundle
-        
         bundle exec unicorn -c ${unicorn_config_file} -p ${app_port} -E production -D
         test  $? -eq 0 && echo "启动代理服务成功" || echo "启动代理服务失败"
 
@@ -142,9 +146,9 @@ case "$1" in
     state|status)
         check_deploy_tate
 
-        echo "本地已部署代理端服务："
-        test -f .config/app-port && echo "代理服务端口号: $(cat .config/app-port)" || echo "代理端服务端口号: NoConfig"
-        test -f .config/app-workers && echo "代理端服务进程: $(cat .config/app-workers)" || echo "代理端服务进程: NoConfig"
+        title "本地已部署代理端服务："
+        echo "代理服务端口号: $(cat .config/app-port)"
+        echo "代理端服务进程: $(cat .config/app-workers)"
         
         if [[ -f ${unicorn_pid_file} ]]; then
             pid=$(cat ${unicorn_pid_file})
