@@ -145,31 +145,13 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
     fun_rbenv_install_ruby
 }
 
-system_shell=${SHELL##*/}
-shell_profile=
-if [[ "${system_shell}" = "zsh" ]]; then
-    shell_profile=${HOME}/.zshrc
-elif [[ "${system_shell}" = "bash" ]] || [[ "${system_shell}" = "sh" ]]; then
-    shell_profile=${HOME}/.bash_profile
-else
-    title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
-    exit 1
-fi
-
-cd ${SYPCTL_HOME}
+title "配置代理环境变量 env-files"
 echo "${current_user}:${current_group}" > .installer
-echo "${shell_profile}" >> .env-files
-cat .env-files | uniq > .env-files-uniq
-mv .env-files-uniq .env-files
-if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then
-    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${shell_profile}
-    echo 'eval "$(rbenv init -)"' >> ${shell_profile}
-    source ${shell_profile} > /dev/null 2>&1
-fi
+fun_sypctl_update_env_files
 
 title "升级 Rbenv..."
-cd ~/.rbenv
 rbenv_version=$(rbenv -v | cut -d ' ' -f 2)
+cd ~/.rbenv
 git pull > /dev/null 2>&1
 echo "rbenv ${rbenv_version} => $(rbenv -v | cut -d ' ' -f 2)"
 title "检测 Rbenv..."

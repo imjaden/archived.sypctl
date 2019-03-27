@@ -53,6 +53,29 @@ function fun_sypctl_pre_upgrade() {
     fi
 }
 
+function fun_sypctl_update_env_files() {
+    system_shell=${SHELL##*/}
+    shell_profile=
+    if [[ "${system_shell}" = "zsh" ]]; then
+        shell_profile=${HOME}/.zshrc
+    elif [[ "${system_shell}" = "bash" ]] || [[ "${system_shell}" = "sh" ]]; then
+        shell_profile=${HOME}/.bash_profile
+    else
+        title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
+        exit 1
+    fi
+
+    cd ${SYPCTL_HOME}
+    echo "${shell_profile}" >> .env-files
+    cat .env-files | uniq > .env-files-uniq
+    mv .env-files-uniq .env-files
+    if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${shell_profile}
+        echo 'eval "$(rbenv init -)"' >> ${shell_profile}
+        source ${shell_profile} > /dev/null 2>&1
+    fi
+}
+
 #
 # sypctl 版本升级后的处理逻辑
 #
@@ -71,9 +94,9 @@ function fun_sypctl_upgrade_action() {
         command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
         ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
     done
-    command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
 
-    sypctl check:dependent_packages
+    fun_sypctl_update_env_files
+    fun_sypctl_check_dependent_packages
 
     # 编译 sypctl 代理端服务
     # bundle 操作必须执行，所 ruby 脚本依赖的包都维护在该 Gemfile 中
