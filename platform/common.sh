@@ -274,6 +274,10 @@ function fun_sypctl_home() {
     echo " HomePath: ${SYPCTL_HOME}"
     echo " DiskSize: $(du -sh ${SYPCTL_HOME} | cut -f 1 | sed s/[[:space:]]//g)"
     echo "Timestamp: ${timestamp2}"
+
+    while read filepath; do
+        echo "  EnvFile: ${filepath}"
+    done < .env-files
 }
 
 #
