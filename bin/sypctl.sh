@@ -11,7 +11,6 @@ SYPCTL_EXECUTE_PATH="$(pwd)"
 SYPCTL_BASH=$(readlink /usr/local/bin/sypctl)
 SYPCTL_BIN=$(dirname ${SYPCTL_BASH})
 SYPCTL_HOME=$(dirname ${SYPCTL_BIN})
-command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
 
 cd ${SYPCTL_HOME}
 source platform/middleware.sh
