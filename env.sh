@@ -146,10 +146,11 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
 
     echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${SHELL_PROFILE}
     echo 'eval "$(rbenv init -)"' >> ${SHELL_PROFILE}
-    ~/.rbenv/bin/rbenv init
+
+    export PATH="$HOME/.rbenv/bin:$PATH"
+    eval "$(rbenv init -)"
 
     type rbenv
-    eval "$(rbenv init -)"
     fun_rbenv_install_ruby
 }
 
