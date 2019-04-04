@@ -132,6 +132,10 @@ function fun_rbenv_install_ruby() {
     bundler -v
 }
 
+title "配置代理环境变量 env-files"
+echo "${current_user}:${current_group}" > .installer
+fun_sypctl_update_env_files
+
 command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || { 
     title "安装 Rbenv..."
     git clone --depth 1 git://github.com/sstephenson/rbenv.git ~/.rbenv
@@ -140,14 +144,14 @@ command -v rbenv >/dev/null 2>&1 && { rbenv -v; type rbenv; } || {
     git clone --depth 1 https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
     git clone --depth 1 https://github.com/andorchen/rbenv-china-mirror.git ~/.rbenv/plugins/rbenv-china-mirror
 
+    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${SHELL_PROFILE}
+    echo 'eval "$(rbenv init -)"' >> ${SHELL_PROFILE}
+    ~/.rbenv/bin/rbenv init
+
     type rbenv
     eval "$(rbenv init -)"
     fun_rbenv_install_ruby
 }
-
-title "配置代理环境变量 env-files"
-echo "${current_user}:${current_group}" > .installer
-fun_sypctl_update_env_files
 
 title "升级 Rbenv..."
 rbenv_version=$(rbenv -v | cut -d ' ' -f 2)

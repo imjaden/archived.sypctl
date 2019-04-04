@@ -2,6 +2,9 @@
 
 export LANG=zh_CN.UTF-8
 
+SYSTEM_SHELL=${SHELL##*/}
+SHELL_PROFILE=
+
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
@@ -54,25 +57,23 @@ function fun_sypctl_pre_upgrade() {
 }
 
 function fun_sypctl_update_env_files() {
-    system_shell=${SHELL##*/}
-    shell_profile=
-    if [[ "${system_shell}" = "zsh" ]]; then
-        shell_profile=${HOME}/.zshrc
-    elif [[ "${system_shell}" = "bash" ]] || [[ "${system_shell}" = "sh" ]]; then
-        shell_profile=${HOME}/.bash_profile
+    if [[ "${SYSTEM_SHELL}" = "zsh" ]]; then
+        SHELL_PROFILE=${HOME}/.zshrc
+    elif [[ "${SYSTEM_SHELL}" = "bash" ]] || [[ "${SYSTEM_SHELL}" = "sh" ]]; then
+        SHELL_PROFILE=${HOME}/.bash_profile
     else
-        title "执行预检: 暂未兼容该SHEEL - ${system_shell}"
+        title "执行预检: 暂未兼容该SHEEL - ${SYSTEM_SHELL}"
         exit 1
     fi
 
     cd ${SYPCTL_HOME}
-    echo "${shell_profile}" >> .env-files
+    echo "${SHELL_PROFILE}" >> .env-files
     cat .env-files | uniq > .env-files-uniq
     mv .env-files-uniq .env-files
-    if [[ $(grep "\$HOME/.rbenv/bin" ${shell_profile} | wc -l) -gt 0 ]]; then
-        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${shell_profile}
-        echo 'eval "$(rbenv init -)"' >> ${shell_profile}
-        source ${shell_profile} > /dev/null 2>&1
+    if [[ $(grep "\$HOME/.rbenv/bin" ${SHELL_PROFILE} | wc -l) -gt 0 ]]; then
+        echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ${SHELL_PROFILE}
+        echo 'eval "$(rbenv init -)"' >> ${SHELL_PROFILE}
+        source ${SHELL_PROFILE} > /dev/null 2>&1
     fi
 }
 
