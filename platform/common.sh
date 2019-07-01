@@ -159,6 +159,7 @@ function fun_sypctl_help() {
     echo "sypctl upgrade           更新源码"
     echo "sypctl deploy            部署服务引导（删除会自动部署）"
     echo "sypctl deployed          查看已部署服务"
+    echo "sypctl report            设备/MySQL状态"
     echo "sypctl sync:device       更新重新提交设备信息"
     echo
     echo "sypctl agent   help      #代理# 配置"

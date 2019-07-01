@@ -1,7 +1,9 @@
 # encoding: utf-8
 require 'json'
+require 'optparse'
 require 'fileutils'
 require 'securerandom'
+require File.expand_path('../../core_ext/numberic.rb', __FILE__)
 
 module Sypctl
   class Darwin
@@ -40,7 +42,7 @@ module Sypctl
       end
 
       def free_m
-        total, wired, free  = `top -l 1 -s 0 | grep PhysMem`.scan(/(\S+) used \((\S+) wired\), (\S+) unused/)
+        total, wired, free  = `top -l 1 -s 0 | grep PhysMem`.scan(/(\S+) used \((\S+) wired\), (\S+) unused/).flatten
         {"total"=> total, "wired"=>wired, "free"=> free}
       end
 
@@ -53,7 +55,7 @@ module Sypctl
         end
       end
 
-      def uptime  
+      def uptime
         (`uptime`.strip.scan(/^(.*?)\s+up\s+(.*?),\s+(\d+)\susers?,\s+load\saverages?:\s?(.*?)$/) || []).flatten
       end
 
@@ -70,7 +72,15 @@ module Sypctl
       end
 
       def wan_ip
-        `curl http://sypctl.com/api/v1/ifconfig.me`.strip
+        `curl -s http://sypctl.com/api/v1/ifconfig.me`.strip
+      end
+
+      def process_number
+        `ps -ax | wc -l`.strip.to_i
+      end
+
+      def pid_max
+        `sysctl kern.maxfiles`.strip.scan(/kern.maxfiles: (\d+)/).flatten[0].to_i
       end
     end
   end
@@ -205,7 +215,7 @@ module Sypctl
       # => " 18:05:04 up 21:22,  1 user,  load average: 3.46, 3.70, 3.74\n"
       # > (`uptime`.strip.scan(/^(.*?)\s+up\s+(.*?),\s+(\d+)\susers?,\s+load\saverages?:\s?(.*?)$/) || []).flatten
       # => ["18:05:04", "21:22", "1", "3.46, 3.70, 3.74"]
-      def uptime  
+      def uptime
         (`uptime`.strip.scan(/^(.*?)\s+up\s+(.*?),\s+(\d+)\susers?,\s+load\saverages?:\s?(.*?)$/) || []).flatten
       end
 
@@ -222,7 +232,15 @@ module Sypctl
       end
 
       def wan_ip
-        `curl http://sypctl.com/api/v1/ifconfig.me`.strip
+        `curl -s http://sypctl.com/api/v1/ifconfig.me`.strip
+      end
+
+      def process_number
+        `ps -eLf | wc -l`.strip.to_i
+      end
+
+      def pid_max
+        `sysctl kernel.pid_max`.strip.scan(/kernel.pid_max = (\d+)/).flatten[0].to_i
       end
     end
   end
@@ -233,6 +251,18 @@ module Sypctl
       def klass
         platform = `uname -s`.strip
         ['Sypctl', platform].inject(Object) { |obj, klass| obj.const_get(klass) }
+      end
+
+      def report
+        method_list = [:whoami, :uuid, :hostname, :os_type, :os_version, :memory, :memory_usage,
+          :cpu, :disk, :disk_usage, :lan_ip, :wan_ip, :process_number, :pid_max, :process_usage]
+        method_list.each_with_object({}) do |method_name, hsh|
+          hsh[method_name] = send(method_name)
+        end
+      end
+
+      def print_report
+        puts JSON.pretty_generate(report || {})
       end
 
       def whoami
@@ -249,7 +279,7 @@ module Sypctl
         use_cache = true if `uname -s`.strip == 'Darwin'
         if use_cache && File.exists?(uuid_tmp_path)
           device_uuid = File.read(uuid_tmp_path).strip
-          
+
           return device_uuid unless device_uuid.empty?
           FileUtils.rm_f(uuid_tmp_path)
         end
@@ -299,7 +329,7 @@ module Sypctl
 
       def memory_usage
         hsh = memory_usage_description
-        (hsh['used'].to_f/hsh['total'].to_f*100).round(2)
+        (hsh['used'].to_f*100/hsh['total'].to_f).round(2)
       rescue => e
         e.message
       end
@@ -349,13 +379,13 @@ module Sypctl
         0
       end
 
-      # bug#fix 
+      # bug#fix
       # `df -h` 输出的标题头有可能为中文，读取 hash 时无法确实 key 名称（i18n 太多可能）
       def disk_usage
         arr = disk_usage_description
         maximum_item = arr.max { |a, b| file_size_convertor(a.values[1]) <=> file_size_convertor(a.values[1]) }
 
-        maximum_item.values[4]
+        (maximum_item.values[4].to_i*1.0/100).round(2)
       rescue => e
         e.message
       end
@@ -377,6 +407,34 @@ module Sypctl
       rescue => e
         e.message
       end
+
+      def process_number
+        klass.process_number
+      rescue => e
+        e.message
+      end
+
+      def pid_max
+        klass.pid_max
+      rescue => e
+        e.message
+      end
+
+      def process_usage
+        (process_number*1.0/pid_max).round(2)
+      rescue => e
+        e.message
+      end
     end
   end
 end
+
+options = {}
+option_parser = OptionParser.new do |opts|
+  options[:report] = false
+  opts.on('-p', "--report", '迁移配置档') do |value|
+    options[:report] = true
+  end
+end.parse!
+
+Sypctl::Device.print_report if options[:report]
