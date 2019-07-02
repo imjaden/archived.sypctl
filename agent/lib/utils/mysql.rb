@@ -54,6 +54,6 @@ option_parser = OptionParser.new do |opts|
   opts.on('-p', "--report", '迁移配置档') do |value|
     options[:report] = true
   end
-end.parse!
+end.parse! rescue {}
 
 Sypctl::MySQL.print_report if options[:report]
