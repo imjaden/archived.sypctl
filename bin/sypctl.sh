@@ -33,8 +33,8 @@ case "$1" in
         fun_execute_bundle_rake $@
     ;;
     report)
-        ruby agent/lib/utils/device.rb --report
-        ruby agent/lib/utils/mysql.rb --report
+        ruby agent/lib/utils/wrapper.rb --mysql-report
+        ruby agent/lib/utils/wrapper.rb --device-report
     ;;
     variable)
         fun_print_variable "$2"

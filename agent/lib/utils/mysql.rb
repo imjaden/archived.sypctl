@@ -1,7 +1,6 @@
 # encoding: utf-8
 require 'json'
 require 'mysql2'
-require 'optparse'
 
 module Sypctl
   class MySQL
@@ -47,13 +46,3 @@ module Sypctl
     end
   end
 end
-
-options = {}
-option_parser = OptionParser.new do |opts|
-  options[:report] = false
-  opts.on('-p', "--report", '迁移配置档') do |value|
-    options[:report] = true
-  end
-end.parse! rescue {}
-
-Sypctl::MySQL.print_report if options[:report]

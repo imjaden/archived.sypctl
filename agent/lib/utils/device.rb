@@ -1,6 +1,5 @@
 # encoding: utf-8
 require 'json'
-require 'optparse'
 require 'fileutils'
 require 'securerandom'
 require File.expand_path('../../core_ext/numberic.rb', __FILE__)
@@ -429,12 +428,3 @@ module Sypctl
   end
 end
 
-options = {}
-option_parser = OptionParser.new do |opts|
-  options[:report] = false
-  opts.on('-p', "--report", '迁移配置档') do |value|
-    options[:report] = true
-  end
-end.parse! rescue {}
-
-Sypctl::Device.print_report if options[:report]
