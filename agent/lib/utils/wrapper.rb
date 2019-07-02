@@ -14,7 +14,13 @@ option_parser = OptionParser.new do |opts|
   opts.on('-d', "--device-report", '设备运行状态报告') do |value|
     options[:device_report] = true
   end
+  options[:device_analyse] = false
+  opts.on('-a', "--device-analyse", '进程数量分析') do |value|
+    options[:device_analyse] = true
+  end
 end.parse! rescue {}
 
+puts options
 Sypctl::MySQL.print_report if options[:mysql_report]
 Sypctl::Device.print_report if options[:device_report]
+Sypctl::Device.process_analyse if options[:device_analyse]

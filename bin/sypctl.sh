@@ -36,6 +36,14 @@ case "$1" in
         ruby agent/lib/utils/wrapper.rb --mysql-report
         ruby agent/lib/utils/wrapper.rb --device-report
     ;;
+    analyse)
+        ruby agent/lib/utils/wrapper.rb --device-analyse
+    ;;
+    wrapper)
+        shift
+        echo "ruby agent/lib/utils/wrapper.rb $@"
+        ruby agent/lib/utils/wrapper.rb $@
+    ;;
     variable)
         fun_print_variable "$2"
     ;;

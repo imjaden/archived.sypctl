@@ -81,6 +81,20 @@ module Sypctl
       def pid_max
         `sysctl kern.maxfiles`.strip.scan(/kern.maxfiles: (\d+)/).flatten[0].to_i
       end
+
+      def process_analyse(top_limit = 10)
+        list = `ps aux`.split(/\n/).map { |line| line.split(/\s+/)[9..-1].join(' ') }
+        group_hash = list.group_by { |cmd| cmd }
+        top_array = group_hash.keys.map do |key|
+          [key, group_hash[key].length]
+        end.sort_by { |arr| arr[1] }.reverse.first(top_limit)
+
+        top_array.each do |arr|
+          puts "-" * 20
+          puts "进程数量：#{arr[1]}"
+          puts "进程命令：\n#{arr[0]}"
+        end
+      end
     end
   end
 
@@ -240,6 +254,20 @@ module Sypctl
 
       def pid_max
         `sysctl kernel.pid_max`.strip.scan(/kernel.pid_max = (\d+)/).flatten[0].to_i
+      end
+
+      def process_analyse(top_limit = 10)
+        list = `ps -eLf`.split(/\n/).map { |line| line.split(/\s+/)[9..-1].join(' ') }
+        group_hash = list.group_by { |cmd| cmd }
+        top_array = group_hash.keys.map do |key|
+          [key, group_hash[key].length]
+        end.sort_by { |arr| arr[1] }.reverse.first(top_limit)
+
+        top_array.each do |arr|
+          puts "-" * 20
+          puts "进程数量：#{arr[1]}"
+          puts "进程命令：\n#{arr[0]}"
+        end
       end
     end
   end
@@ -421,6 +449,12 @@ module Sypctl
 
       def process_usage
         (process_number*1.0/pid_max).round(5)
+      rescue => e
+        e.message
+      end
+
+      def process_analyse
+        klass.process_analyse
       rescue => e
         e.message
       end
