@@ -329,7 +329,7 @@ module Sypctl
 
       def memory_usage
         hsh = memory_usage_description
-        (hsh['used'].to_f*100/hsh['total'].to_f).round(2)
+        (hsh['used'].to_f/hsh['total'].to_f).round(5)
       rescue => e
         e.message
       end
@@ -385,7 +385,7 @@ module Sypctl
         arr = disk_usage_description
         maximum_item = arr.max { |a, b| file_size_convertor(a.values[1]) <=> file_size_convertor(a.values[1]) }
 
-        (maximum_item.values[4].to_i*1.0/100).round(2)
+        (maximum_item.values[4].to_i*1.0/100).round(5)
       rescue => e
         e.message
       end
@@ -421,7 +421,7 @@ module Sypctl
       end
 
       def process_usage
-        (process_number*1.0/pid_max).round(2)
+        (process_number*1.0/pid_max).round(5)
       rescue => e
         e.message
       end
