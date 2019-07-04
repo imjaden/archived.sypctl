@@ -20,7 +20,6 @@ option_parser = OptionParser.new do |opts|
   end
 end.parse! rescue {}
 
-puts options
 Sypctl::MySQL.print_report if options[:mysql_report]
 Sypctl::Device.print_report if options[:device_report]
 Sypctl::Device.process_analyse if options[:device_analyse]

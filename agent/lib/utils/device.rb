@@ -71,7 +71,7 @@ module Sypctl
       end
 
       def wan_ip
-        `curl -s http://sypctl.com/api/v1/ifconfig.me`.strip
+        `curl --silent --connect-timeout 1 --max-time 1 http://sypctl.com/api/v1/ifconfig.me`.strip
       end
 
       def process_number
@@ -82,17 +82,23 @@ module Sypctl
         `sysctl kern.maxfiles`.strip.scan(/kern.maxfiles: (\d+)/).flatten[0].to_i
       end
 
-      def process_analyse(top_limit = 10)
-        list = `ps aux`.split(/\n/).map { |line| line.split(/\s+/)[9..-1].join(' ') }
-        group_hash = list.group_by { |cmd| cmd }
-        top_array = group_hash.keys.map do |key|
-          [key, group_hash[key].length]
-        end.sort_by { |arr| arr[1] }.reverse.first(top_limit)
+      def process_analyse(top_limit = 5)
+        list = `ps aux`.split(/\n/).map do |line| 
+          parts = line.split(/\s+/)
+          pid = parts[1]
+          command = parts[9..-1].join(' ')
+          [command, pid]
+        end
 
-        top_array.each do |arr|
+        group_hash = list.group_by { |parts| parts[0] }
+        top_array = group_hash.keys.map do |key|
+          [key, group_hash[key][0][1], group_hash[key].length]
+        end.sort_by { |arr| arr[2] }.reverse.first(top_limit)
+
+        top_array.each do |parts|
           puts "-" * 20
-          puts "进程数量：#{arr[1]}"
-          puts "进程命令：\n#{arr[0]}"
+          puts "进程数量：#{parts[2]}, pid: #{parts[1]}"
+          puts "进程命令：\n#{parts[0]}"
         end
       end
     end
@@ -245,7 +251,7 @@ module Sypctl
       end
 
       def wan_ip
-        `curl -s http://sypctl.com/api/v1/ifconfig.me`.strip
+        `curl --silent --connect-timeout 1 --max-time 1 http://sypctl.com/api/v1/ifconfig.me`.strip
       end
 
       def process_number
@@ -256,17 +262,23 @@ module Sypctl
         `sysctl kernel.pid_max`.strip.scan(/kernel.pid_max = (\d+)/).flatten[0].to_i
       end
 
-      def process_analyse(top_limit = 10)
-        list = `ps -eLf`.split(/\n/).map { |line| line.split(/\s+/)[9..-1].join(' ') }
-        group_hash = list.group_by { |cmd| cmd }
-        top_array = group_hash.keys.map do |key|
-          [key, group_hash[key].length]
-        end.sort_by { |arr| arr[1] }.reverse.first(top_limit)
+      def process_analyse(top_limit = 5)
+        list = `ps -eLf`.split(/\n/).map do |line| 
+          parts = line.split(/\s+/)
+          pid = parts[1]
+          command = parts[9..-1].join(' ')
+          [command, pid]
+        end
 
-        top_array.each do |arr|
+        group_hash = list.group_by { |parts| parts[0] }
+        top_array = group_hash.keys.map do |key|
+          [key, group_hash[key][0][1], group_hash[key].length]
+        end.sort_by { |arr| arr[2] }.reverse.first(top_limit)
+
+        top_array.each do |parts|
           puts "-" * 20
-          puts "进程数量：#{arr[1]}"
-          puts "进程命令：\n#{arr[0]}"
+          puts "进程数量：#{parts[2]}, pid: #{parts[1]}"
+          puts "进程命令：\n#{parts[0]}"
         end
       end
     end
