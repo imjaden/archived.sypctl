@@ -851,9 +851,10 @@ function fun_prompt_command_already_installed() {
 }
 
 function fun_prompt_java_already_installed() {
-    expect_version=1.8.0_192
-    current_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
-    [[ "$1" = "table" ]] && printf "$two_cols_table_format" "java" "${current_version:0:40}" || java -version
+    expect_version=1.8.0
+    origin_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    current_version=${origin_version%_*}
+    [[ "$1" = "table" ]] && printf "$two_cols_table_format" "java" "${origin_version:0:40}" || java -version
 
     if [[ "${current_version}" != "${expect_version}" ]]; then
         echo 

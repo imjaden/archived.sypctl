@@ -10,10 +10,10 @@
 source platform/common.sh
 mkdir -p {tmp,logs,packages}
 
-# package_list=(nginx-1.11.3.tar.gz@18275c1daa39c5fac12e56c34907d45b apache-tomcat-8.5.24.tar.gz@b21bf4f2293b2e4a33989a2d4f890d5a apache-activemq-5.15.5.tar.gz@1e907d255bc2b5761ebc0de53c538d8c jdk-1.8.0_192.tar.gz@910288747afd1792926d1b9bcd2a7844 redis-4.0.6.tar.gz@161a6ec82a82dcf38259347833aab707 mysql-5.7.25.tar.gz@cdbc989191e4fd075384d452724d027f zookeeper-3.4.12.tar.gz@f43cca610c2e041c71ec7687cddbd0c3 kettle-8.2.0.0_342.tar.gz@396cb0c970a88c34142c7acd3129e837 kettle-8.2.0.0_342-plugins_hadoop-configurations.tar.gz@145aaa06d65eaf2361e2e7e53fda739a mysql-connector-java-8.0.11.jar@39f2510f19364d9d883b6c00b7ec13b3)
+# package_list=(nginx-1.11.3.tar.gz@18275c1daa39c5fac12e56c34907d45b apache-tomcat-8.5.24.tar.gz@fc65b260743b6f4341f4ac92328ef20a apache-activemq-5.15.5.tar.gz@1e907d255bc2b5761ebc0de53c538d8c jdk-1.8.0_192.tar.gz@910288747afd1792926d1b9bcd2a7844 redis-4.0.6.tar.gz@161a6ec82a82dcf38259347833aab707 mysql-5.7.25.tar.gz@cdbc989191e4fd075384d452724d027f zookeeper-3.4.12.tar.gz@f43cca610c2e041c71ec7687cddbd0c3 kettle-8.2.0.0_342.tar.gz@396cb0c970a88c34142c7acd3129e837 kettle-8.2.0.0_342-plugins_hadoop-configurations.tar.gz@145aaa06d65eaf2361e2e7e53fda739a mysql-connector-java-8.0.11.jar@39f2510f19364d9d883b6c00b7ec13b3)
 declare -a package_list
 package_list[0]=nginx-1.11.3.tar.gz@18275c1daa39c5fac12e56c34907d45b
-package_list[1]=apache-tomcat-8.5.24.tar.gz@b21bf4f2293b2e4a33989a2d4f890d5a
+package_list[1]=apache-tomcat-8.5.24.tar.gz@fc65b260743b6f4341f4ac92328ef20a
 package_list[2]=apache-activemq-5.15.5.tar.gz@1e907d255bc2b5761ebc0de53c538d8c
 package_list[3]=jdk-1.8.0_192.tar.gz@910288747afd1792926d1b9bcd2a7844
 package_list[4]=redis-4.0.6.tar.gz@161a6ec82a82dcf38259347833aab707

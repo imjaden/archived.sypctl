@@ -39,8 +39,8 @@ case "$1" in
                 sudo yum -y install nginx
             ;;
             CentOS7)
-                sudo yum install -y readline-devel gcc-c++ openssl-devel
-                sudo rpm -Uvh http://nginx.org/packages/rhel/7/x86_64/RPMS/nginx-1.12.2-1.el7_4.ngx.x86_64.rpm
+                sudo yum install -y readline-devel gcc-c++ openssl-devel nginx
+                sudo rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
                 sudo yum -y install nginx
             ;;
             Ubuntu16)  
