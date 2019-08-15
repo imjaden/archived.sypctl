@@ -1,0 +1,202 @@
+{
+  "config": {
+    "switch_user_except": [
+      "mkdir",
+      "chown",
+      "chmod"
+    ]
+  },
+  "services": [
+    {
+      "name": "RUBY 运营平台",
+      "id": "app-unicorn",
+      "user": "root",
+      "start": [
+        "cd {{root_path}} && bundle exec unicorn -c ./config/unicorn.rb -p 8085 -E production -D"
+      ],
+      "stop": [
+        "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{root_path}}/tmp/pids/unicorn.pid",
+      "depend": [
+        "redis"
+      ],
+      "extra": {
+        "root_path": "/usr/local/src/syp-app-server"
+      }
+    },
+    {
+      "name": "RUBY 消息队列",
+      "id": "app-sidekiq",
+      "user": "root",
+      "start": [
+        "cd {{root_path}} && bundle exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d"
+      ],
+      "stop": [
+        "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{root_path}}/tmp/pids/sidekiq.pid",
+      "depend": [
+        "redis"
+      ],
+      "extra": {
+        "root_path": "/usr/local/src/syp-app-server"
+      }
+    },
+    {
+      "name": "JAVA 运营平台(应用)",
+      "id": "saas-admin",
+      "user": "root",
+      "start": [
+        "cd {{tomcat_home}} && bash bin/startup.sh"
+      ],
+      "stop": [
+        "cd {{tomcat_home}} && bash bin/shutdown.sh",
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{tomcat_home}}/temp/running.pid",
+      "depend": [
+        "redis"
+      ],
+      "extra": {
+        "tomcat_home": "/usr/local/src/tomcatAdmin"
+      }
+    },
+    {
+      "name": "JAVA 运营平台",
+      "id": "saas-super-admin",
+      "user": "root",
+      "start": [
+        "cd {{tomcat_home}} && bash bin/startup.sh"
+      ],
+      "stop": [
+        "cd {{tomcat_home}} && bash bin/shutdown.sh",
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{tomcat_home}}/temp/running.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "tomcat_home": "/usr/local/src/tomcatSuperAdmin"
+      }
+    },
+    {
+      "name": "JAVA 服务消费者",
+      "id": "saas-api",
+      "user": "root",
+      "start": [
+        "cd {{tomcat_home}} && bash bin/startup.sh"
+      ],
+      "stop": [
+        "cd {{tomcat_home}} && bash bin/shutdown.sh",
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{tomcat_home}}/temp/running.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "tomcat_home": "/usr/local/src/tomcatAPI"
+      }
+    },
+    {
+      "name": "JAVA 服务提供者",
+      "id": "saas-api-service",
+      "user": "root",
+      "start": [
+        "cd {{root_path}} && nohup java -jar api-service.jar > api-service.log 2>&1 &",
+        "ps aux | grep api-service.jar | grep -v grep | grep -v nohup | awk '{ print $2 }' | sort | head -n 1 >  {{pid_path}}"
+      ],
+      "stop": [
+        "cat {{pid_path}} | xargs kill -9",
+        "ps aux | grep api-service.jar | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{root_path}}/running.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "root_path": "/usr/local/src/providerAPI"
+      }
+    },
+    {
+      "name": "JAVA 消息队列",
+      "id": "saas-activemq-jms",
+      "user": "root",
+      "start": [
+        "cd {{activemq_home}} && bash bin/activemq start"
+      ],
+      "stop": [
+        "cd {{activemq_home}} && bash bin/activemq stop",
+        "ps aux | grep {{activemq_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{activemq_home}}/data/activemq.pid",
+      "depend": [
+        "redis",
+        "zookeeper"
+      ],
+      "extra": {
+        "activemq_home": "/usr/local/src/activemqJMS"
+      }
+    },
+    {
+      "name": "REDIS 服务 ",
+      "id": "redis",
+      "user": "root",
+      "start": [
+        "redis-server /etc/redis/redis.conf"
+      ],
+      "stop": [
+        "cat {{pid_path}} | xargs kill -9",
+        "ps aux | grep redis-server | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "/var/run/redis_6379.pid"
+    },
+    {
+      "name": "NGINX 服务",
+      "id": "nginx",
+      "user": "root",
+      "start": [
+        "sudo nginx"
+      ],
+      "stop": [
+        "sudo nginx -s stop"
+      ],
+      "pid_path": "/var/run/nginx.pid"
+    },
+    {
+      "name": "ZOOKEEPER 服务",
+      "id": "zookeeper",
+      "user": "root",
+      "start": [
+        "bash {{zookeeper_home}}/bin/zkServer.sh start"
+      ],
+      "stop": [
+        "bash {{zookeeper_home}}/bin/zkServer.sh stop",
+        "ps aux | grep {{zookeeper_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "{{zookeeper_home}}/data/zookeeper_server.pid",
+      "extra": {
+        "zookeeper_home": "/usr/local/src/zookeeper"
+      }
+    },
+    {
+      "name": "HAPROXY 服务 ",
+      "id": "haproxy",
+      "user": "root",
+      "start": [
+        "systemctl restart rsyslog",
+        "systemctl start haproxy"
+      ],
+      "stop": [
+        "systemctl stop haproxy",
+        "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "/var/run/haproxy.pid"
+    },
+  ]
+}

@@ -167,7 +167,7 @@ function fun_sypctl_deploy() {
         fun_deploy_file_folder /usr/local/src/report
         test -f .tutorial-conf.sh || {
             echo "var_shortcut='S'" > .tutorial-conf.sh
-            echo "var_slogan='生意+ SaaS 系统服务引导页'" >> .tutorial-conf.sh
+            echo "var_slogan='生意+ PaaS 服务引导页'" >> .tutorial-conf.sh
         }
         source .tutorial-conf.sh
         cp config/index@report.html syp-saas-tutorial.html
@@ -192,8 +192,8 @@ function fun_sypctl_deploy() {
     check_install_defenders_include "SYPAPI" && {
         root_path=/usr/local/src/tomcatAPI
         bash platform/Linux/tomcat-tools.sh install ${root_path} 8081
-        jar_path=/usr/local/src/providerAPI/api-service.jar
-        bash platform/Linux/jar-service-tools.sh install ${jar_path}
+        # jar_path=/usr/local/src/providerAPI/api-service.jar
+        # bash platform/Linux/jar-service-tools.sh install ${jar_path}
     }
 
     check_install_defenders_include "SYPSuperAdmin" && {
@@ -375,13 +375,13 @@ function fun_sypctl_service_caller() {
     fi
 
     sudo mkdir -p /etc/sypctl/
-    support_commands=(render list start stop status restart monitor edit guard)
+    support_commands=(render list check start stop status restart monitor edit guard install uninstall)
     if [[ "$2" = "edit" ]]; then
         vim /etc/sypctl/services.json
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
         SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/service-tools.rb "--$2" "${3:-all}"
     else
-        echo "Error - unknown command: $2, support: ${support_commands[@]}"
+        echo "Error - 未知参数: $2, 仅支持: ${support_commands[@]}"
     fi
 }
 

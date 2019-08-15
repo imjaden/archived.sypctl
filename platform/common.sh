@@ -226,6 +226,8 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:server stop         关闭服务"
     echo "sypctl agent:server restart      重启服务"
     echo "sypctl agent:server status       服务状态"
+    echo "sypctl agent:server install      安装服务配置"
+    echo "sypctl agent:server uninstall    卸载服务配置"
     echo "sypctl agent:server remove       移除部署"
 }
 
@@ -243,13 +245,16 @@ function fun_print_app_command_help() {
 
 function fun_print_sypctl_service_help() {
     echo "服务管理:"
-    echo "sypctl service list    查看管理的服务列表"
-    echo "sypctl service start   启动服务列表中的应用"
-    echo "sypctl service status  检查服务列表应用的运行状态"
-    echo "sypctl service stop    关闭服务列表中的应用"
-    echo "sypctl service restart 重启服务列表中的应用"
-    echo "sypctl service monitor 监控列表中的服务，未运行则启动"
-    echo "sypctl service guard   守护监控服务配置"
+    echo "sypctl service list      查看管理的服务列表"
+    echo "sypctl service check     检查配置是否正确"
+    echo "sypctl service start     启动服务列表中的应用"
+    echo "sypctl service status    检查服务列表应用的运行状态"
+    echo "sypctl service stop      关闭服务列表中的应用"
+    echo "sypctl service restart   重启服务列表中的应用"
+    echo "sypctl service monitor   监控列表中的服务，未运行则启动"
+    echo "sypctl service install   安装服务配置"
+    echo "sypctl service uninstall 卸载服务配置"
+    echo "sypctl service guard     守护监控服务配置"
 }
 
 function fun_print_sypctl_backup_file_help() {

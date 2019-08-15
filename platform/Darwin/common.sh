@@ -92,13 +92,13 @@ function fun_sypctl_service_caller() {
     fi
 
     mkdir -p /etc/sypctl/
-    support_commands=(render list start stop status restart monitor edit guard)
+    support_commands=(render list check start stop status restart monitor edit guard install uninstall)
     if [[ "$2" = "edit" ]]; then
         vim /etc/sypctl/services.json
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
         SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/service-tools.rb "--$2" "${3:-all}"
     else
-        echo "Error - unknown command: $2, support: ${support_commands[@]}"
+        echo "Error - 未知参数: $2, 仅支持: ${support_commands[@]}"
     fi
 }
 

@@ -54,6 +54,12 @@ option_parser = OptionParser.new do |opts|
   opts.on('-g', "--guard", '守护监控服务配置，功能同 post_to_server') do |value|
     options[:guard] = value
   end
+  opts.on('-i', "--install", '安装配置') do |value|
+    options[:install] = true
+  end
+  opts.on('-u', "--uninstall", '卸载配置') do |value|
+    options[:uninstall] = true
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -69,6 +75,7 @@ class Service
 
       @service_config_path = "/etc/sypctl/services.json"
       @service_output_path = "/etc/sypctl/services.output"
+      @service_example_path = File.expand_path("../services.json", __FILE__)
       exit 1 unless File.exists?(@service_config_path)
 
       @data_hash = JSON.parse(File.read(@service_config_path))
@@ -251,6 +258,51 @@ class Service
     def guard
       monitor
       post_to_server
+    end
+
+    def install
+      service_example = JSON.parse(File.read(@service_example_path))
+      service_current = JSON.parse(File.read(@service_config_path)) rescue nil
+      unless service_current
+        service_current = service_example 
+        service_current['services'] = []
+      end
+
+      current_ids = service_current['services'].map { |s| s['id'] }
+      service_example['services'].select { |service| current_ids.include?(service['id']) }.each do |service|
+        puts "#{service['id']}, 已安装\n"
+      end
+      puts 
+
+      service_example['services'].select { |service| !current_ids.include?(service['id']) }.each do |service|
+        puts "是否安装 #{service['id']}, y/n?"
+        input = STDIN.gets
+        next if input.strip != 'y'
+        service_current['services'].push(service)
+        File.open(@service_config_path, 'w:utf-8') { |file| file.puts(service_current.to_json) }
+        puts "已安装 #{service['id']}\n\n"
+      end
+    end
+
+
+    def uninstall
+      service_example = JSON.parse(File.read(@service_example_path))
+      service_current = JSON.parse(File.read(@service_config_path)) rescue nil
+      unless service_current
+        puts "未配置 service, 退出操作"
+        exit(1)
+      end
+
+      current_ids = service_current['services'].map { |s| s['id'] }
+      service_example['services'].select { |service| current_ids.include?(service['id']) }.each do |service|
+        puts "是否卸载 #{service['id']}, y/n?"
+        input = STDIN.gets
+        next if input.strip != 'y'
+        service_current['services'] = service_current['services'].select { |s| s['id'] != service['id'] }
+        File.open(@service_config_path, 'w:utf-8') { |file| file.puts(service_current.to_json) }
+        puts "已卸载 #{service['id']}\n\n"
+      end
+
     end
 
     private

@@ -8,14 +8,14 @@
   },
   "services": [
     {
-      "name": "移动端 App 主服务",
-      "id": "app-unicorn",
+      "name": "RUBY 运营平台",
+      "id": "ruby-unicorn",
       "user": "root",
       "start": [
         "cd {{root_path}} && bundle exec unicorn -c ./config/unicorn.rb -p 8085 -E production -D"
       ],
       "stop": [
-        "cat {{pid_path}} | xargs kill -9"
+        "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{root_path}}/tmp/pids/unicorn.pid",
       "depend": [
@@ -26,14 +26,14 @@
       }
     },
     {
-      "name": "移动端 App 消息队列",
-      "id": "app-sidekiq",
+      "name": "RUBY 消息队列",
+      "id": "ruby-sidekiq",
       "user": "root",
       "start": [
         "cd {{root_path}} && bundle exec sidekiq -r ./config/boot.rb -C ./config/sidekiq.yaml -e production -d"
       ],
       "stop": [
-        "cat {{pid_path}} | xargs kill -KILL"
+        "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{root_path}}/tmp/pids/sidekiq.pid",
       "depend": [
@@ -44,15 +44,15 @@
       }
     },
     {
-      "name": "运营平台",
-      "id": "saas-admin",
+      "name": "JAVA 运营平台(应用)",
+      "id": "java-admin",
       "user": "root",
       "start": [
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
         "cd {{tomcat_home}} && bash bin/shutdown.sh",
-        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{tomcat_home}}/temp/running.pid",
       "depend": [
@@ -63,15 +63,15 @@
       }
     },
     {
-      "name": "SAAS-SUPER 运营平台",
-      "id": "saas-super-admin",
+      "name": "JAVA 运营平台",
+      "id": "java-super-admin",
       "user": "root",
       "start": [
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
         "cd {{tomcat_home}} && bash bin/shutdown.sh",
-        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{tomcat_home}}/temp/running.pid",
       "depend": [
@@ -84,14 +84,14 @@
     },
     {
       "name": "JAVA 服务消费者",
-      "id": "saas-api",
+      "id": "java-api",
       "user": "root",
       "start": [
         "cd {{tomcat_home}} && bash bin/startup.sh"
       ],
       "stop": [
         "cd {{tomcat_home}} && bash bin/shutdown.sh",
-        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+        "ps aux | grep {{tomcat_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{tomcat_home}}/temp/running.pid",
       "depend": [
@@ -104,7 +104,7 @@
     },
     {
       "name": "JAVA 服务提供者",
-      "id": "saas-api-service",
+      "id": "java-api-service",
       "user": "root",
       "start": [
         "cd {{root_path}} && nohup java -jar api-service.jar > api-service.log 2>&1 &",
@@ -112,7 +112,7 @@
       ],
       "stop": [
         "cat {{pid_path}} | xargs kill -9",
-        "ps aux | grep api-service.jar | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+        "ps aux | grep api-service.jar | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{root_path}}/running.pid",
       "depend": [
@@ -124,15 +124,15 @@
       }
     },
     {
-      "name": "JMS 消息队列管理",
-      "id": "saas-activemq-jms",
+      "name": "JAVA 消息队列",
+      "id": "java-activemq",
       "user": "root",
       "start": [
         "cd {{activemq_home}} && bash bin/activemq start"
       ],
       "stop": [
         "cd {{activemq_home}} && bash bin/activemq stop",
-        "ps aux | grep {{activemq_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+        "ps aux | grep {{activemq_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{activemq_home}}/data/activemq.pid",
       "depend": [
@@ -144,7 +144,7 @@
       }
     },
     {
-      "name": "公共服务 Redis",
+      "name": "REDIS 服务",
       "id": "redis",
       "user": "root",
       "start": [
@@ -152,12 +152,12 @@
       ],
       "stop": [
         "cat {{pid_path}} | xargs kill -9",
-        "ps aux | grep redis-server | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+        "ps aux | grep redis-server | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "/var/run/redis_6379.pid"
     },
     {
-      "name": "公共服务 Nginx",
+      "name": "NGINX 服务",
       "id": "nginx",
       "user": "root",
       "start": [
@@ -169,7 +169,7 @@
       "pid_path": "/var/run/nginx.pid"
     },
     {
-      "name": "公共服务 Zookeeper",
+      "name": "ZOOKEEPER 服务",
       "id": "zookeeper",
       "user": "root",
       "start": [
@@ -177,12 +177,26 @@
       ],
       "stop": [
         "bash {{zookeeper_home}}/bin/zkServer.sh stop",
-        "ps aux | grep {{zookeeper_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL"
+        "ps aux | grep {{zookeeper_home}} | grep -v grep | awk '{ print $2 }' | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "{{zookeeper_home}}/data/zookeeper_server.pid",
       "extra": {
         "zookeeper_home": "/usr/local/src/zookeeper"
       }
+    },
+    {
+      "name": "HAPROXY 服务",
+      "id": "haproxy",
+      "user": "root",
+      "start": [
+        "systemctl restart rsyslog",
+        "systemctl start haproxy"
+      ],
+      "stop": [
+        "systemctl stop haproxy",
+        "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
+      ],
+      "pid_path": "/var/run/haproxy.pid"
     }
   ]
 }
