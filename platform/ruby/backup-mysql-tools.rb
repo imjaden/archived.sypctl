@@ -34,8 +34,8 @@ option_parser = OptionParser.new do |opts|
   opts.on('-v', "--view", '执行今日备份状态') do |value|
     options[:view] = value
   end
-  opts.on('-c', "--clean", '清理空文档') do |value|
-    options[:clean] = value
+  opts.on('-c', "--check", '检测配置档状态') do |value|
+    options[:check] = value
   end
   opts.on('-s', "--state", '进程状态') do |value|
     options[:state] = value
@@ -124,6 +124,7 @@ class BackupMySQL
       end
     end
 
+    # deprecated
     def clean
       @backup_list.each do |backup_config|
         config = backup_config['config']
@@ -161,6 +162,24 @@ class BackupMySQL
           }, {}, {print_log: false})
         end
       end
+    end
+
+    def check
+      table_rows = @backup_list.map do |backup_config|
+        conn_state = 'successfully'
+
+        begin
+          config = backup_config['config']
+          client = Mysql2::Client.new(config)
+          conn_state = 'success: ' + client.query("select version();").map { |h| h.values }.flatten.first
+          client.close
+        rescue => e
+          conn_state = 'failure'
+        end
+
+        [backup_config['name'], config['host'], config['port'] || 3306, config['username'], backup_config['backup_path'], conn_state]
+      end
+      puts Terminal::Table.new(headings: %w(Title Host Port UserName BackupPath State), rows: table_rows)
     end
 
     def execute

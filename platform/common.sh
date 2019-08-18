@@ -268,9 +268,9 @@ function fun_print_sypctl_backup_file_help() {
 function fun_print_sypctl_backup_mysql_help() {
     echo "sypctl backup:mysql help     帮助说明"
     echo "sypctl backup:mysql list     查看备份配置"
+    echo "sypctl backup:mysql check    检查配置档状态"
     echo "sypctl backup:mysql view     执行今日备份状态"
     echo "sypctl backup:mysql state    进程状态"
-    echo "sypctl backup:mysql clean    清理空文件"
     echo "sypctl backup:mysql execute  执行备份操作"
     echo "sypctl backup:mysql guard    守护备份操作，功能同 execute"
 }
@@ -754,7 +754,7 @@ function fun_sypctl_backup_mysql_caller() {
         exit 1
     fi
 
-    support_commands=(help list state view clean execute guard killer)
+    support_commands=(help list state view check execute guard killer)
     if [[ "${2}" = "execute" ||  "${2}" = "guard" ]]; then
         process_state="abort"
         pid=
@@ -785,7 +785,7 @@ function fun_sypctl_backup_mysql_caller() {
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
         ruby platform/ruby/backup-mysql-tools.rb "--$2" --home="${SYPCTL_HOME}"
     else
-        echo "Error - unknown command: $2, support: ${support_commands[@]}"
+        echo "Error - 未知参数: $2, 仅支持: ${support_commands[@]}"
     fi
 }
 

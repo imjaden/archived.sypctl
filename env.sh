@@ -37,7 +37,7 @@ command -v yum > /dev/null && {
     packages[13]=openssl
     packages[14]=vim-enhanced
     packages[15]=zlib-devel
-    packages[16]=mysql-devel
+    packages[16]=jq
     packages[17]=openssl-devel
     packages[18]=readline-devel
     packages[19]=iptables-services
@@ -45,6 +45,8 @@ command -v yum > /dev/null && {
     packages[21]=libxml2-devel.x86_64
     packages[22]=yum-plugin-downloadonly
     packages[23]=redhat-lsb
+    packages[24]=mysql-devel
+    packages[25]=mysql
     sudo yum install -y ${packages[@]}
 }
 
