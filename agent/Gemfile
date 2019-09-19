@@ -10,6 +10,7 @@ gem 'rake', '~> 12.3.0'
 gem 'rest-client', '~> 2.0.2'
 gem 'terminal-table', '~> 1.8.0'
 gem 'mysql2', '~> 0.5.2'
+gem 'mail', '~> 2.7.1'
 
 if File.exists?(".config/local-server")
   gem 'sinatra', '~> 2.0.0'

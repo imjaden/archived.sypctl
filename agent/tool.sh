@@ -51,7 +51,7 @@ case "$1" in
         if [[ -f .config/local-server ]]; then
             bash $0 state
         else
-            read -p "确定部署代理端服务? y/n: " user_input
+            read -p "激活代理端服务? y/n: " user_input
             if [[ "${user_input}" = 'y' ]]; then
                 echo $(date +'%Y%m%d%H%M%S') > .config/local-server
              
@@ -185,18 +185,17 @@ case "$1" in
             bash $0 start
         fi
     ;;
-    remove)
-        title '移除代理服务'
+    disable|remove|uninstall)
+        title '禁用代理服务'
         check_deploy_tate
 
-        read -p "确定移除代理端服务? y/n: " user_input
+        read -p "确定禁用代理端服务? y/n: " user_input
         if [[ "${user_input}" = 'y' ]]; then
             bash $0 stop
             rm -f .config/local-server
             bash $0 bundle
-            echo "移除代理端服务成功"
+            echo "禁用代理端服务成功"
             echo
-            bash $0 help
         else
             bash $0 state
         fi
@@ -204,7 +203,7 @@ case "$1" in
     help)
         echo "Usage: sypctl agent:server <command>"
         echo 
-        commands=(help deploy start stop restart status remove)
+        commands=(help deploy start stop restart status disable)
         for cmd in ${commands[@]}; do
             echo "sypctl agent:server ${cmd}"
         done

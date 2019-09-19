@@ -1,0 +1,13 @@
+[Unit]
+Description=shengyiplus java admin portal
+After=network-online.target remote-fs.target nss-lookup.target
+ 
+[Service]
+Type=forking
+PIDFile=/usr/local/src/tomcatSuperAdmin/temp/running.pid
+ExecStart=/bin/bash /usr/local/src/tomcatSuperAdmin/startup.sh
+ExecStop=/bin/bash /usr/local/src/tomcatSuperAdmin/bin/shutdown.sh
+PrivateTmp=false
+ 
+[Install]
+WantedBy=multi-user.target

@@ -157,6 +157,7 @@ function fun_sypctl_help() {
     echo "常规操作:"
     echo "sypctl help              帮助说明"
     echo "sypctl upgrade           更新源码"
+    echo "sypctl upgrade:force     强制更新"
     echo "sypctl deploy            部署服务引导（删除会自动部署）"
     echo "sypctl deployed          查看已部署服务"
     echo "sypctl report            设备/MySQL状态"
@@ -226,9 +227,7 @@ function fun_print_init_agent_command_help() {
     echo "sypctl agent:server stop         关闭服务"
     echo "sypctl agent:server restart      重启服务"
     echo "sypctl agent:server status       服务状态"
-    echo "sypctl agent:server install      安装服务配置"
-    echo "sypctl agent:server uninstall    卸载服务配置"
-    echo "sypctl agent:server remove       移除部署"
+    echo "sypctl agent:server disable      禁用服务"
 }
 
 function fun_print_app_command_help() {
@@ -251,6 +250,8 @@ function fun_print_sypctl_service_help() {
     echo "sypctl service status    检查服务列表应用的运行状态"
     echo "sypctl service stop      关闭服务列表中的应用"
     echo "sypctl service restart   重启服务列表中的应用"
+    echo "sypctl service enable    激活服务列表中的应用"
+    echo "sypctl service disable   禁用服务列表中的应用"
     echo "sypctl service monitor   监控列表中的服务，未运行则启动"
     echo "sypctl service install   安装服务配置"
     echo "sypctl service uninstall 卸载服务配置"
@@ -362,6 +363,23 @@ function fun_sypctl_agent_caller() {
             echo "Error - unknown command: $@"
         ;;
     esac
+}
+
+function fun_sypctl_service_caller() {
+    if [[ "${2}" = "help" ]]; then
+        fun_print_sypctl_service_help
+        exit 1
+    fi
+
+    mkdir -p /etc/sypctl/
+    support_commands=(render list check start stop status restart enable disable monitor edit guard install uninstall)
+    if [[ "$2" = "edit" ]]; then
+        vim /etc/sypctl/services.json
+    elif [[ "${support_commands[@]}" =~ "$2" ]]; then
+        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/service-tools.rb "--$2" "${3:-all}"
+    else
+        echo "Error - 未知参数: $2, 仅支持: ${support_commands[@]}"
+    fi
 }
 
 function fun_sypctl_env() {

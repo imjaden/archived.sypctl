@@ -197,6 +197,30 @@
         "cat {{pid_path}} | xargs kill -KILL > /dev/null 2>&1"
       ],
       "pid_path": "/var/run/haproxy.pid"
+    },
+    {
+      "name": "公共服务 VNC",
+      "id": "vnc",
+      "user": "root",
+      "start": [
+        "systemctl start vncserver@:1.service"
+      ],
+      "stop": [
+        "systemctl stop vncserver@:1.service"
+      ],
+      "pid_path": "/root/.vnc/syp-etl:1.pid"
+    },
+    {
+      "name": "私有服务 Shadowsocks",
+      "id": "shadowsocks",
+      "user": "root",
+      "start": [
+        "/etc/init.d/shadowsocks start"
+      ],
+      "stop": [
+        "/etc/init.d/shadowsocks status"
+      ],
+      "pid_path": "/var/run/shadowsocks.pid"
     }
   ]
 }

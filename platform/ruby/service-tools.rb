@@ -27,20 +27,26 @@ option_parser = OptionParser.new do |opts|
   opts.on('-l', "--list id", '查看管理的服务列表') do |value|
     options[:list] = value
   end
-  opts.on('-t', "--check", '检查配置是否正确') do |value|
+  opts.on('-c', "--check", '检查配置是否正确') do |value|
     options[:check] = true
   end
   opts.on('-s', "--start service", '启动服务列表中的应用') do |value|
     options[:start] = value
   end
-  opts.on('-e', "--status service", '检查服务列表应用的运行状态') do |value|
+  opts.on('-r', "--status service", '检查服务列表应用的运行状态') do |value|
     options[:status] = value
   end
   opts.on('-k', "--stop service", '关闭服务列表中的应用') do |value|
     options[:stop] = value
   end
-  opts.on('-r', "--restart service", '重启服务列表中的应用') do |value|
+  opts.on('-u', "--restart service", '重启服务列表中的应用') do |value|
     options[:restart] = value
+  end
+  opts.on('-e', "--enable service", '激活服务列表中的应用') do |value|
+    options[:enable] = value
+  end
+  opts.on('-d', "--disable service", '禁用服务列表中的应用') do |value|
+    options[:disable] = value
   end
   opts.on('-r', "--render service", '渲染命令中嵌套的变量') do |value|
     options[:render] = value
@@ -57,7 +63,7 @@ option_parser = OptionParser.new do |opts|
   opts.on('-i', "--install", '安装配置') do |value|
     options[:install] = true
   end
-  opts.on('-u', "--uninstall", '卸载配置') do |value|
+  opts.on('-w', "--uninstall", '卸载配置') do |value|
     options[:uninstall] = true
   end
 end.parse!
@@ -76,9 +82,8 @@ class Service
       @service_config_path = "/etc/sypctl/services.json"
       @service_output_path = "/etc/sypctl/services.output"
       @service_example_path = File.expand_path("../services.json", __FILE__)
-      exit 1 unless File.exists?(@service_config_path)
 
-      @data_hash = JSON.parse(File.read(@service_config_path))
+      @data_hash = JSON.parse(File.read(@service_config_path)) rescue {}
       @hosts     = @data_hash['hosts'] || {}
       @config    = @data_hash['config'] || {}
       @extra     = @data_hash['extra'] || {}
@@ -140,12 +145,16 @@ class Service
     def start(target_service = nil)
       list(false, @options[:start] || target_service || 'all').each do |service|
         title("启动 #{service['name']}")
-        pid_path = render_command(service['pid_path'], service)
-        state, message = process_status_by_pid(pid_path)
-        if state
-          puts message
+        if (service['state'] || 'enable') == 'enable'
+          pid_path = render_command(service['pid_path'], service)
+          state, message = process_status_by_pid(pid_path)
+          if state
+            puts message
+          else
+            start_service(service)
+          end
         else
-          start_service(service)
+          puts "#{service['state']}, Do Nothing!"
         end
       end
 
@@ -157,7 +166,8 @@ class Service
     def status(target_service = nil)
       table_rows = list(false, @options[:status] || target_service || 'all').map do |service|
         pid_path = render_command(service['pid_path'], service)
-        [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], process_status_by_pid(pid_path).last]
+        pid_status = (service['state'] || 'enable') == 'enable' ? process_status_by_pid(pid_path).last : service['state']
+        [service['name'] || service['id'], service['id'], service['user'], service['execute_weight'], pid_status]
       end
 
       table_heads = %w(服务 标识 用户 权重 进程状态)
@@ -174,7 +184,7 @@ class Service
           command = render_command(command, service)
 
           if service['user'] != whoami && need_su_to_execute_command?(command, service)
-            command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\""
+            # command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\""
           end
           run_command(command)
         end
@@ -189,6 +199,38 @@ class Service
       puts "-" * 30
       sleep 3
       start(@options[:restart])
+    end
+
+    def enable
+      services = (@data_hash['services'] || []).map do |service|
+        if (@options[:enable] || '').split(',').include?(service['id'])
+          service['state'] = 'enable'
+        end
+        service
+      end
+
+      @data_hash['services'] = services
+      File.open(@service_config_path, 'w:utf-8') { |file| file.puts(@data_hash.to_json) }
+      options(@options)
+
+      start(@options[:enable])
+      status('all')
+    end
+
+    def disable
+      services = (@data_hash['services'] || []).map do |service|
+        if (@options[:disable] || '').split(',').include?(service['id'])
+          service['state'] = 'disable'
+        end
+        service
+      end
+
+      @data_hash['services'] = services
+      File.open(@service_config_path, 'w:utf-8') { |file| file.puts(@data_hash.to_json) }
+      options(@options)
+
+      stop(@options[:disable])
+      status('all')
     end
 
     def monitor
@@ -264,11 +306,11 @@ class Service
       service_example = JSON.parse(File.read(@service_example_path))
       service_current = JSON.parse(File.read(@service_config_path)) rescue nil
       unless service_current
-        service_current = service_example 
+        service_current = JSON.parse(service_example.to_json)
         service_current['services'] = []
       end
 
-      current_ids = service_current['services'].map { |s| s['id'] }
+      current_ids = (service_current['services'] || []).map { |s| s['id'] }
       service_example['services'].select { |service| current_ids.include?(service['id']) }.each do |service|
         puts "#{service['id']}, 已安装\n"
       end
@@ -284,7 +326,6 @@ class Service
       end
     end
 
-
     def uninstall
       service_example = JSON.parse(File.read(@service_example_path))
       service_current = JSON.parse(File.read(@service_config_path)) rescue nil
@@ -292,6 +333,12 @@ class Service
         puts "未配置 service, 退出操作"
         exit(1)
       end
+      
+      current_ids = service_current['services'].map { |s| s['id'] }
+      service_example['services'].select { |service| current_ids.include?(service['id']) }.each do |service|
+        puts "#{service['id']}, 已安装\n"
+      end
+      puts 
 
       current_ids = service_current['services'].map { |s| s['id'] }
       service_example['services'].select { |service| current_ids.include?(service['id']) }.each do |service|
@@ -302,7 +349,6 @@ class Service
         File.open(@service_config_path, 'w:utf-8') { |file| file.puts(service_current.to_json) }
         puts "已卸载 #{service['id']}\n\n"
       end
-
     end
 
     private
@@ -391,7 +437,7 @@ class Service
         # 1. 运行账号不是当前用户
         # 2. 没有指明不需要切换用户操作命令(开头命令)
         if service['user'] != whoami && need_su_to_execute_command?(command, service)
-          command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\"" 
+          # command = "su #{service['user']} --login --shell /bin/bash --command \"#{command}\"" 
         end
         run_command(command)
       end

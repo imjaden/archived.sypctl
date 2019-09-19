@@ -55,6 +55,12 @@ option_parser = OptionParser.new do |opts|
   opts.on('-p', "--scope scope", '备份类型day/hour, 默认天') do |value|
     options[:scope] = value
   end
+  opts.on('-f', "--config path", '配置档') do |value|
+    options[:config] = value
+  end
+  opts.on('-b', "--export", '备份数据库实例') do |value|
+    options[:export] = value
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -297,6 +303,31 @@ class BackupMySQL
       end
 
       FileUtils.rm_f(pid_path) if File.exists?(pid_path)
+    end
+
+    def export
+      if !@options[:config] || !File.exists?(@options[:config])
+        puts "请传参配置档 --config=配置档路径"
+        exit(1)
+      end
+
+      config = JSON.parse(File.read(@options[:config]))
+      client2 = Mysql2::Client.new(config)
+      result2 = client2.query("show databases;")
+      client2.close
+
+      databases = result2.map { |h| h.values }.flatten
+      databases_path = "#{config['host']}-#{config['port']}"
+      FileUtils.mkdir_p(databases_path)
+      databases.each do |database|
+        next if database == 'allergan_members'
+        start_time = Time.now
+        database_path = "#{databases_path}/#{database}.sql"
+        command = "mysqldump -h#{config['host']} -P#{config['port'] || 3306} -u#{config['username']} -p#{config['password']} --default-character-set=utf8 --set-gtid-purged=OFF -ntd -R #{database} > #{database_path}"
+        puts command
+        `#{command}`
+        puts "耗时 #{Time.now - start_time}s, 文件大小 #{File.size(database_path)}"
+      end
     end
 
     def ymd_scope
