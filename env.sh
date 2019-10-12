@@ -47,6 +47,7 @@ command -v yum > /dev/null && {
     packages[23]=redhat-lsb
     packages[24]=mysql-devel
     packages[25]=mysql
+    packages[26]=lsof
     sudo yum install -y ${packages[@]}
 }
 
