@@ -365,6 +365,15 @@ function fun_sypctl_agent_caller() {
     esac
 }
 
+function fun_sypctl_sendmail_caller() {
+    support_commands=(file)
+    if [[ "${support_commands[@]}" =~ "$2" ]]; then
+        SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/mail-tools.rb "--$2" "${3:-all}"
+    else
+        echo "Error - 未知参数: $2, 仅支持: ${support_commands[@]}"
+    fi
+}
+
 function fun_sypctl_service_caller() {
     if [[ "${2}" = "help" ]]; then
         fun_print_sypctl_service_help
