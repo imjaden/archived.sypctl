@@ -23,8 +23,13 @@ option_parser = OptionParser.new do |opts|
     exit
   end
 
-  opts.on('', "--file filepath", '读取配置档') do |value|
+  opts.on('f', "--file filepath", '读取配置档') do |value|
     options[:file] = value
+  end
+
+  options[:script] = false
+  opts.on('s', "--script", '脚本示例') do |value|
+    options[:script] = true
   end
 
   # opts.on('', "--subject subject", '邮件标题') do |value|
@@ -44,6 +49,12 @@ option_parser = OptionParser.new do |opts|
   # end
 end.parse!
 options[:interval] ||= 0
+
+if options[:script]
+  puts "ScriptPath:"
+  puts File.expand_path("../sypctl-sendmail.rb", __FILE__)
+  exit
+end
 
 if !options[:file] || !File.exists?(options[:file])
   puts `ruby #{__FILE__} -h` if options.keys.empty?
