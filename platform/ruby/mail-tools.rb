@@ -89,9 +89,9 @@ to_list.each do |to_email|
 
   begin
     response = mail.deliver!
-    puts "#{Time.now.strftime('%y/%m/%d %H:%M:%S')}, #{from_email} => #{to_email}, #{subject}, status: #{response.status}, string: #{response.string.strip}"
+    puts "#{subject}, #{from_email} -> #{to_email}, status: #{response.status}"
   rescue => e
-    puts "#{Time.now.strftime('%y/%m/%d %H:%M:%S')}, #{from_email} => #{to_email}, #{subject}, status: exception, string: #{e.message}"
+    puts "#{subject}, #{from_email} -> #{to_email}, status: exception, string: #{e.message}"
     puts e.backtrace
   end
 end

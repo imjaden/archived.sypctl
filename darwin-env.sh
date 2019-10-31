@@ -15,61 +15,29 @@ SYPCTL_PREFIX=/usr/local/src
 test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=/usr/local/opt
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BIN=${SYPCTL_HOME}/bin
-current_user=$(whoami)
-current_group=$(groups ${current_user} | awk '{ print $1 }')
+current_user=$(who am i | awk '{ print $1 }')
+current_group=$(id -g -nr ${current_user})
 
-title "安装系统依赖..."
-command -v yum > /dev/null && {
-    declare -a packages
-    packages[0]=git
-    packages[1]=tree
-    packages[2]=wget
-    packages[3]=make
-    packages[4]=rdate
-    packages[5]=dos2unix
-    packages[6]=net-tools
-    packages[7]=bzip2
-    packages[8]=gcc
-    packages[9]=gcc-c++
-    packages[10]=automake
-    packages[11]=autoconf
-    packages[12]=libtool
-    packages[13]=openssl
-    packages[14]=vim-enhanced
-    packages[15]=zlib-devel
-    packages[16]=jq
-    packages[17]=openssl-devel
-    packages[18]=readline-devel
-    packages[19]=iptables-services
-    packages[20]=libxslt-devel.x86_64
-    packages[21]=libxml2-devel.x86_64
-    packages[22]=yum-plugin-downloadonly
-    packages[23]=redhat-lsb
-    packages[24]=mysql-devel
-    packages[25]=mysql
-    packages[26]=lsof
-    packages[27]=expect
-    sudo yum install -y ${packages[@]}
+title "安装 Homebrew"
+command -v brew > /dev/null && rbenv -v || {
+    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 }
-
-if [[ "$(uname -s)" = "Darwin" ]]; then
-    command -v brew > /dev/null || {
-        title "安装 Homebrew"
-        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    }
-    command -v greadlink > /dev/null || {
-        title "安装 coreutils"
-        brew install coreutils
-    }
-fi
+command -v greadlink > /dev/null && greadlink --version || {
+    title "安装 coreutils"
+    brew install coreutils
+}
 
 command -v brew > /dev/null && {
     declare -a packages
     packages[0]=git
-    packages[1]=tree
-    packages[2]=wget
+    packages[1]=gcc
+    packages[2]=tree
     packages[3]=curl
     packages[4]=openssl
+    packages[5]=jq
+    packages[6]=dos2unix
+    packages[7]=wget
+    packages[8]=readline
     package_list=(git wget curl openssl)
     for package in ${package_list[@]}; do
         command -v ${package} > /dev/null 2>&1 || {
@@ -80,11 +48,15 @@ command -v brew > /dev/null && {
 }
 
 test -d ${SYPCTL_HOME} || {
-    mkdir -p ${SYPCTL_PREFIX}
+    sudo mkdir -p ${SYPCTL_PREFIX}
     cd ${SYPCTL_PREFIX}
     title "安装 sypctl..."
     git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
 }
+
+sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+sudo vchmod -R +w ${SYPCTL_HOME}
+sudo chmod -R +x ${SYPCTL_HOME}/bin/
 
 cd ${SYPCTL_HOME}
 local_modified=$(git status -s)
@@ -100,15 +72,12 @@ if [[ ! -z "${local_modified}" ]]; then
 fi
 
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
-test "${current_user}" != "root" && chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-chmod -R +w ${SYPCTL_HOME}
-chmod -R +x ${SYPCTL_HOME}/bin/
 
 # force relink /usr/local/bin/
 sypctl_commands=(sypctl syps sypt)
 for sypctl_command in ${sypctl_commands[@]}; do
     command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
-    ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
+    sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
 done
 
 command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
@@ -116,11 +85,7 @@ source platform/middleware.sh > /dev/null 2>&1
 
 command -v java > /dev/null || {
     title "安装 JDK..."
-    bash platform/$(uname -s)/jdk-tools.sh install:jdk
-}
-command -v javac > /dev/null || {
-    title "安装 JAVAC..."
-    bash platform/$(uname -s)/jdk-tools.sh install:javac
+    echo "链接: https://pan.baidu.com/s/1oZKxrZXdveXc1opU60smVA 提取码: smuy"
 }
 
 function fun_rbenv_install_ruby() {
@@ -164,6 +129,7 @@ rbenv_version=$(rbenv -v | cut -d ' ' -f 2)
 cd ~/.rbenv
 git pull > /dev/null 2>&1
 echo "rbenv ${rbenv_version} => $(rbenv -v | cut -d ' ' -f 2)"
+
 title "检测 Rbenv..."
 curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
 
