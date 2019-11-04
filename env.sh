@@ -70,6 +70,13 @@ test -d ${SYPCTL_HOME} || {
 }
 
 cd ${SYPCTL_HOME}
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+[[ "${current_branch}" != "${SYPCTL_BRANCH}" ]] && {
+    git reset --hard HEAD
+    git fetch origin "${SYPCTL_BRANCH}":"${SYPCTL_BRANCH}"
+    git checkout "${SYPCTL_BRANCH}"
+}
+
 local_modified=$(git status -s)
 if [[ ! -z "${local_modified}" ]]; then
     git status
@@ -78,13 +85,11 @@ if [[ ! -z "${local_modified}" ]]; then
         echo "退出操作！"
         exit 2
     fi
-
 fi
 
 git reset --hard HEAD
-sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-git checkout ${SYPCTL_BRANCH}
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
+sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
 sudo chmod -R ugo+rw ${SYPCTL_HOME}
 sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 
@@ -92,9 +97,14 @@ sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 sypctl_commands=(sypctl syps sypt sypetl sypetlcheck)
 for sypctl_command in ${sypctl_commands[@]}; do
     command -v ${sypctl_command} > /dev/null 2>&1 && sudo rm -f $(which ${sypctl_command})
-    sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/bin/${sypctl_command}
+    sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
 done
 
+[[ "${PATH}" =~ "/usr/local/bin" ]] || {
+    sudo chmod o+w /etc/profile
+    sudo echo 'export PATH="/usr/local/bin:\$PATH"' >> /etc/profile
+    source /etc/profile
+}
 source platform/middleware.sh > /dev/null 2>&1
 
 command -v java > /dev/null || {

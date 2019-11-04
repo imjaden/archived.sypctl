@@ -11,7 +11,6 @@ export LANG=zh_CN.UTF-8
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 SYPCTL_EXECUTE_PATH="$(pwd)"
 SYPCTL_BRANCH=dev-0.1-master
-SYPCTL_PREFIX=/usr/local/src
 SYPCTL_PREFIX=/usr/local/opt
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BIN=${SYPCTL_HOME}/bin

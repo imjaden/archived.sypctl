@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SYPCTL_EXECUTE_PATH="$(pwd)"
-SYPCTL_BASH=$(readlink /usr/local/bin/sypctl)
+SYPCTL_BASH=$(readlink $(which sypctl))
 SYPCTL_BIN=$(dirname ${SYPCTL_BASH})
 SYPCTL_HOME=$(dirname ${SYPCTL_BIN})
 
