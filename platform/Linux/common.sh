@@ -285,8 +285,8 @@ function fun_print_crontab_and_rclocal() {
     crontab_conf="crontab-${timestamp}.conf"
     crontab -l > tmp/${crontab_conf}
     if [[ $(grep "# Begin sypctl" tmp/${crontab_conf} | wc -l) -gt 0 ]]; then
-        begin_line_num=$(sed -n '/# Begin sypctl/=' tmp/${crontab_conf} | head -n 1)
-        end_line_num=$(sed -n '/# End sypctl/=' tmp/${crontab_conf} | tail -n 1)
+        begin_line_num=$(sudo sed -n '/# Begin sypctl/=' tmp/${crontab_conf} | head -n 1)
+        end_line_num=$(sudo sed -n '/# End sypctl/=' tmp/${crontab_conf} | tail -n 1)
         pos=$(expr $end_line_num - $begin_line_num + 1)
         title "\$ crontab -l | head -n ${end_line_num} | tail -n ${pos}"
         crontab -l | head -n ${end_line_num} | tail -n ${pos}
@@ -297,8 +297,8 @@ function fun_print_crontab_and_rclocal() {
     test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.local
     test -f ${rc_local_filepath} && {
         if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
-            begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
-            end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
+            begin_line_num=$(sudo sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
+            end_line_num=$(sudo sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
             pos=$(expr $end_line_num - $begin_line_num + 1)
             title "\$ cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}"
             cat ${rc_local_filepath} | head -n ${end_line_num} | tail -n ${pos}
@@ -338,35 +338,36 @@ function fun_update_rc_local() {
     test -f ${rc_local_filepath} || rc_local_filepath=/etc/rc.local
 
     test -f ${rc_local_filepath} && {
-        sudo chmod go+w ${rc_local_filepath}
-        cp ${rc_local_filepath} ${rc_local_filepath}-bk${timestamp}
+        sudo chmod ugo+w ${rc_local_filepath}
+        sudo cp ${rc_local_filepath} ${rc_local_filepath}-bk${timestamp}
 
         # 清理连续的空行，仅留最一个空行
         # 对比备份原文件，内容未变化则删除备份
-        sed -i '/^$/{N;/\n$/D};' ${rc_local_filepath}
+        sudo sed -i '/^$/{N;/\n$/D};' ${rc_local_filepath}
         diff ${rc_local_filepath} ${rc_local_filepath}-bk${timestamp} > /dev/null 2>&1
-        [[ $? -eq 0 ]] && rm -f ${rc_local_filepath}-bk${timestamp}
+        [[ $? -eq 0 ]] && sudo rm -f ${rc_local_filepath}-bk${timestamp}
         
         # 判断是否已配置，有则清除
         if [[ $(grep "# Begin sypctl services" ${rc_local_filepath} | wc -l) -gt 0 ]]; then
-            begin_line_num=$(sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
-            end_line_num=$(sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
+            begin_line_num=$(sudo sed -n '/# Begin sypctl services/=' ${rc_local_filepath} | head -n 1)
+            end_line_num=$(sudo sed -n '/# End sypctl services/=' ${rc_local_filepath} | tail -n 1)
             sudo sed -i "${begin_line_num},${end_line_num}d" ${rc_local_filepath}
         fi
 
-        sudo echo "" >> ${rc_local_filepath}
-        sudo echo "# Begin sypctl services at: ${timestamp}" >> ${rc_local_filepath}
-        sudo echo "test -n \"\${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl" >> ${rc_local_filepath}
-        sudo echo "mkdir -p \${SYPCTL_HOME}/logs" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:jobs\" > \${SYPCTL_HOME}/logs/startup1.log 2>&1" >> ${rc_local_filepath}
-        sudo echo "su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:update\" > \${SYPCTL_HOME}/logs/startup2.log 2>&1" >> ${rc_local_filepath}
-        sudo echo "# End sypctl services at: ${timestamp}" >> ${rc_local_filepath}
+        sudo cat <<-EOF >> ${rc_local_filepath}
+# Begin sypctl services at: ${timestamp}"
+test -n \"\${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl"
+mkdir -p \${SYPCTL_HOME}/logs"
+su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:jobs\"
+su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:update\"
+# End sypctl services at: ${timestamp}"
+        EOF
 
         sudo chmod +x ${rc_local_filepath}
     } || {
         title "cannot found rc.local in below path:"
-        echo "/etc/rc.local"
-        echo "/etc/rc.d/rc.local"
+        echo "- /etc/rc.local"
+        echo "- /etc/rc.d/rc.local"
     }
 }
 
