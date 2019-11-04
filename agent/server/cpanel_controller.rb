@@ -15,13 +15,19 @@ module Cpanel
 
     get '/data/:id' do
       data = case params[:id]
-      when 'register', 'service', 'service_output', 'file_backup', 'mysql_backup', 'packages'
+      when 'register', 'service', 'service_output', 'file_backup', 'mysql_backup', 'packages', 'sypetl_sendmail'
         {message: "获取成功", data: send("get_data_#{params[:id]}")}
       else
         {message: "未知 id #{params[:id]}", data: {}}
       end
 
       respond_with_json({data: data}, 200)
+    end
+
+    post '/data/:id' do
+      save_config_file(params[:id], params[:config])
+
+      respond_with_json({message: '保存成功'}, 201)
     end
 
     get '/file_backup/:type' do
@@ -37,6 +43,17 @@ module Cpanel
     end
 
     protected
+
+    def save_config_file(id, config)
+      filepath = case params[:id]
+      when 'service' then '/etc/sypctl/services.json'
+      when 'file_backup' then '/etc/sypctl/backup-file.json'
+      when 'mysql_backup' then '/etc/sypctl/backup-mysql.json'
+      when 'sypetl_sendmail' then '/data/work/config/sypetl-sendmail.json'
+      else '/etc/sypctl/unknown.json'
+      end
+      File.open(filepath, 'w:utf-8') { |file| file.puts(config) }
+    end
 
     def get_data_packages
       packages = `sypctl toolkit package files`.to_s.split("\n")
@@ -100,6 +117,19 @@ module Cpanel
 
     def get_data_mysql_backup
       config_path = '/etc/sypctl/backup-mysql.json'
+      
+      { 
+        path: config_path,
+        config: JSON.parse(File.read(config_path))
+      }
+    rescue => e
+      puts e.message
+      puts e.backtrace.select { |s| s.start_with?(Dir.pwd) }
+      {'error': '配置档不存在'}
+    end
+
+    def get_data_sypetl_sendmail
+      config_path = '/data/work/config/sypetl-sendmail.json'
       
       { 
         path: config_path,

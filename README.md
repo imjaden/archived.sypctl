@@ -5,7 +5,10 @@
 ## 安装部署
 
 ```
+# Linux
 $ curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash
+# Darwin
+$ curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/darwin-env.sh | bash
 ```
 
 ## 使用手册

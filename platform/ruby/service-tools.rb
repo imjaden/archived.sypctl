@@ -235,6 +235,11 @@ class Service
 
     def monitor
       list(false, 'all').each do |service|
+        if (service['state'] || 'enable') != 'enable'
+          puts "#{service['state']}, Do Nothing!"
+          next
+        end
+
         pid_path = render_command(service['pid_path'], service)
         state, message = process_status_by_pid(pid_path)
         next if state

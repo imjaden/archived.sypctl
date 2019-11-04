@@ -24,7 +24,7 @@
   .col-sm-9{'v-if' => 'menu.id == "service"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
     %table.table.table-condensed.table-bordered.smart-table
       %caption
-        更新时间 {{ serviceData.table.timestamp }}，<a @click='displayModal'>查看监控服务配置明细</a>
+        <a @click='displayModal'>查看配置档</a>, 更新时间 {{ serviceData.table.timestamp }}
       %thead
         %tr
           %th{'v-for' => '(head, th_index) in serviceData.table.heads', ':style' => '"width:" + serviceData.table.widths[th_index]', 'v-text' => 'head'}
@@ -34,6 +34,8 @@
 
   .col-sm-9{'v-if' => 'menu.id == "file_backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
     %table.table.table-hover.table-condensed.table-strip.table-bordered.file-backups.tableFileBackup
+      %caption
+        <a @click='displayModal'>查看配置档</a>
       %thead
         %th 文件路径
         %th 修改时间
@@ -53,6 +55,7 @@
               %span.glyphicon.glyphicon-download
 
   .col-sm-9{'v-if' => 'menu.id == "mysql_backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    <a @click='displayModal'>查看配置档</a>
     %pre{'v-text' => 'JSON.stringify(mysqlBackups, null, 4)'}
 
   .col-sm-9{'v-if' => 'menu.id == "packages"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
@@ -66,6 +69,10 @@
         %tr{'v-for' => '(rows, row_index) in packagesData.rows'}
           %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  packagesData.widths[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
 
+  .col-sm-9{'v-if' => 'menu.id == "sypetl_sendmail"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
+    <a @click='displayModal'>查看配置档</a>
+    %pre{'v-text' => 'JSON.stringify(etlSendmail, null, 4)'}
+
   .modal.fade#infoModal{"aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
     .modal-dialog{role: "document"}
       .modal-content
@@ -74,7 +81,9 @@
             %span{"aria-hidden" => "true"} ×
           %h4.modal-title{'v-text' => 'modal.title'}
         .modal-body{style: 'padding: 10px;'}
-          %textarea.form-control{'v-model' => 'modal.body', rows: 20, readonly: true}
+          %textarea.form-control{'v-model' => 'modal.body', rows: 20, ':readonly' => 'modal.textareaReadonly'}
         .modal-footer
           %span.mtime{style: 'float:left; color: darkgray;'}
-          %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}  关闭
+          %button.btn.btn-link{'@click' => 'btnEditClick'} 编辑
+          %button.btn.btn-primary{'v-show' => '!modal.textareaReadonly', '@click' => 'btnSaveClick'} 保存
+          %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} 关闭
