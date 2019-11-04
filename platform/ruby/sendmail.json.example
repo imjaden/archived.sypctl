@@ -1,0 +1,19 @@
+{
+  "subject": "邮件发送测试",
+  "from": "jaden<jayden@jayden.top>",
+  "to": [
+    "jaden<jay_li@intfocus.com>"
+  ],
+  "smtp": {
+    "address": "smtp.exmail.qq.com",
+    "domain": "exmail.qq.com",
+    "port": 587,
+    "user_name": "jayden@jayden.top",
+    "password": "your-password",
+    "authentication": "login",
+    "return_response": true
+  },
+  "interval": 1,
+  "content_type": "text/html; charset=UTF-8",
+  "body": "邮件发送测试"
+}

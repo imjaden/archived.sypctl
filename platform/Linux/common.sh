@@ -110,10 +110,12 @@ function fun_sypctl_ssh_keygen() {
     test -d ~/.ssh || ssh-keygen  -t rsa -P '' # -f ~/.ssh/id_rsa
     test -f ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys
 
-    chmod -R 700 ~/.ssh
-    chmod 600 ~/.ssh/authorized_keys
+    sudo chmod -R 700 ~/.ssh
+    sudo chmod 600 ~/.ssh/authorized_keys
 
-    ls -l ~/.ssh/
+    echo "\$ ls -lt ~/.ssh/"
+    ls -lt ~/.ssh/
+    echo "\$ cat ~/.ssh/id_rsa.pub"
     cat ~/.ssh/id_rsa.pub
 }
 

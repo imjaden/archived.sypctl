@@ -9,7 +9,7 @@ function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 function fun_printf_timestamp() { printf "\n Timestamp: $(date +'%Y-%m-%d %H:%M:%S')\n"; }
 
-SYPCTL_BRANCH=dev-0.0.1
+SYPCTL_BRANCH=dev-0.1-master
 SYPCTL_BASH=$(readlink /usr/local/bin/sypctl)
 SYPCTL_BIN=$(dirname ${SYPCTL_BASH})
 SYPCTL_HOME=$(dirname ${SYPCTL_BIN})
@@ -85,9 +85,9 @@ function fun_sypctl_upgrade_action() {
     git reset --hard HEAD
     git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
 
-    test "${current_user}" != "root" && chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-    chmod -R +w ${SYPCTL_HOME}
-    chmod -R +x ${SYPCTL_HOME}/bin/
+    sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+    sudo chmod -R ugo+rw ${SYPCTL_HOME}
+    sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 
     # force relink /usr/local/bin/
     sypctl_commands=(sypctl syps sypt)
@@ -363,6 +363,11 @@ function fun_sypctl_agent_caller() {
             echo "Error - unknown command: $@"
         ;;
     esac
+}
+
+function fun_sypctl_sendmail_caller() {
+    shift
+    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/mail-tools.rb $@
 }
 
 function fun_sypctl_service_caller() {

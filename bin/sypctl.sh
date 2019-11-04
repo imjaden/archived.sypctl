@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 ########################################
 #  
@@ -50,6 +50,9 @@ case "$1" in
     toolkit|service|backup:file|backup:mysql)
         operation=$(echo $1 | sed 's/:/_/g')
         fun_sypctl_${operation}_caller $@
+    ;;
+    sendmail)
+        fun_sypctl_sendmail_caller $@
     ;;
     app:*)
         fun_sypctl_app_caller $@

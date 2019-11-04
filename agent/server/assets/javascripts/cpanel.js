@@ -5,11 +5,12 @@ if(document.getElementById('cpanelVueApp')) {
       return { 
         screenHeight: document.documentElement.clientHeight - 100,
         menus: [
-          {label: '注册信息', id: 'register'},
-          {label: '监控服务', id: 'service'},
+          {label: '本机信息', id: 'register'},
+          {label: '服务状态', id: 'service'},
           {label: '文档备份', id: 'file_backup'},
           {label: 'MySQL备份', id: 'mysql_backup'},
-          {label: '安装包状态', id: 'packages'}
+          {label: '安装包状态', id: 'packages'},
+          {label: 'ETL邮件配置', id: 'sypetl_sendmail'}
         ],
         menu: {},
         registerData: {},
@@ -17,9 +18,11 @@ if(document.getElementById('cpanelVueApp')) {
         fileBackups: {},
         mysqlBackups: {},
         packagesData: {},
+        etlSendmail: {},
         modal: {
           title: '标题',
           body: '加载中...',
+          textareaReadonly: true
         }
       }
     },
@@ -55,19 +58,20 @@ if(document.getElementById('cpanelVueApp')) {
           case 'packages':
             if(JSON.stringify(this.packagesData) == "{}") { this.getData(menu) } else { this.menu = menu; }
           break;
+          case 'sypetl_sendmail':
+            if(JSON.stringify(this.etlSendmail) == "{}") { this.getData(menu) } else { this.menu = menu; }
+          break;
         }
         window.localStorage.setItem('cpanel.menu.id', menu.id)
       },
       getData(menu) {
-        console.log(menu)
         let that = this;
-        if(!menu || !menu.id) {return false;}
+        if(!menu || !menu.id) { return false; }
         $.ajax({
           type: 'get',
           url: `/sypctl/cpanel/data/${menu.id}`,
           contentType: 'application/json'
         }).done(function(res, status, xhr) {
-          console.log(res)
           if(res.code !== 200) {
             alert(res.message)
             return false
@@ -96,7 +100,6 @@ if(document.getElementById('cpanelVueApp')) {
                 },
                 config: res.data.data.service
               }
-              console.log(that.serviceData)
             break;
             case 'file_backup':
               that.fileBackups = res.data.data
@@ -106,6 +109,9 @@ if(document.getElementById('cpanelVueApp')) {
             break;
             case 'packages':
               that.packagesData = res.data.data
+            break;
+            case 'sypetl_sendmail':
+              that.etlSendmail = res.data.data
             break;
             default: 
               console.log("未知 menu: " + JSON.stringify(menu))
@@ -120,7 +126,52 @@ if(document.getElementById('cpanelVueApp')) {
         if(this.menu.id == 'service') {
           this.modal.title = '服务配置'
           this.modal.body = JSON.stringify(this.serviceData.config, null, 4)
-          console.log(this.serviceData.config)
+        }
+
+        switch(this.menu.id) {
+          case 'service':
+            this.modal.title = '服务配置'
+            this.modal.body = JSON.stringify(this.serviceData.config, null, 4)
+          break;
+          case 'file_backup':
+            this.modal.title = '文档备份'
+            this.modal.body = JSON.stringify(this.fileBackups.config, null, 4)
+          break;
+          case 'mysql_backup':
+            this.modal.title = '文档备份'
+            this.modal.body = JSON.stringify(this.mysqlBackups.config, null, 4)
+          break;
+          case 'sypetl_sendmail':
+            this.modal.title = 'ETL邮件配置'
+            this.modal.body = JSON.stringify(this.etlSendmail.config, null, 4)
+          break;
+        }
+      },
+      btnEditClick() {
+        this.modal.textareaReadonly = false
+      },
+      postSaveConfig(menu, config) {
+        let that = this;
+        if(!menu || !menu.id) { return false; }
+        $.ajax({
+          type: 'post',
+          url: `/sypctl/cpanel/data/${menu.id}`,
+          data: JSON.stringify({ config: config }),
+          contentType: 'application/json'
+        }).done(function(res, status, xhr) {
+        }).fail(function(xhr, status, error) {
+        }).always(function(res, status, xhr) {
+        });
+      },
+      btnSaveClick() {
+        try {
+          JSON.parse(this.modal.body)
+          this.postSaveConfig(this.menu, this.modal.body)
+          this.modal.textareaReadonly = true
+          this.getData(this.menu)
+          alert("保存成功")
+        } catch(e) {
+          alert("请检测JSON格式正确！")
         }
       },
       getBackupFile(type, archive_file_name, file_path) {

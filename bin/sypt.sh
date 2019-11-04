@@ -1,3 +1,3 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 /usr/local/bin/sypctl toolkit $@
