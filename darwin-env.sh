@@ -10,9 +10,9 @@ export LANG=zh_CN.UTF-8
 
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 SYPCTL_EXECUTE_PATH="$(pwd)"
-SYPCTL_BRANCH=dev-0.0.1
+SYPCTL_BRANCH=dev-0.1-master
 SYPCTL_PREFIX=/usr/local/src
-test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=/usr/local/opt
+SYPCTL_PREFIX=/usr/local/opt
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BIN=${SYPCTL_HOME}/bin
 current_user=$(who am i | awk '{ print $1 }')
@@ -48,15 +48,11 @@ command -v brew > /dev/null && {
 }
 
 test -d ${SYPCTL_HOME} || {
-    sudo mkdir -p ${SYPCTL_PREFIX}
-    cd ${SYPCTL_PREFIX}
+    sudo mkdir -p ${SYPCTL_HOME}
     title "安装 sypctl..."
-    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
+    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git ${SYPCTL_HOME}
 }
 
-sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-sudo vchmod -R +w ${SYPCTL_HOME}
-sudo chmod -R +x ${SYPCTL_HOME}/bin/
 
 cd ${SYPCTL_HOME}
 local_modified=$(git status -s)
@@ -67,16 +63,19 @@ if [[ ! -z "${local_modified}" ]]; then
         echo "退出操作！"
         exit 2
     fi
-
-    git reset --hard HEAD
 fi
 
+git reset --hard HEAD
+sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+git checkout ${SYPCTL_BRANCH}
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
+sudo chmod -R ug+w ${SYPCTL_HOME}
+sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 
 # force relink /usr/local/bin/
 sypctl_commands=(sypctl syps sypt)
 for sypctl_command in ${sypctl_commands[@]}; do
-    command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
+    command -v ${sypctl_command} > /dev/null 2>&1 && sudo rm -f $(which ${sypctl_command})
     sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
 done
 

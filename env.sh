@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 ########################################
 #  
@@ -6,17 +6,26 @@
 #
 ########################################
 
+current_user=$(whoami)
+current_group=$(groups ${current_user} | awk '{ print $1 }')
+if id -u sy-devops-user >/dev/null 2>&1; then
+    if [[ "${current_user}" != "sy-devops-user" ]]; then\
+        echo "Error: 请使用账号 sy-devops-user 执行!"
+        exit 1
+    fi
+else
+    echo "Error: 请添加用户 sy-devops-user"
+    exit 1
+fi
+
 export LANG=zh_CN.UTF-8
 
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 SYPCTL_EXECUTE_PATH="$(pwd)"
-SYPCTL_BRANCH=dev-0.0.1
+SYPCTL_BRANCH=dev-0.1-master
 SYPCTL_PREFIX=/usr/local/src
-test "$(uname -s)" = "Darwin" && SYPCTL_PREFIX=/usr/local/opt
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BIN=${SYPCTL_HOME}/bin
-current_user=$(whoami)
-current_group=$(groups ${current_user} | awk '{ print $1 }')
 
 title "安装系统依赖..."
 command -v yum > /dev/null && {
@@ -52,38 +61,12 @@ command -v yum > /dev/null && {
     sudo yum install -y ${packages[@]}
 }
 
-if [[ "$(uname -s)" = "Darwin" ]]; then
-    command -v brew > /dev/null || {
-        title "安装 Homebrew"
-        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    }
-    command -v greadlink > /dev/null || {
-        title "安装 coreutils"
-        brew install coreutils
-    }
-fi
-
-command -v brew > /dev/null && {
-    declare -a packages
-    packages[0]=git
-    packages[1]=tree
-    packages[2]=wget
-    packages[3]=curl
-    packages[4]=openssl
-    package_list=(git wget curl openssl)
-    for package in ${package_list[@]}; do
-        command -v ${package} > /dev/null 2>&1 || {
-          title "安装 ${package}"
-          brew install ${package}
-        }
-    done
-}
-
 test -d ${SYPCTL_HOME} || {
-    mkdir -p ${SYPCTL_PREFIX}
-    cd ${SYPCTL_PREFIX}
+    sudo mkdir -p ${SYPCTL_HOME}
+    sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+    sudo chmod -R ug+rwx ${SYPCTL_HOME}
     title "安装 sypctl..."
-    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git
+    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git ${SYPCTL_HOME}
 }
 
 cd ${SYPCTL_HOME}
@@ -96,22 +79,22 @@ if [[ ! -z "${local_modified}" ]]; then
         exit 2
     fi
 
-    git reset --hard HEAD
 fi
 
+git reset --hard HEAD
+sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
+git checkout ${SYPCTL_BRANCH}
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
-test "${current_user}" != "root" && chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-chmod -R +w ${SYPCTL_HOME}
-chmod -R +x ${SYPCTL_HOME}/bin/
+sudo chmod -R ugo+rw ${SYPCTL_HOME}
+sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 
 # force relink /usr/local/bin/
-sypctl_commands=(sypctl syps sypt)
+sypctl_commands=(sypctl syps sypt sypetl sypetlcheck)
 for sypctl_command in ${sypctl_commands[@]}; do
-    command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
-    ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
+    command -v ${sypctl_command} > /dev/null 2>&1 && sudo rm -f $(which ${sypctl_command})
+    sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/bin/${sypctl_command}
 done
 
-command -v sypctl > /dev/null 2>&1 || export PATH="/usr/local/bin:$PATH"
 source platform/middleware.sh > /dev/null 2>&1
 
 command -v java > /dev/null || {
@@ -203,3 +186,15 @@ fun_print_table_footer
 title "sypctl 安装完成"
 sypctl help
 cd ${SYPCTL_EXECUTE_PATH}
+
+title "创建工作目录"
+mkdir -p /data/{ftp,backup,work/{www,tools,scripts,config,logs}}
+
+cat <<-EOF
+目录约定:
+- Web: /data/work/www
+- 脚本: /data/work/scripts
+- 工具: /data/work/tools
+- 日志: /data/work/logs
+- 配置档: /data/work/config
+EOF
