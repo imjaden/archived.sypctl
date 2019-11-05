@@ -9,7 +9,7 @@
 current_user=$(whoami)
 current_group=$(groups ${current_user} | awk '{ print $1 }')
 if id -u sy-devops-user >/dev/null 2>&1; then
-    if [[ "${current_user}" != "sy-devops-user" ]]; then\
+    if [[ "${current_user}" != "sy-devops-user" ]]; then
         echo "Error: 请使用账号 sy-devops-user 执行!"
         exit 1
     fi
@@ -96,7 +96,10 @@ sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 # force relink /usr/local/bin/
 sypctl_commands=(sypctl syps sypt sypetl sypetlcheck)
 for sypctl_command in ${sypctl_commands[@]}; do
-    command -v ${sypctl_command} > /dev/null 2>&1 && sudo rm -f $(which ${sypctl_command})
+    command -v ${sypctl_command} > /dev/null 2>&1 && {
+        type -a ${sypctl_command} | awk '{ print $3 }' | xargs -I command_path sudo rm -f command_path
+    }
+    sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/bin/${sypctl_command}
     sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
 done
 
@@ -198,13 +201,18 @@ sypctl help
 cd ${SYPCTL_EXECUTE_PATH}
 
 title "创建工作目录"
-mkdir -p /data/{ftp,backup,work/{www,tools,scripts,config,logs}}
+sudo mkdir -p /data/{ftp,backup,work/{www,tools,scripts,config,data,logs}}
+
+sudo mkdir -p /etc/sypctl/
+sudo chown -R ${current_user}:${current_group} /etc/sypctl/
+sudo chmod -R ug+rwx /etc/sypctl/
 
 cat <<-EOF
 目录约定:
 - Web: /data/work/www
 - 脚本: /data/work/scripts
 - 工具: /data/work/tools
+- 数据: /data/work/data
 - 日志: /data/work/logs
 - 配置档: /data/work/config
 EOF

@@ -90,10 +90,13 @@ function fun_sypctl_upgrade_action() {
     sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 
     # force relink /usr/local/bin/
-    sypctl_commands=(sypctl syps sypt)
+    sypctl_commands=(sypctl syps sypt sypetl sypetlcheck)
     for sypctl_command in ${sypctl_commands[@]}; do
-        command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
-        ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
+        command -v ${sypctl_command} > /dev/null 2>&1 && {
+            type -a ${sypctl_command} | awk '{ print $3 }' | xargs -I command_path sudo rm -f command_path
+        }
+        sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/bin/${sypctl_command} > /dev/null 2>&1
+        sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command} > /dev/null 2>&1
     done
 
     fun_sypctl_update_env_files

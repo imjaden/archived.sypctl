@@ -356,12 +356,12 @@ function fun_update_rc_local() {
 
         sudo cat <<-EOF >> ${rc_local_filepath}
 # Begin sypctl services at: ${timestamp}"
-test -n \"\${SYPCTL_HOME}\" || SYPCTL_HOME=/usr/local/src/sypctl"
+test -n "\${SYPCTL_HOME}" || SYPCTL_HOME=/usr/local/src/sypctl"
 mkdir -p \${SYPCTL_HOME}/logs"
-su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:jobs\"
-su ${current_user} --login --shell /bin/bash --command \"/usr/local/bin/sypctl schedule:update\"
+su ${current_user} --login --shell /bin/bash --command "/usr/local/bin/sypctl schedule:jobs"
+su ${current_user} --login --shell /bin/bash --command "/usr/local/bin/sypctl schedule:update"
 # End sypctl services at: ${timestamp}"
-        EOF
+EOF
 
         sudo chmod +x ${rc_local_filepath}
     } || {
