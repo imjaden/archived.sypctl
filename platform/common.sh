@@ -104,7 +104,7 @@ function fun_sypctl_upgrade_action() {
 
     # 编译 sypctl 代理端服务
     # bundle 操作必须执行，所 ruby 脚本依赖的包都维护在该 Gemfile 中
-    cd agent
+    cd ${SYPCTL_HOME}/agent
     mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
     rm -f .config/bundle-done
     bundle install > /dev/null 2>&1
