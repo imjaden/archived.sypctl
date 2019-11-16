@@ -38,7 +38,7 @@ function fun_sypctl_network() {
 function fun_sypctl_pre_upgrade() {
     fun_sypctl_network || exit 1
     
-    gitlab_version=$(curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/version)
+    gitlab_version=$(curl -sS https://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/version)
     release_version=${gitlab_version##*.} 
     if [[ "${sypctl_version}" = "${gitlab_version}" ]]; then
         title "升级预检: 当前版本已是最新版本"
@@ -179,7 +179,7 @@ function fun_sypctl_help() {
     echo
     fun_print_logo
     echo "Current version is ${sypctl_version}"
-    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+    echo "For full documentation, see: https://gitlab.idata.mobi/syp-apps/sypctl.git"
 }
 
 function fun_print_logo() {
@@ -200,7 +200,7 @@ function fun_print_init_agent_help() {
     fun_print_init_agent_command_help
     echo 
     echo "Current version is ${sypctl_version}"
-    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+    echo "For full documentation, see: https://gitlab.idata.mobi/syp-apps/sypctl.git"
 }
 
 function fun_print_init_agent_command_help() {

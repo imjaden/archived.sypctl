@@ -1,7 +1,7 @@
 # encoding: utf-8
 ########################################
 #  
-#  BackupFile Manager v1.1
+#  BackupFile Manager v1.2
 #
 ########################################
 #
@@ -47,48 +47,44 @@ class BackupFile
     def options(options)
       @options = options
 
-      @db_path       = File.join(ENV['SYPCTL_HOME'], 'agent/db/file-backups')
-      @archived_path = File.join(@db_path, 'archived')
-      @db_hash_path  = File.join(@db_path, 'db.hash')
-      @db_json_path  = File.join(@db_path, 'db.json')
-      @synced_json_path = File.join(@db_path, 'synced.json')
-      @synced_hash_path = File.join(@db_path, 'synced.hash')
+      @db_path = File.join(ENV['SYPCTL_HOME'], 'agent/db/file-backups')
+      @db_jmd5_path = File.join(@db_path, 'db.jmd5')
+      @db_hash_path = File.join(@db_path, 'db.json')
+      @snapshots_path = File.join(@db_path, 'snapshots')
 
-      FileUtils.mkdir_p(@db_path) unless File.exists?(@db_path)
-      if !File.exists?(@db_hash_path) || !File.exists?(@db_json_path)
-        puts "警告：本机暂未同步备份元信息\n退出操作"
+      if !File.exists?(@db_jmd5_path) || !File.exists?(@db_hash_path)
+        puts "Warning：本机暂未同步备份元信息\n退出操作"
         exit 1
       end
 
-      @db_hash = File.read(@db_hash_path)
-      @db_json = JSON.parse(File.read(@db_json_path))
-      @synced_json = File.exists?(@synced_json_path) ? JSON.parse(File.read(@synced_json_path)) : {}
-      @synced_hash = File.exists?(@synced_hash_path) ? File.read(@synced_hash_path).strip : "FileNotExist"
-
-      FileUtils.mkdir_p(@archived_path) unless File.exists?(@archived_path)
+      FileUtils.mkdir_p(@db_path) unless File.exists?(@db_path)
+      FileUtils.mkdir_p(@snapshots_path) unless File.exists?(@snapshots_path)
       ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+
+      @db_jmd5 = File.read(@db_jmd5_path)
+      @db_hash = JSON.parse(File.read(@db_hash_path))
     end
 
     def render
-      puts ENV['SYPCTL_API_CUSTOM']
-      puts "元信息哈希: #{@db_hash}"
-      puts "元信息路径: #{@db_json_path}"
-      puts JSON.pretty_generate(@db_json)
+      puts ENV['SYPCTL_API']
+      puts "元信息哈希: #{@db_jmd5}"
+      puts "元信息路径: #{@db_hash_path}"
+      # puts JSON.pretty_generate(@db_json)
     rescue => e
       puts e.message
     end
 
     def list
-      puts "元信息哈希: #{@db_hash}"
-      puts "元信息路径: #{@db_json_path}"
-      table_rows = @db_json.map do |file|
-        if File.exists?(file['file_path']) 
-          file_state = File.file?(file['file_path']) ? 'File' : 'Dir'
+      puts "元信息哈希: #{@db_jmd5}"
+      puts "元信息路径: #{@db_hash_path}"
+      table_rows = @db_hash.map do |file|
+        if File.exists?(file['backup_path']) 
+          file_state = File.file?(file['backup_path']) ? 'File' : 'Dir'
         else
           file_state = 'NO'
         end
 
-        [file['uuid'], file['file_path'], file_state]
+        [file['backup_uuid'], file['backup_path'], file_state]
       end
       puts Terminal::Table.new(headings: %w(UUID 文件路径 状态), rows: table_rows)
     rescue => e
@@ -96,124 +92,144 @@ class BackupFile
     end
 
     def execute
-      @db_json.each do |record|
-        next unless File.exists?(record['file_path'])
+      is_global_backup_files_updated = true
+      snapshots_hash = @db_hash.map.with_index do |record, backup_index|
+        next unless File.exists?(record['backup_path'])
 
-        uuid = record['uuid']
-        if File.directory?(record['file_path']) 
-          options = {
-            device_uuid: Sypctl::Device.uuid, 
-            file_uuid: uuid,
-          }
-          files_md5 = @synced_json.dig(uuid, 'files_md5') || {}
-          file_list = @synced_json.dig(uuid, 'file_list') || {}
-          Dir.glob(File.join(record['file_path'], "*.*")).each do |file_path|
-            next if File.directory?(file_path)
+        is_backup_files_updated = false
+        snapshot_instance_path = File.join(@db_path, "#{record['backup_uuid']}-snapshot.json")
+        snapshot_instance_hash = File.exists?(snapshot_instance_path) ? JSON.parse(File.read(snapshot_instance_path)) : record
+        
+        snapshot_instance_hash[:device_uuid] = Sypctl::Device.uuid
+        snapshot_instance_hash[:file_type] = 'file'
+        snapshot_instance_hash[:file_count] = 1
+        snapshot_instance_hash[:file_tree] = `tree #{record['backup_path']}`.to_s.strip
+        upload_options = {
+          device_uuid: Sypctl::Device.uuid, 
+          backup_uuid: record['backup_uuid'],
+          backup_path: record['backup_path']
+        }
+        glob_files = [record['backup_path']]
+        if File.directory?(record['backup_path']) 
+          glob_files = _directiory_glob_files(record['backup_path'])
 
-            file_md5 = Digest::MD5.file(file_path).hexdigest
-            file_name = File.basename(file_path)
-            next if files_md5.dig(file_name) == file_md5 && file_list.dig(file_name, 'synced')
+          snapshot_instance_hash[:file_type] = 'directory'
+          snapshot_instance_hash[:file_count] = glob_files.count
+          glob_files.each_with_object({}) do |filepath, glob_hash|
+            file_md5 = Digest::MD5.file(filepath).hexdigest
+            path_md5 = Digest::MD5.hexdigest(filepath)
             
-            archive_file_name = "#{uuid}-#{File.mtime(file_path).strftime('%Y%m%d%H%M%S')}-#{File.basename(file_path)}"
-            FileUtils.cp(file_path, File.join(@archived_path, archive_file_name))
+            next if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
 
-            options[:archive_file_name] = archive_file_name
-            options[:backup_file] = File.new(file_path, 'rb')
+            is_backup_files_updated = true
+            snapshot_filename = "#{path_md5}-#{File.mtime(filepath).to_i}-#{File.basename(filepath)}"
+            FileUtils.cp(filepath, File.join(@snapshots_path, snapshot_filename))
 
-            url = "#{ENV['SYPCTL_API']}/api/v1/upload/file_backup"
-            response = Sypctl::Http.post(url, options)
-            puts "#{response['hash']['message']}, #{file_path}"
+            upload_options[:file_object] = File.new(filepath, 'rb')
+            upload_options[:file_md5] = file_md5
+            upload_options[:file_mtime] = File.mtime(filepath).to_i
+            upload_options[:file_size] = File.size(filepath).to_i.number_to_human_size(true)
+            upload_options[:snapshot_filename] = snapshot_filename
 
-            files_md5[file_name] = file_md5
-            file_list[file_name] = {
+            url = "#{ENV['SYPCTL_API']}/api/v1/upload/backup_file"
+            response = Sypctl::Http.post(url, upload_options)
+            puts "post backup_file, #{response['hash']['message']}, #{snapshot_filename}"
+
+            backup_hash = {
               synced: ((response || {}).dig('hash', 'message') || '').include?('上传成功'),
-              file_name: file_name,
-              file_md5: file_md5,
-              file_mtime: File.mtime(file_path).to_i,
-              file_size: File.size(file_path).to_i.number_to_human_size(true),
-              archive_file_name: archive_file_name
+              mtime: File.mtime(filepath).to_i,
+              jmd5: file_md5,
+              pmd5: path_md5
             }
+            snapshot_instance_hash['file_list'] ||= {}
+            snapshot_instance_hash['file_list'][filepath] = backup_hash
+            snapshot_instance_hash['history'][filepath] = backup_hash
 
-            @synced_json[uuid] = {
-              synced: true,
-              uuid: uuid,
-              file_path: record['file_path'],
-              description: record['description'],
-              message: response['hash']['message'],
-              files_md5: files_md5,
-              file_list: file_list
-            }
-
-            File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) }
-            @synced_json = JSON.parse(File.read(@synced_json_path))
+            # 数据写入磁盘
+            File.open(snapshot_instance_path, 'w:utf-8') { |file| file.puts(snapshot_instance_hash.to_json) }
+            snapshot_instance_hash = JSON.parse(File.read(snapshot_instance_path))
 
             Sypctl::Http.post_behavior({
-              behavior: "监测到文档更新并上传服务器，#{file_path}", 
+              behavior: "监测到文档更新并上传服务器，#{snapshot_filename}", 
               object_type: 'file_backup', 
-              object_id: uuid
+              object_id: record['backup_uuid']
             })
           end
         else
-          file_path = record['file_path']
-          file_md5 = Digest::MD5.file(file_path).hexdigest
-          next if @synced_json.dig(uuid, 'md5') == file_md5
-          
-          archive_file_name = "#{uuid}-#{File.mtime(file_path).strftime('%Y%m%d%H%M%S')}-#{File.basename(file_path)}"
-          FileUtils.cp(file_path, File.join(@archived_path, archive_file_name))
+          filepath = record['backup_path']
+          file_md5 = Digest::MD5.file(filepath).hexdigest
+          path_md5 = Digest::MD5.hexdigest(filepath)
 
-          options = {
-            device_uuid: Sypctl::Device.uuid, 
-            file_uuid: uuid, 
-            archive_file_name: archive_file_name,
-            backup_file: File.new(file_path, 'rb')
+          next if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
+
+          is_backup_files_updated = true
+          snapshot_filename = "#{path_md5}-#{File.mtime(filepath).to_i}-#{File.basename(filepath)}"
+          FileUtils.cp(filepath, File.join(@snapshots_path, snapshot_filename))
+
+          upload_options[:file_object] = File.new(filepath, 'rb')
+          upload_options[:file_md5] = file_md5
+          upload_options[:file_mtime] = File.mtime(filepath).to_i
+          upload_options[:file_size] = File.size(filepath).to_i.number_to_human_size(true)
+          upload_options[:snapshot_filename] = snapshot_filename
+
+          url = "#{ENV['SYPCTL_API']}/api/v1/upload/backup_file"
+          response = Sypctl::Http.post(url, upload_options)
+          puts "post backup_file, #{response['hash']['message']}, #{snapshot_filename}"
+          
+          backup_hash = {
+            synced: ((response || {}).dig('hash', 'message') || '').include?('上传成功'),
+            mtime: File.mtime(filepath).to_i,
+            jmd5: file_md5,
+            pmd5: path_md5
           }
+          snapshot_instance_hash['file_list'] ||= {}
+          snapshot_instance_hash['file_list'][filepath] = backup_hash
+          snapshot_instance_hash['history'][filepath] = backup_hash
 
-          url = "#{ENV['SYPCTL_API']}/api/v1/upload/file_backup"
-          response = Sypctl::Http.post(url, options)
-          puts "#{response['hash']['message']}, #{archive_file_name}"
-          
-          response_message = (response || {}).dig('hash', 'message') || ''
-          @synced_json[uuid] ||= {synced: false}.merge(record)
-          @synced_json[uuid][:md5]         = file_md5
-          @synced_json[uuid][:message]     = response_message
-          @synced_json[uuid][:synced]      = response_message.include?('上传成功')
-          @synced_json[uuid][:file_mtime]  = File.mtime(file_path).to_i
-          @synced_json[uuid][:file_size]   = File.size(file_path).to_i.number_to_human_size(true)
-          @synced_json[uuid][:device_uuid] = Sypctl::Device.uuid
-          @synced_json[uuid][:archive_file_name] = archive_file_name
-
-          File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) }
-          @synced_json = JSON.parse(File.read(@synced_json_path))
+          # 数据写入磁盘
+          File.open(snapshot_instance_path, 'w:utf-8') { |file| file.puts(snapshot_instance_hash.to_json) }
+          snapshot_instance_hash = JSON.parse(File.read(snapshot_instance_path))
 
           Sypctl::Http.post_behavior({
-            behavior: "备份文档更新，#{file_path}", 
+            behavior: "监测到文档更新并上传服务器，#{snapshot_filename}", 
             object_type: 'file_backup', 
-            object_id: uuid
+            object_id: record['backup_uuid']
           })
         end
-      end
-    
-      file_uuids = @db_json.map { |hsh| hsh['uuid'] }
-      @synced_json = JSON.parse(File.read(@synced_json_path)) rescue {}
-      deprecated_uuids = (@synced_json.keys - file_uuids)
-      deprecated_uuids.each { |file_uuid| @synced_json.delete(file_uuid) }
-      File.open(@synced_json_path, 'w:utf-8') { |file| file.puts(@synced_json.to_json) } unless deprecated_uuids.empty?
 
-      synced_hash = Digest::MD5.hexdigest(@synced_json.to_json)
-      if @synced_hash != synced_hash
-        url = "#{ENV['SYPCTL_API']}/api/v1/update/file_backup"
-        options = {
-          device_uuid: Sypctl::Device.uuid,
-          file_backup_config: @db_json.to_json,
-          file_backup_monitor: @synced_json.to_json
-        }
-        response = Sypctl::Http.post(url, options)
-        puts "synced_hash now: #{synced_hash}"
-        puts "synced_hash old: #{@synced_hash}"
-        puts "#{response['hash']['message']}, #{@synced_hash_path}"
+        # 清理filelist中被删除的文件
+        deleted_files = snapshot_instance_hash['file_list'].keys - glob_files
+        unless deleted_files.empty?
+          is_backup_files_updated = true
+          deleted_files.each { |deleted_file| snapshot_instance_hash['file_list'].delete(deleted_file) }
+          File.open(snapshot_instance_path, 'w:utf-8') { |file| file.puts(snapshot_instance_hash.to_json) }
+        end
 
-        File.open(@synced_hash_path, 'w:utf-8') { |file| file.puts(synced_hash) } if response['hash']['message'].include?('更新成功')
+        if is_backup_files_updated
+          url = "#{ENV['SYPCTL_API']}/api/v1/upload/backup_snapshot"
+          response = Sypctl::Http.post(url, snapshot_instance_hash)
+          puts "post upload/backup_snapshot, #{response['hash']['message']}"
+        end
+        is_global_backup_files_updated = true if is_backup_files_updated
+        snapshot_instance_hash
       end
+
+      if is_global_backup_files_updated
+        url = "#{ENV['SYPCTL_API']}/api/v1/update/backup_snapshot"
+        response = Sypctl::Http.post(url, {device_uuid: Sypctl::Device.uuid, file_backup_config: @db_hash.to_json, file_backup_monitor: snapshots_hash.compact.to_json})
+        puts "post update/backup_snapshot, #{response['hash']['message']}"
+      end
+    end
+
+    def _directiory_glob_files(directory_path, files = [])
+      Dir.glob(File.join(directory_path, "*")).each do |filepath|
+        if File.directory?(filepath)
+          files = _directiory_glob_files(filepath, files)
+        elsif File.file?(filepath)
+          files.push(filepath)
+        end
+      end
+      return files
     end
 
     alias_method :guard, :execute
