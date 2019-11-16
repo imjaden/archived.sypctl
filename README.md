@@ -39,7 +39,7 @@ sypctl backup:file help  #备份文件# 管理
  "mmm#"   #    #       "mmm"   #    #mmmmm
 
 Current version is 0.0.84
-For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
+For full documentation, see: https://gitlab.idata.mobi/syp-apps/sypctl.git
 ```
 
 ## 工具集列表
@@ -47,7 +47,7 @@ For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git
 - 代理服务管理
 - 安装包管理
 - 工具集管理
-- [服务管理](linux/ruby/service-tools.md)
+- [服务管理](platform/ruby/service-tools.md)
 - 备份文件管理
 
 ## Nginx 挂载

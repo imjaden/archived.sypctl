@@ -27,9 +27,9 @@ project_jar_path="portal-api-service-parent/portal-api-service/target/portal-api
 
 remote_server_ips=("syp-dev.idata.mobi")
 remote_backup_home="/data/backup/jenkins"
-remote_war_filepath="/usr/local/src/tomcatAPI/webapps/saas-api.war"
-remote_jar_filepath="/usr/local/src/providerAPI/api-service.jar"
-remote_ssh_user="root"
+remote_war_filepath="/data/work/www/tomcatAPI/webapps/saas-api.war"
+remote_jar_filepath="/data/work/www/providerAPI/api-service.jar"
+remote_ssh_user="sy-devops-user"
 remote_ssh_port="22"
 sypctl_tomcat_id="java-api"
 sypctl_provider_id="java-api-service"
@@ -37,8 +37,10 @@ sypctl_provider_id="java-api-service"
 timestamp="$(date '+%Y%m%d%H%M%S')"
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 
-jenkins_war_path="/root/.jenkins/workspace/${jenkins_project_name}/${project_war_path}"
-jenkins_jar_path="/root/.jenkins/workspace/${jenkins_project_name}/${project_jar_path}"
+# jenkins_war_path="/home/sy-devops-user/.jenkins/workspace/${jenkins_project_name}/${project_war_path}"
+# jenkins_jar_path="/home/sy-devops-user/.jenkins/workspace/${jenkins_project_name}/${project_jar_path}"
+jenkins_war_path="${project_war_path}"
+jenkins_jar_path="${project_jar_path}"
 
 if [[ ! -f ${jenkins_war_path} || ! -f ${jenkins_jar_path} ]]; then
     logger "ERROR - war/jar 文件不存在:"

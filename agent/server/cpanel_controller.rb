@@ -31,14 +31,14 @@ module Cpanel
     end
 
     get '/file_backup/:type' do
-      file_path = File.join(ENV['APP_ROOT_PATH'], 'db/file-backups/archived', params[:archive_file_name])
+      file_path = File.join(ENV['APP_ROOT_PATH'], 'db/file-backups/snapshots', params[:snapshot_filename])
       if params[:type] == 'read'
         data = File.exists?(file_path) ? File.read(file_path) : "文档不存在 #{file_path}"
         respond_with_json({data: data, message: "读取成功"}, 200)
       else
-        halt_with_json({data: params[:archive_file_name], message: "文档不存在"}, 200) unless File.exists?(file_path) 
+        halt_with_json({data: params[:snapshot_filename], message: "文档不存在"}, 200) unless File.exists?(file_path) 
       
-        send_file(file_path, type: 'text/plain', filename: params[:archive_file_name], disposition: 'attachment')
+        send_file(file_path, type: 'text/plain', filename: params[:snapshot_filename], disposition: 'attachment')
       end
     end
 
@@ -106,9 +106,11 @@ module Cpanel
     end
 
     def get_data_file_backup
-      local_db_path = File.join(ENV['APP_ROOT_PATH'], 'db/file-backups/synced.json')
+      snapshots = Dir.glob("#{ENV['APP_ROOT_PATH']}/db/file-backups/*-snapshot.json").to_a.map do |snapshot_path|
+        JSON.parse(File.read(snapshot_path))
+      end
       
-      JSON.parse(File.read(local_db_path)).values
+      snapshots
     rescue => e
       puts e.message
       puts e.backtrace.select { |s| s.start_with?(Dir.pwd) }

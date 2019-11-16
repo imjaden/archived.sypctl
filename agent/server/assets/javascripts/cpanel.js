@@ -23,7 +23,8 @@ if(document.getElementById('cpanelVueApp')) {
           title: '标题',
           body: '加载中...',
           textareaReadonly: true
-        }
+        },
+        fileBackup: {}
       }
     },
     created() {
@@ -174,9 +175,9 @@ if(document.getElementById('cpanelVueApp')) {
           alert("请检测JSON格式正确！")
         }
       },
-      getBackupFile(type, archive_file_name, file_path) {
+      getBackupFile(type, file) {
         let that = this,
-            url = `/sypctl/cpanel/file_backup/${type}?archive_file_name=${archive_file_name}`;
+            url = `/sypctl/cpanel/file_backup/${type}?snapshot_filename=${file.snapshot_filename}`;
 
         if(type == 'download') {
           window.open(url, 'blank')
@@ -189,13 +190,34 @@ if(document.getElementById('cpanelVueApp')) {
           contentType: 'application/json'
         }).done(function(res, status, xhr) {
           console.log(res)
-          that.modal.title = file_path
+          that.modal.title = file.file_path
           that.modal.body = res.code == 200 ? res.data : res.message
           $("#infoModal").modal('show')
         }).fail(function(xhr, status, error) {
         }).always(function(res, status, xhr) {
           window.Loading.hide();
         });
+      },
+      getBackupFileTree(item) {
+        this.modal.title = item.backup_path
+        this.modal.body = item.file_tree
+        $("#infoModal").modal('show')
+      },
+      getBackupFileList(item) {
+        item.file_list_array = Object.keys(item.file_list).map((file_path) => {
+          let file = item.file_list[file_path]
+          file['file_path'] = file_path
+          file['snapshot_filename'] = file.pmd5 + "-" + file.mtime + "-" + file_path.split('/').pop()
+          return file
+        })
+        
+        this.fileBackup = item
+        $(".file-list").removeClass("hidden")
+        $(".file-backups").addClass("hidden")
+      },
+      backFileBackups() {
+        $(".file-list").addClass("hidden")
+        $(".file-backups").removeClass("hidden")
       },
       formatDate(timestamp) {
         if(!timestamp || String(timestamp).length != 10) { return '-' }

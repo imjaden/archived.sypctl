@@ -33,25 +33,46 @@
           %td{'v-for' => '(row, td_index) in rows', ':style' => '"width:" +  serviceData.table.widths[td_index] + ";word-break:break-all;"', 'v-html' => 'row'}
 
   .col-sm-9{'v-if' => 'menu.id == "file_backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}
-    %table.table.table-hover.table-condensed.table-strip.table-bordered.file-backups.tableFileBackup
+    %table.table.table-hover.table-condensed.table-strip.table-bordered.file-backups
       %caption
         <a @click='displayModal'>查看配置档</a>
       %thead
-        %th 文件路径
-        %th 修改时间
-        %th 文件大小
+        %th 描述
+        %th 路径
+        %th 类型
+        %th 文件数量
         %th -
         %th -
       %tbody
         %tr{'v-for' => '(item, index) in fileBackups', ':key' => 'item.id'}
-          %td{'v-text' => 'item.file_path'}
-          %td{'v-text' => 'formatDate(item.timestamp)'}
-          %td{'v-text' => 'item.file_size'}
+          %td{'v-text' => 'item.backup_description'}
+          %td{'v-text' => 'item.backup_path'}
+          %td{'v-text' => 'item.file_type'}
+          %td{'v-text' => 'item.file_count'}
           %td
-            %a{'@click' => 'getBackupFile("read", item.archive_file_name, item.file_path)'}
+            %a{'@click' => 'getBackupFileTree(item)'}
               %span.glyphicon.glyphicon-eye-open
           %td
-            %a{'@click' => 'getBackupFile("download", item.archive_file_name, item.file_path)'}
+            %a{'@click' => 'getBackupFileList(item)'}
+              %span.glyphicon.glyphicon-th-list
+
+    %table.table.table-hover.table-condensed.table-strip.table-bordered.file-list.hidden
+      %caption
+        <a @click='backFileBackups'>返回></a>&nbsp;&nbsp;{{fileBackup.backup_path}}
+      %thead
+        %th 文件描述
+        %th 修改时间
+        %th -
+        %th -
+      %tbody
+        %tr{'v-for' => '(file, index) in fileBackup.file_list_array', ':key' => 'file.id'}
+          %td{'v-text' => 'file.file_path'}
+          %td{'v-text' => 'file.mtime'}
+          %td
+            %a{'@click' => 'getBackupFile("read", file)'}
+              %span.glyphicon.glyphicon-eye-open
+          %td
+            %a{'@click' => 'getBackupFile("download", file)'}
               %span.glyphicon.glyphicon-download
 
   .col-sm-9{'v-if' => 'menu.id == "mysql_backup"', ':style' => '"height:" + screenHeight + "px;overflow:scroll;"'}

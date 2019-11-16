@@ -189,11 +189,11 @@ def post_to_server_submitor
       unless response['hash']['file_backups'].empty?
         backup_path = agent_root_join('db/file-backups')
         FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
-        db_hash_path = File.join(backup_path, 'db.hash')
-        db_json_path = File.join(backup_path, 'db.json')
-        db_hash = Digest::MD5.hexdigest(response['hash']['file_backups'].to_json)
-        File.open(db_hash_path, 'w:utf-8') { |file| file.puts(db_hash) }
-        File.open(db_json_path, 'w:utf-8') { |file| file.puts(response['hash']['file_backups'].to_json) }
+        db_jmd5_path = File.join(backup_path, 'db.jmd5')
+        db_hash_path = File.join(backup_path, 'db.json')
+        db_jmd5 = Digest::MD5.hexdigest(response['hash']['file_backups'].to_json)
+        File.open(db_jmd5_path, 'w:utf-8') { |file| file.puts(db_jmd5) }
+        File.open(db_hash_path, 'w:utf-8') { |file| file.puts(response['hash']['file_backups'].to_json) }
       end
       file.puts(agent_hash.to_json)
     end
