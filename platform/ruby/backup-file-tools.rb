@@ -92,7 +92,8 @@ class BackupFile
     end
 
     def execute
-      @db_hash.each_with_index do |record, backup_index|
+      is_global_backup_files_updated = true
+      snapshots_hash = @db_hash.map.with_index do |record, backup_index|
         next unless File.exists?(record['backup_path'])
 
         is_backup_files_updated = false
@@ -207,8 +208,16 @@ class BackupFile
         if is_backup_files_updated
           url = "#{ENV['SYPCTL_API']}/api/v1/upload/backup_snapshot"
           response = Sypctl::Http.post(url, snapshot_instance_hash)
-          puts "post backup_snapshot, #{response['hash']['message']}"
+          puts "post upload/backup_snapshot, #{response['hash']['message']}"
         end
+        is_global_backup_files_updated = true if is_backup_files_updated
+        snapshot_instance_hash
+      end
+
+      if is_global_backup_files_updated
+        url = "#{ENV['SYPCTL_API']}/api/v1/update/backup_snapshot"
+        response = Sypctl::Http.post(url, {device_uuid: Sypctl::Device.uuid, file_backup_config: @db_hash.to_json, file_backup_monitor: snapshots_hash.compact.to_json})
+        puts "post update/backup_snapshot, #{response['hash']['message']}"
       end
     end
 
