@@ -92,7 +92,7 @@ class BackupFile
     end
 
     def execute
-      is_global_backup_files_updated = true
+      is_global_backup_files_updated = false
       snapshots_hash = @db_hash.map.with_index do |record, backup_index|
         next unless File.exists?(record['backup_path'])
 
