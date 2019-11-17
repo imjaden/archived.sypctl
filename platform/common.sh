@@ -115,9 +115,9 @@ function fun_sypctl_upgrade_action() {
     bundle exec rake agent:guard
     echo "\$ bundle exec rake agent:device"
     bundle exec rake agent:device
-    fun_sypctl_backup_file_caller 'guard'
-
     cd ..
+ 
+    fun_sypctl_backup_file_caller 'guard'
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
