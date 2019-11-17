@@ -110,6 +110,13 @@ function fun_sypctl_upgrade_action() {
     bundle install > /dev/null 2>&1
     test $? -eq 0 && echo ${timestamp} > .config/bundle-done
     test -f .config/local-server && bash tool.sh restart
+    
+    echo "\$ bundle exec rake agent:guard"
+    bundle exec rake agent:guard
+    echo "\$ bundle exec rake agent:device"
+    bundle exec rake agent:device
+    fun_sypctl_backup_file_caller 'guard'
+
     cd ..
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
@@ -121,10 +128,6 @@ function fun_sypctl_upgrade_action() {
     if [[ "${sypctl_mode}" = "server" ]]; then
         # 升级后重新提交主机信息
         test -f agent/db/agent.json && mv agent/db/agent.json agent/db/agent.json-${timestamp}
-
-        # 升级生重新备份配置档
-        test -f agent/db/file-backups/synced.hash && mv agent/db/file-backups/synced.hash agent/db/file-backups/synced.hash-${timestamp}
-        test -f agent/db/file-backups/synced.json && mv agent/db/file-backups/synced.json agent/db/file-backups/synced.json-${timestamp}
 
         # 升级后重要实时同步的操作
         sypctl toolkit date check > /dev/null 2>&1
@@ -147,7 +150,7 @@ function fun_sypctl_upgrade_force() {
 }
 
 #
-# 强制升级，跳过版本检查
+# 检测升级
 #
 function fun_sypctl_upgrade() {
     fun_sypctl_pre_upgrade || exit 1
@@ -296,7 +299,7 @@ function fun_sypctl_home() {
 #
 function fun_sypctl_sync_device() {
     echo "\$ cd agent"
-    cd agent
+    cd ${SYPCTL_HOME}/agent
     mkdir -p {monitor/{index,pages},logs,tmp/pids,db/{jobs,versions},.config}
     echo "\$ bundle install ..."
     bundle install > /dev/null 2>&1
@@ -393,7 +396,7 @@ function fun_sypctl_service_caller() {
 function fun_sypctl_env() {
     echo "same as execute bash below:"
     echo
-    echo "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
+    echo "curl -sS https://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/env.sh | bash"
     echo 
     bash env.sh
 }
