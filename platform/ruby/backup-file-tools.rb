@@ -100,10 +100,12 @@ class BackupFile
         snapshot_instance_path = File.join(@db_path, "#{record['backup_uuid']}-snapshot.json")
         snapshot_instance_hash = File.exists?(snapshot_instance_path) ? JSON.parse(File.read(snapshot_instance_path)) : record
         
-        snapshot_instance_hash[:device_uuid] = Sypctl::Device.uuid
-        snapshot_instance_hash[:file_type] = 'file'
-        snapshot_instance_hash[:file_count] = 1
-        snapshot_instance_hash[:file_tree] = `tree #{record['backup_path']}`.to_s.strip
+        snapshot_instance_hash['device_uuid'] = Sypctl::Device.uuid
+        snapshot_instance_hash['file_type'] = 'file'
+        snapshot_instance_hash['file_count'] = 1
+        snapshot_instance_hash['file_tree'] = `tree #{record['backup_path']}`.to_s.strip
+        snapshot_instance_hash['file_list'] ||= {}
+
         upload_options = {
           device_uuid: Sypctl::Device.uuid, 
           backup_uuid: record['backup_uuid'],
@@ -113,8 +115,8 @@ class BackupFile
         if File.directory?(record['backup_path']) 
           glob_files = _directiory_glob_files(record['backup_path'])
 
-          snapshot_instance_hash[:file_type] = 'directory'
-          snapshot_instance_hash[:file_count] = glob_files.count
+          snapshot_instance_hash['file_type'] = 'directory'
+          snapshot_instance_hash['file_count'] = glob_files.count
           glob_files.each_with_object({}) do |filepath, glob_hash|
             file_md5 = Digest::MD5.file(filepath).hexdigest
             path_md5 = Digest::MD5.hexdigest(filepath)
@@ -141,7 +143,6 @@ class BackupFile
               jmd5: file_md5,
               pmd5: path_md5
             }
-            snapshot_instance_hash['file_list'] ||= {}
             snapshot_instance_hash['file_list'][filepath] = backup_hash
             snapshot_instance_hash['history'][filepath] = backup_hash
 
@@ -182,7 +183,6 @@ class BackupFile
             jmd5: file_md5,
             pmd5: path_md5
           }
-          snapshot_instance_hash['file_list'] ||= {}
           snapshot_instance_hash['file_list'][filepath] = backup_hash
           snapshot_instance_hash['history'][filepath] = backup_hash
 
