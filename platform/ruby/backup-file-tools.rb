@@ -50,6 +50,7 @@ class BackupFile
       @db_path = File.join(ENV['SYPCTL_HOME'], 'agent/db/file-backups')
       @db_jmd5_path = File.join(@db_path, 'db.jmd5')
       @db_hash_path = File.join(@db_path, 'db.json')
+      @db_sync_path = File.join(@db_path, 'db.sync')
       @snapshots_path = File.join(@db_path, 'snapshots')
 
       if !File.exists?(@db_jmd5_path) || !File.exists?(@db_hash_path)
@@ -61,8 +62,9 @@ class BackupFile
       FileUtils.mkdir_p(@snapshots_path) unless File.exists?(@snapshots_path)
       ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
 
-      @db_jmd5 = File.read(@db_jmd5_path)
+      @db_jmd5 = File.read(@db_jmd5_path).strip
       @db_hash = JSON.parse(File.read(@db_hash_path))
+      @db_sync = File.read(@db_sync_path).strip rescue ""
     end
 
     def render
@@ -93,6 +95,15 @@ class BackupFile
 
     def execute
       is_global_backup_files_updated = false
+
+      # 备份文件元信息DB哈希改变时，重新扫描上传备份文件
+      if @db_jmd5 != @db_sync
+        is_global_backup_files_updated = true
+
+        snapshot_instances_path = File.join(@db_path, "*-snapshot.json")
+        Dir.glob(snapshot_instances_path).each { |snapshot_instance_path| FileUtils.rm(snapshot_instance_path) }
+      end
+
       snapshots_hash = @db_hash.map.with_index do |record, backup_index|
         next unless File.exists?(record['backup_path'])
 
@@ -218,6 +229,8 @@ class BackupFile
         url = "#{ENV['SYPCTL_API']}/api/v1/update/backup_snapshot"
         response = Sypctl::Http.post(url, {device_uuid: Sypctl::Device.uuid, file_backup_config: @db_hash.to_json, file_backup_monitor: snapshots_hash.compact.to_json})
         puts "post update/backup_snapshot, #{response['hash']['message']}"
+
+        File.open(@db_sync_path, 'w:utf-8') { |file| file.puts(@db_jmd5) }
       end
     end
 
