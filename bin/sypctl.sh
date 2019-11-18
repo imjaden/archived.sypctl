@@ -20,9 +20,11 @@ case "$1" in
         echo "${sypctl_version}"
     ;;
     crontab:jobs|schedule:jobs)
-        [[ $(date +%H%M) = "0000" ]] && sypctl upgrade
-        [[ $(date +%H%M) = "0200" ]] && sypctl backup:mysql guard
-        [[ $(date +%H%M) = "0400" ]] && sypctl backup:mysql killer
+        hhmm=$(date +%H%M)
+        [[ "${hhmm}" = "0000" ]] && sypctl upgrade
+        [[ "${hhmm}" = "0000" ]] && sypctl agent:task guard
+        [[ "${hhmm}" = "0200" ]] && sypctl backup:mysql guard
+        [[ "${hhmm}" = "0400" ]] && sypctl backup:mysql killer
 
         bash $0 service     guard
         bash $0 agent:task  guard

@@ -151,6 +151,8 @@ case "$1" in
         check_deploy_tate
 
         title "代理服务状态"
+        echo "账号: $(cat .config/username)"
+        echo "密码: $(cat .config/password)"
         echo "端口号: $(cat .config/app-port)"
         echo "进程数: $(cat .config/app-workers)"
         
