@@ -21,9 +21,12 @@ test -f mode || echo default > mode
 
 sypctl_version=$(cat version)
 sypctl_mode=$(cat mode)
-current_user=$(whoami)
 
-current_group=$(groups ${current_user} | awk '{ print $1 }')
+# default Linux
+current_user=$(whoami)
+current_group=$(groups ${current_user} | awk '{ print $3 }')
+[[ `uname -s` = "Darwin" ]] && current_group=$(groups ${current_user} | awk '{ print $1 }')
+
 timestamp=$(date +'%Y%m%d%H%M%S')
 timestamp2=$(date +'%y-%m-%d %H:%M:%S')
 
@@ -769,7 +772,7 @@ function fun_sypctl_backup_file_caller() {
         exit 1
     fi
 
-    support_commands=(list render execute guard)
+    support_commands=(list render status execute guard force)
     if [[ "${support_commands[@]}" =~ "$2" ]]; then
         SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/backup-file-tools.rb "--$2" "${3:-all}"
     else
