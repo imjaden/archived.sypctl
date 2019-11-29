@@ -273,7 +273,7 @@ class BackupFile
             file_md5 = Digest::MD5.file(filepath).hexdigest
             path_md5 = Digest::MD5.hexdigest(filepath)
             
-            if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
+            if snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] == file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] == true 
               puts "  File, Cached, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
             else
               puts "  File, Updated, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
@@ -284,7 +284,7 @@ class BackupFile
           file_md5 = Digest::MD5.file(filepath).hexdigest
           path_md5 = Digest::MD5.hexdigest(filepath)
 
-          if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
+          if snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] == true 
             puts "File, Cached, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
           else
             puts "File, Updated, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
