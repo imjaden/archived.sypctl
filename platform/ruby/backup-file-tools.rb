@@ -35,8 +35,14 @@ option_parser = OptionParser.new do |opts|
   opts.on('-e', "--execute", '执行备份操作') do |value|
     options[:execute] = value
   end
+  opts.on('-s', "--status", '查看文件状态') do |value|
+    options[:status] = value
+  end
   opts.on('-g', "--guard", '守护备份操作，功能同 execute') do |value|
     options[:guard] = value
+  end
+  opts.on('-f', "--force", '强制同步文件') do |value|
+    options[:force] = value
   end
 end.parse!
 
@@ -132,7 +138,7 @@ class BackupFile
             file_md5 = Digest::MD5.file(filepath).hexdigest
             path_md5 = Digest::MD5.hexdigest(filepath)
             
-            next if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
+            next if snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] == file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] == true 
 
             is_backup_files_updated = true
             snapshot_filename = "#{path_md5}-#{File.mtime(filepath).to_i}-#{File.basename(filepath)}"
@@ -172,7 +178,7 @@ class BackupFile
           file_md5 = Digest::MD5.file(filepath).hexdigest
           path_md5 = Digest::MD5.hexdigest(filepath)
 
-          next if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
+          next if snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] == file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] == true 
 
           is_backup_files_updated = true
           snapshot_filename = "#{path_md5}-#{File.mtime(filepath).to_i}-#{File.basename(filepath)}"
@@ -233,6 +239,59 @@ class BackupFile
         File.open(@db_sync_path, 'w:utf-8') { |file| file.puts(@db_jmd5) }
       end
     end
+    alias_method :guard, :execute
+
+    def force
+      # clean file snapshot cached
+      snapshots_hash = @db_hash.map.with_index do |record, backup_index|
+        next unless File.exists?(record['backup_path'])
+
+        snapshot_instance_path = File.join(@db_path, "#{record['backup_uuid']}-snapshot.json")
+        File.delete(snapshot_instance_path) if File.exists?(snapshot_instance_path)
+      end
+
+      # upload file and cache snapshot
+      execute
+    end
+
+    def status
+      snapshots_hash = @db_hash.map.with_index do |record, backup_index|
+        unless File.exists?(record['backup_path'])
+          puts "NotExist, #{record['backup_path']}"
+          next
+        end
+
+        snapshot_instance_path = File.join(@db_path, "#{record['backup_uuid']}-snapshot.json")
+        snapshot_instance_hash = File.exists?(snapshot_instance_path) ? JSON.parse(File.read(snapshot_instance_path)) : record
+        snapshot_instance_hash['file_list'] ||= {}
+        glob_files = [record['backup_path']]
+        if File.directory?(record['backup_path']) 
+          glob_files = _directiory_glob_files(record['backup_path'])
+          puts "Directory, #{glob_files.count} files, #{record['backup_path']}"
+
+          glob_files.each_with_object({}) do |filepath, glob_hash|
+            file_md5 = Digest::MD5.file(filepath).hexdigest
+            path_md5 = Digest::MD5.hexdigest(filepath)
+            
+            if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
+              puts "  File, Cached, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
+            else
+              puts "  File, Updated, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
+            end 
+          end
+        else
+          filepath = record['backup_path']
+          file_md5 = Digest::MD5.file(filepath).hexdigest
+          path_md5 = Digest::MD5.hexdigest(filepath)
+
+          if snapshot_instance_hash['file_list'] && snapshot_instance_hash['file_list'][filepath] && snapshot_instance_hash['file_list'][filepath]['jmd5'] = file_md5 && snapshot_instance_hash['file_list'][filepath]['synced'] = true 
+            puts "File, Cached, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
+          else
+            puts "File, Updated, #{File.mtime(filepath).strftime('%y/%m/%d %H:%M:%S')}, #{filepath}"
+          end
+        end
+      end
+    end
 
     def _directiory_glob_files(directory_path, files = [])
       Dir.glob(File.join(directory_path, "*")).each do |filepath|
@@ -245,7 +304,6 @@ class BackupFile
       return files
     end
 
-    alias_method :guard, :execute
   end
 end
 
