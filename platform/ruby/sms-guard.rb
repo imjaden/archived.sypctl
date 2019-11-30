@@ -72,10 +72,10 @@ def disk_sms_guard(config, archived_path)
   disk_notifications = []
   disk_usage_description = Sypctl::Device.disk_usage_description
   (config['disk'] || []).each do |disk_config|
-    disk_usage_hash = disk_usage_description.first { |config| config['MountedOn'] == disk_config['mountedon'] }
+    disk_usage_hash = disk_usage_description.first { |config| (config['MountedOn'] || config['挂载点']) == disk_config['mountedon'] }
     next unless disk_usage_hash
     
-    disk_usage = (disk_usage_hash['Use%'] || disk_usage_hash['Capacity']).to_s.sub('%', '').to_f/100
+    disk_usage = (disk_usage_hash['Use%'] || disk_usage_hash['Capacity'] || disk_usage_hash['已用%']).to_s.sub('%', '').to_f/100
     puts "#{timestamp}, #{disk_usage < disk_config['threshold'].to_f ? 'ok' : 'boom'}, #{disk_config['mountedon']}, #{disk_usage}"
     next if disk_usage < disk_config['threshold'].to_f
     
@@ -118,15 +118,15 @@ def convert_memory_value(value)
     next unless value.to_s.include?(key.to_s)
     value = value.to_s.sub(key.to_s, '').to_i * convert_hash[key]
   end
-  value
+  value.to_f
 end
 
 def memory_sms_guard(config, archived_path)
   timestamp= Time.now.strftime('%y%m%d%H%M')
   memory_usage_description = Sypctl::Device.memory_usage_description
   memory_total = convert_memory_value(memory_usage_description['total'])
-  memory_free = convert_memory_value(memory_usage_description['free'])
-  memory_usage = (memory_free*1.0)/memory_total
+  memory_free = convert_memory_value(memory_usage_description['used'])
+  memory_usage = ((memory_total - memory_free)*1.0/memory_total).round(2)
   
   puts "#{timestamp}, #{memory_usage < config['memory'] ? 'ok' : 'boom'}, memory, #{memory_usage}"
   return if memory_usage < config['memory']
