@@ -30,6 +30,7 @@ case "$1" in
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard
         bash $0 backup:file guard
+        bash $0 sms:guard
     ;;
     bundle)
         fun_execute_bundle_rake $@

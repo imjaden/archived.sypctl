@@ -379,6 +379,10 @@ function fun_sypctl_sendmail_caller() {
     SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/mail-tools.rb $@
 }
 
+function fun_sypctl_sms_guard() {
+    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/sms-guard.rb
+}
+
 function fun_sypctl_service_caller() {
     if [[ "${2}" = "help" ]]; then
         fun_print_sypctl_service_help

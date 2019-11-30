@@ -42,7 +42,7 @@ module Sypctl
 
       def free_m
         total, wired, free  = `top -l 1 -s 0 | grep PhysMem`.scan(/(\S+) used \((\S+) wired\), (\S+) unused/).flatten
-        {"total"=> total, "wired"=>wired, "free"=> free}
+        {"total" => total, "wired" => wired, "free" => free}
       end
 
       def df_h

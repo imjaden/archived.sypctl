@@ -1,0 +1,50 @@
+{
+  "project": "Gitlab服务器",
+  "mobiles": [
+    {
+      "name": "李俊杰",
+      "mobile": "13564379606"
+    }
+  ],
+  "aliyun_sms": {
+    "sign_name": "胜因学院",
+    "access_key_id": "access_key_id",
+    "access_key_secret": "access_key_secret",
+    "template_id": "SMS_160572212",
+    "template_content": "紧急，${project} 项目，监控到 ${message} 异常，请尽快处理",
+    "template_options": "{\"project\":\"${project}\",\"message\":\"${message}\"}"
+  },
+  "api": [
+    {
+      "project": "胜因学院",
+      "url": "https://api.idata.mobi/api/v3/check-alive",
+      "keywords": {
+        "success": [
+          "SUCCESS"
+        ],
+        "failure": []
+      }
+    },
+    {
+      "project": "胜因开发",
+      "url": "https://api-dev.idata.mobi/api/v3/check-alive",
+      "keywords": {
+        "success": [
+          "SUCCESS"
+        ],
+        "failure": []
+      }
+    }
+  ],
+  "disk": [
+    {
+      "mountedon": "/",
+      "threshold": 0.95
+    },
+    {
+      "mountedon": "/data",
+      "threshold": 0.95
+    }
+  ],
+  "memory": 0.9
+}
