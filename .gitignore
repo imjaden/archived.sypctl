@@ -33,6 +33,7 @@ agent/db/*.json
 agent/db/agent.json*
 agent/db/records-*
 agent/monitor/
+agent/db/sms-guard/
 
 tmp/
 logs
