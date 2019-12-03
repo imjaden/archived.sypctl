@@ -22,13 +22,34 @@ require File.expand_path('../../../agent/lib/utils/device', __FILE__)
 require File.expand_path('../../../agent/lib/utils/http', __FILE__)
 require File.expand_path('../../../agent/lib/utils/aliyun_sms', __FILE__)
 
-config_path = "/etc/sypctl/sms-guard.json"
+
+options = {}
+option_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: sms-notify.rb [args]"
+  opts.on('-h', '--help', '参数说明') do
+    puts "服务进程管理脚本"
+    puts opts
+    exit
+  end
+  opts.on('-l', "--list", '查看最近通知') do |value|
+    options[:list] = value
+  end
+  opts.on('-r', "--render", '打印配置档') do |value|
+    options[:render] = value
+  end
+  opts.on('-g', "--guard", '执行守护任务') do |value|
+    options[:guard] = value
+  end
+end.parse!
+
+puts `ruby #{__FILE__} -h` if options.keys.empty?
+
+config_path = "/etc/sypctl/sms-notify.json"
 exit(1) unless File.exists?(config_path)
 
-config = JSON.parse(File.read(config_path))
-sms_guard_path = File.join(ENV['SYPCTL_HOME'], 'agent/db/sms-guard')
-archived_path = File.join(sms_guard_path, 'archived')
-FileUtils.mkdir_p(archived_path) unless File.exists?(archived_path)
+@config = JSON.parse(File.read(config_path))
+@archived_path = File.join(ENV['SYPCTL_HOME'], 'agent/db/sms-notify', 'archived')
+FileUtils.mkdir_p(@archived_path) unless File.exists?(@archived_path)
 
 def api_sms_guard(config, archived_path)
   timestamp= Time.now.strftime('%y%m%d%H%M')
@@ -60,6 +81,7 @@ def api_sms_guard(config, archived_path)
 
     api_record_hash["#{timestamp}-sms"] = true
     api_record_hash["#{timestamp}-sms-result"] = aliyun_sms_result
+    api_record_hash["#{timestamp}-notify-snapshot"] = api_config.merge(response)
     File.open(api_record_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(api_record_hash)) }
   end
 rescue => e
@@ -102,6 +124,7 @@ def disk_sms_guard(config, archived_path)
 
   disk_record_hash["#{timestamp}-sms"] = true
   disk_record_hash["#{timestamp}-sms-result"] = aliyun_sms_result
+  disk_record_hash["#{timestamp}-notify-snapshot"] = disk_usage_description
   File.open(disk_record_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(disk_record_hash)) }
 rescue => e
   puts e.message
@@ -125,7 +148,7 @@ def memory_sms_guard(config, archived_path)
   timestamp= Time.now.strftime('%y%m%d%H%M')
   memory_usage_description = Sypctl::Device.memory_usage_description
   memory_total = convert_memory_value(memory_usage_description['total'])
-  memory_free = convert_memory_value(memory_usage_description['used'])
+  memory_free = convert_memory_value(memory_usage_description['free'])
   memory_usage = ((memory_total - memory_free)*1.0/memory_total).round(2)
   
   puts "#{timestamp}, #{memory_usage < config['memory'] ? 'ok' : 'boom'}, memory, #{memory_usage}"
@@ -149,12 +172,31 @@ def memory_sms_guard(config, archived_path)
 
   memory_record_hash["#{timestamp}-sms"] = true
   memory_record_hash["#{timestamp}-sms-result"] = aliyun_sms_result
+  memory_record_hash["#{timestamp}-notify-snapshot"] = memory_usage_description
   File.open(memory_record_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(memory_record_hash)) }
 rescue => e
   puts e.message
   puts e.backtrace
 end
 
-api_sms_guard(config, archived_path) if config['api']
-disk_sms_guard(config, archived_path) if config['disk']
-memory_sms_guard(config, archived_path) if config['memory']
+def render
+  puts JSON.pretty_generate(@config)
+end
+
+def guard
+  api_sms_guard(@config, @archived_path) if @config['api']
+  disk_sms_guard(@config, @archived_path) if @config['disk']
+  memory_sms_guard(@config, @archived_path) if @config['memory']
+end
+
+def list
+  ['api', 'disk', 'memory'].each do |type|
+    path = File.join(@archived_path, "#{type}-#{Time.now.strftime('%y%m%d')}.json")
+    next unless File.exists?(path)
+
+    puts "#{type} 监控列表:"
+    puts JSON.pretty_generate(JSON.parse(File.read(path)))
+  end
+end
+
+send(options.keys.first)
