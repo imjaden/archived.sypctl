@@ -22,7 +22,7 @@ case "$1" in
     crontab:jobs|schedule:jobs)
         hhmm=$(date +%H%M)
         [[ "${hhmm}" = "0000" ]] && sypctl upgrade
-        [[ "${hhmm}" = "0000" ]] && sypctl agent:task guard
+        [[ "${hhmm}" = "0000" ]] && sypctl agent:task   guard
         [[ "${hhmm}" = "0200" ]] && sypctl backup:mysql guard
         [[ "${hhmm}" = "0400" ]] && sypctl backup:mysql killer
 
@@ -30,7 +30,7 @@ case "$1" in
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard
         bash $0 backup:file guard
-        bash $0 sms:guard
+        bash $0 sms:notify  guard
     ;;
     bundle)
         fun_execute_bundle_rake $@
