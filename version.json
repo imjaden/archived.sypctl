@@ -6,8 +6,8 @@
   "commit:description": "开发版本，每次 commit 时 +1",
   "major": 0,
   "minor": 2,
-  "tiny": 2,
-  "commit": 34,
+  "tiny": 26,
+  "commit": 37,
   "dev_version": "0.2.19",
   "pro_version": "0.1.1/23",
   "pro_mini_version": "0.1.1"

@@ -20,7 +20,7 @@ end
 
 if ARGV.length < 3
   puts '示例:'
-  puts '$ bash tool.sh gap <type> <module> <message>'
+  puts '$ ./gap.rb <type> <module> <message>'
   exit 1
 end
 
@@ -57,6 +57,7 @@ steps = [
   {label: '提交当前 commit 至服务器', command: 'git push origin $(git symbolic-ref --short -q HEAD)'}
 ]
 
+File.open('version', 'w:utf-8') { |file| file.puts("#{obj['major']}.#{obj['minor']}.#{obj['tiny']}/#{obj['commit']}") }
 File.open('version.json', 'w:utf-8') { |file| file.puts(JSON.pretty_generate(obj)) }
 steps.each do |step|
   run_command(step[:label], step[:command])
