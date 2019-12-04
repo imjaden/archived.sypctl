@@ -293,6 +293,12 @@ class BackupFile
       end
     end
 
+    protected
+
+    def ignore_files
+      ["/etc/sypctl/services.output"]
+    end
+    
     def _directiory_glob_files(directory_path, files = [])
       Dir.glob(File.join(directory_path, "*")).each do |filepath|
         if File.directory?(filepath)
@@ -301,6 +307,7 @@ class BackupFile
           files.push(filepath)
         end
       end
+      files -= ignore_files
       return files
     end
 

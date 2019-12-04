@@ -39,12 +39,19 @@
   "disk": [
     {
       "mountedon": "/",
-      "threshold": 0.95
+      "threshold": 0.95,
+      "guard_commands": []
     },
     {
       "mountedon": "/data",
-      "threshold": 0.95
+      "threshold": 0.95,
+      "guard_commands": []
     }
   ],
-  "memory": 0.9
+  "memory": {
+    "threshold": 0.9,
+    "guard_commands": [
+      "sudo sysctl vm.drop_caches=3"
+    ]
+  }
 }
