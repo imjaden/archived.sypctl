@@ -8,7 +8,7 @@
 #
 
 SYPCTL_EXECUTE_PATH="$(pwd)"
-SYPCTL_BASH=$(readlink /usr/local/bin/sypctl)
+SYPCTL_BASH=$(readlink $(which sypctl))
 SYPCTL_BIN=$(dirname ${SYPCTL_BASH})
 SYPCTL_HOME=$(dirname ${SYPCTL_BIN})
 
@@ -20,14 +20,17 @@ case "$1" in
         echo "${sypctl_version}"
     ;;
     crontab:jobs|schedule:jobs)
-        [[ $(date +%H%M) = "0000" ]] && sypctl upgrade
-        [[ $(date +%H%M) = "0200" ]] && sypctl backup:mysql guard
-        [[ $(date +%H%M) = "0400" ]] && sypctl backup:mysql killer
+        hhmm=$(date +%H%M)
+        [[ "${hhmm}" = "0000" ]] && sypctl upgrade
+        [[ "${hhmm}" = "0000" ]] && sypctl agent:task   guard
+        [[ "${hhmm}" = "0200" ]] && sypctl backup:mysql guard
+        [[ "${hhmm}" = "0400" ]] && sypctl backup:mysql killer
 
         bash $0 service     guard
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard
         bash $0 backup:file guard
+        bash $0 sms:notify  guard
     ;;
     bundle)
         fun_execute_bundle_rake $@

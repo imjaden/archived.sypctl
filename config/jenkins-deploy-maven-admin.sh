@@ -26,15 +26,16 @@ project_war_path="portal-webapp/portal-admin/target/portal-admin-1.0-SNAPSHOT.wa
 
 remote_server_ips=("syp-dev.idata.mobi")
 remote_backup_home="/data/backup/jenkins"
-remote_war_filepath="/usr/local/src/tomcatSuperAdmin/webapps/super-admin.war"
-remote_ssh_user="root"
+remote_war_filepath="/data/work/www/tomcatSuperAdmin/webapps/super-admin.war"
+remote_ssh_user="sy-devops-user"
 remote_ssh_port="22"
 sypctl_tomcat_id="java-super-admin"
 
 timestamp="$(date '+%Y%m%d%H%M%S')"
 function logger() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1"; }
 
-jenkins_war_path="/root/.jenkins/workspace/${jenkins_project_name}/${project_war_path}"
+# jenkins_war_path="/home/sy-devops-user/.jenkins/workspace/${jenkins_project_name}/${project_war_path}"
+jenkins_war_path="${project_war_path}"
 
 if [[ ! -f ${jenkins_war_path} ]]; then
     logger "ERROR - war/jar 文件不存在:"

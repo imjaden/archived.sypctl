@@ -11,7 +11,6 @@ export LANG=zh_CN.UTF-8
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 SYPCTL_EXECUTE_PATH="$(pwd)"
 SYPCTL_BRANCH=dev-0.1-master
-SYPCTL_PREFIX=/usr/local/src
 SYPCTL_PREFIX=/usr/local/opt
 SYPCTL_HOME=${SYPCTL_PREFIX}/sypctl
 SYPCTL_BIN=${SYPCTL_HOME}/bin
@@ -50,7 +49,7 @@ command -v brew > /dev/null && {
 test -d ${SYPCTL_HOME} || {
     sudo mkdir -p ${SYPCTL_HOME}
     title "安装 sypctl..."
-    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git ${SYPCTL_HOME}
+    git clone --branch ${SYPCTL_BRANCH} --depth 1 https://gitlab.idata.mobi/syp-apps/sypctl.git ${SYPCTL_HOME}
 }
 
 
@@ -58,11 +57,15 @@ cd ${SYPCTL_HOME}
 local_modified=$(git status -s)
 if [[ ! -z "${local_modified}" ]]; then
     git status
-    read -p "本地代码有修改，可能会产生冲突，是否继续？y/n " user_input
-    if [[ "${user_input}" != "y" ]]; then
-        echo "退出操作！"
-        exit 2
-    fi
+
+    echo "Warning: sypctl 代码有修改，可能会产生冲突!"
+    echo "Warning: 10s 后恢复代码修改，继续操作..."
+    sleep 10
+    # read -p "sypctl 代码有修改，可能会产生冲突，是否继续？y/n " user_input
+    # if [[ "${user_input}" != "y" ]]; then
+    #     echo "退出操作！"
+    #     exit 2
+    # fi
 fi
 
 git reset --hard HEAD

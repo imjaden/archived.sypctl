@@ -174,7 +174,7 @@ class Service
       puts Terminal::Table.new(headings: table_heads, rows: table_rows)
 
       data = { heads: table_heads, data: table_rows, timestamp: Time.now.strftime("%Y-%m-%d %H:%M:%S") } 
-      File.open("/etc/sypctl/services.output", "w:utf-8") { |file| file.puts(data.to_json) }
+      File.open("/etc/sypctl/services.output", "w:utf-8") { |file| file.puts(JSON.pretty_generate(data)) }
     end
 
     def stop(target_service = nil)
@@ -210,7 +210,7 @@ class Service
       end
 
       @data_hash['services'] = services
-      File.open(@service_config_path, 'w:utf-8') { |file| file.puts(@data_hash.to_json) }
+      File.open(@service_config_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(@data_hash)) }
       options(@options)
 
       start(@options[:enable])
@@ -226,7 +226,7 @@ class Service
       end
 
       @data_hash['services'] = services
-      File.open(@service_config_path, 'w:utf-8') { |file| file.puts(@data_hash.to_json) }
+      File.open(@service_config_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(@data_hash)) }
       options(@options)
 
       stop(@options[:disable])
@@ -326,7 +326,7 @@ class Service
         input = STDIN.gets
         next if input.strip != 'y'
         service_current['services'].push(service)
-        File.open(@service_config_path, 'w:utf-8') { |file| file.puts(service_current.to_json) }
+        File.open(@service_config_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(service_current)) }
         puts "已安装 #{service['id']}\n\n"
       end
     end
@@ -351,7 +351,7 @@ class Service
         input = STDIN.gets
         next if input.strip != 'y'
         service_current['services'] = service_current['services'].select { |s| s['id'] != service['id'] }
-        File.open(@service_config_path, 'w:utf-8') { |file| file.puts(service_current.to_json) }
+        File.open(@service_config_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(service_current)) }
         puts "已卸载 #{service['id']}\n\n"
       end
     end

@@ -21,9 +21,12 @@ test -f mode || echo default > mode
 
 sypctl_version=$(cat version)
 sypctl_mode=$(cat mode)
-current_user=$(whoami)
 
-current_group=$(groups ${current_user} | awk '{ print $1 }')
+# default Linux
+current_user=$(whoami)
+current_group=$(groups ${current_user} | awk '{ print $3 }')
+[[ `uname -s` = "Darwin" ]] && current_group=$(groups ${current_user} | awk '{ print $1 }')
+
 timestamp=$(date +'%Y%m%d%H%M%S')
 timestamp2=$(date +'%y-%m-%d %H:%M:%S')
 
@@ -38,7 +41,7 @@ function fun_sypctl_network() {
 function fun_sypctl_pre_upgrade() {
     fun_sypctl_network || exit 1
     
-    gitlab_version=$(curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/version)
+    gitlab_version=$(curl -sS https://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/version)
     release_version=${gitlab_version##*.} 
     if [[ "${sypctl_version}" = "${gitlab_version}" ]]; then
         title "升级预检: 当前版本已是最新版本"
@@ -90,10 +93,13 @@ function fun_sypctl_upgrade_action() {
     sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 
     # force relink /usr/local/bin/
-    sypctl_commands=(sypctl syps sypt)
+    sypctl_commands=(sypctl syps sypt sypetl sypetlcheck)
     for sypctl_command in ${sypctl_commands[@]}; do
-        command -v ${sypctl_command} > /dev/null 2>&1 && rm -f $(which ${sypctl_command})
-        ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
+        command -v ${sypctl_command} > /dev/null 2>&1 && {
+            type -a ${sypctl_command} | awk '{ print $3 }' | xargs -I command_path sudo rm -f command_path
+        }
+        sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/bin/${sypctl_command} > /dev/null 2>&1
+        sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command} > /dev/null 2>&1
     done
 
     fun_sypctl_update_env_files
@@ -101,13 +107,20 @@ function fun_sypctl_upgrade_action() {
 
     # 编译 sypctl 代理端服务
     # bundle 操作必须执行，所 ruby 脚本依赖的包都维护在该 Gemfile 中
-    cd agent
+    cd ${SYPCTL_HOME}/agent
     mkdir -p {monitor/{index,pages},logs,tmp/pids,db,.config}
     rm -f .config/bundle-done
     bundle install > /dev/null 2>&1
     test $? -eq 0 && echo ${timestamp} > .config/bundle-done
     test -f .config/local-server && bash tool.sh restart
+    
+    echo "\$ bundle exec rake agent:guard"
+    bundle exec rake agent:guard
+    echo "\$ bundle exec rake agent:device"
+    bundle exec rake agent:device
     cd ..
+ 
+    fun_sypctl_backup_file_caller 'nouse' 'guard'
 
     if [[ "${old_version}" = "$(sypctl version)" ]]; then
         fun_print_logo
@@ -118,10 +131,6 @@ function fun_sypctl_upgrade_action() {
     if [[ "${sypctl_mode}" = "server" ]]; then
         # 升级后重新提交主机信息
         test -f agent/db/agent.json && mv agent/db/agent.json agent/db/agent.json-${timestamp}
-
-        # 升级生重新备份配置档
-        test -f agent/db/file-backups/synced.hash && mv agent/db/file-backups/synced.hash agent/db/file-backups/synced.hash-${timestamp}
-        test -f agent/db/file-backups/synced.json && mv agent/db/file-backups/synced.json agent/db/file-backups/synced.json-${timestamp}
 
         # 升级后重要实时同步的操作
         sypctl toolkit date check > /dev/null 2>&1
@@ -144,7 +153,7 @@ function fun_sypctl_upgrade_force() {
 }
 
 #
-# 强制升级，跳过版本检查
+# 检测升级
 #
 function fun_sypctl_upgrade() {
     fun_sypctl_pre_upgrade || exit 1
@@ -176,7 +185,7 @@ function fun_sypctl_help() {
     echo
     fun_print_logo
     echo "Current version is ${sypctl_version}"
-    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+    echo "For full documentation, see: https://gitlab.idata.mobi/syp-apps/sypctl.git"
 }
 
 function fun_print_logo() {
@@ -197,7 +206,7 @@ function fun_print_init_agent_help() {
     fun_print_init_agent_command_help
     echo 
     echo "Current version is ${sypctl_version}"
-    echo "For full documentation, see: http://gitlab.ibi.ren/syp-apps/sypctl.git"
+    echo "For full documentation, see: https://gitlab.idata.mobi/syp-apps/sypctl.git"
 }
 
 function fun_print_init_agent_command_help() {
@@ -293,7 +302,7 @@ function fun_sypctl_home() {
 #
 function fun_sypctl_sync_device() {
     echo "\$ cd agent"
-    cd agent
+    cd ${SYPCTL_HOME}/agent
     mkdir -p {monitor/{index,pages},logs,tmp/pids,db/{jobs,versions},.config}
     echo "\$ bundle install ..."
     bundle install > /dev/null 2>&1
@@ -370,6 +379,10 @@ function fun_sypctl_sendmail_caller() {
     SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/mail-tools.rb $@
 }
 
+function fun_sypctl_sms_notify() {
+    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/sms-notify.rb "--$2"
+}
+
 function fun_sypctl_service_caller() {
     if [[ "${2}" = "help" ]]; then
         fun_print_sypctl_service_help
@@ -390,7 +403,7 @@ function fun_sypctl_service_caller() {
 function fun_sypctl_env() {
     echo "same as execute bash below:"
     echo
-    echo "curl -sS http://gitlab.ibi.ren/syp-apps/sypctl/raw/dev-0.0.1/env.sh | bash"
+    echo "curl -sS https://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/env.sh | bash"
     echo 
     bash env.sh
 }
@@ -763,7 +776,7 @@ function fun_sypctl_backup_file_caller() {
         exit 1
     fi
 
-    support_commands=(list render execute guard)
+    support_commands=(list render status execute guard force)
     if [[ "${support_commands[@]}" =~ "$2" ]]; then
         SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/backup-file-tools.rb "--$2" "${3:-all}"
     else

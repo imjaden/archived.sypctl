@@ -5,20 +5,22 @@
 #  SYPCTL Environment Script
 #
 ########################################
+export LANG=zh_CN.UTF-8
 
 current_user=$(whoami)
 current_group=$(groups ${current_user} | awk '{ print $1 }')
 if id -u sy-devops-user >/dev/null 2>&1; then
-    if [[ "${current_user}" != "sy-devops-user" ]]; then\
-        echo "Error: 请使用账号 sy-devops-user 执行!"
-        exit 1
+    if [[ "${current_user}" != "sy-devops-user" ]]; then
+        echo "Warning: 请使用账号 sy-devops-user 执行!"
+        echo "Warning: 10s 后继续操作..."
+        sleep 10
     fi
 else
-    echo "Error: 请添加用户 sy-devops-user"
-    exit 1
+    echo "Warning: 请添加用户 sy-devops-user!"
+    echo "Warning: 请使用账号 sy-devops-user 执行!"
+    echo "Warning: 10s 后继续操作..."
+    sleep 10
 fi
-
-export LANG=zh_CN.UTF-8
 
 function title() { printf "########################################\n# %s\n########################################\n" "$1"; }
 SYPCTL_EXECUTE_PATH="$(pwd)"
@@ -66,35 +68,52 @@ test -d ${SYPCTL_HOME} || {
     sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
     sudo chmod -R ug+rwx ${SYPCTL_HOME}
     title "安装 sypctl..."
-    git clone --branch ${SYPCTL_BRANCH} --depth 1 http://gitlab.ibi.ren/syp-apps/sypctl.git ${SYPCTL_HOME}
+    git clone --branch ${SYPCTL_BRANCH} --depth 1 https://gitlab.idata.mobi/syp-apps/sypctl.git ${SYPCTL_HOME}
 }
 
 cd ${SYPCTL_HOME}
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+[[ "${current_branch}" != "${SYPCTL_BRANCH}" ]] && {
+    git reset --hard HEAD
+    git fetch origin "${SYPCTL_BRANCH}":"${SYPCTL_BRANCH}"
+    git checkout "${SYPCTL_BRANCH}"
+}
+
 local_modified=$(git status -s)
 if [[ ! -z "${local_modified}" ]]; then
     git status
-    read -p "本地代码有修改，可能会产生冲突，是否继续？y/n " user_input
-    if [[ "${user_input}" != "y" ]]; then
-        echo "退出操作！"
-        exit 2
-    fi
 
+    echo "Warning: sypctl 代码有修改，可能会产生冲突!"
+    echo "Warning: 10s 后恢复代码修改，继续操作..."
+    sleep 10
+    # read -p "sypctl 代码有修改，可能会产生冲突，是否继续？y/n " user_input
+    # if [[ "${user_input}" != "y" ]]; then
+    #     echo "退出操作！"
+    #     exit 2
+    # fi
 fi
 
 git reset --hard HEAD
-sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
-git checkout ${SYPCTL_BRANCH}
 git pull origin ${SYPCTL_BRANCH} > /dev/null 2>&1
+sudo chown -R ${current_user}:${current_group} ${SYPCTL_HOME}
 sudo chmod -R ugo+rw ${SYPCTL_HOME}
 sudo chmod -R ugo+x ${SYPCTL_HOME}/bin/
 
 # force relink /usr/local/bin/
 sypctl_commands=(sypctl syps sypt sypetl sypetlcheck)
 for sypctl_command in ${sypctl_commands[@]}; do
-    command -v ${sypctl_command} > /dev/null 2>&1 && sudo rm -f $(which ${sypctl_command})
+    command -v ${sypctl_command} > /dev/null 2>&1 && {
+        type -a ${sypctl_command} | awk '{ print $3 }' | xargs -I command_path sudo rm -f command_path
+    }
     sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/bin/${sypctl_command}
+    sudo ln -snf ${SYPCTL_HOME}/bin/${sypctl_command}.sh /usr/local/bin/${sypctl_command}
 done
 
+[[ "${PATH}" =~ "/usr/local/bin" ]] || {
+    sudo chmod o+w /etc/profile
+    sudo echo 'export PATH="/usr/local/bin:\$PATH"' >> /etc/profile
+    source /etc/profile
+}
 source platform/middleware.sh > /dev/null 2>&1
 
 command -v java > /dev/null || {
@@ -188,13 +207,18 @@ sypctl help
 cd ${SYPCTL_EXECUTE_PATH}
 
 title "创建工作目录"
-mkdir -p /data/{ftp,backup,work/{www,tools,scripts,config,logs}}
+sudo mkdir -p /data/{ftp,backup,work/{www,tools,scripts,config,data,logs}}
+
+sudo mkdir -p /etc/sypctl/
+sudo chown -R ${current_user}:${current_group} /etc/sypctl/
+sudo chmod -R ug+rwx /etc/sypctl/
 
 cat <<-EOF
 目录约定:
 - Web: /data/work/www
 - 脚本: /data/work/scripts
 - 工具: /data/work/tools
+- 数据: /data/work/data
 - 日志: /data/work/logs
 - 配置档: /data/work/config
 EOF
