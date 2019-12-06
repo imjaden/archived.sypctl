@@ -86,7 +86,7 @@ class SmsNotify
 
         aliyun_sms_options = JSON.parse(@config['aliyun_sms'].to_json) # deep clone
         aliyun_sms_options['mobiles'] = @config['mobiles'].map { |record| record['mobile'] }
-        aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', api_config['project']).sub('${message}', "API响应(#{Time.now.strftime('%y/%m/%d %H:%M')})")
+        aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', api_config['project']).sub('${message}', "API响应(#{Time.now.strftime('%H:%M')})")
         aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
         api_record_hash["#{timestamp}-sms"] = true
@@ -116,15 +116,15 @@ class SmsNotify
       return if disk_notifications.empty?
 
       disk_record_path = File.join(@archived_path, "disk-#{Time.now.strftime('%y%m%d')}.json")
-      disk_record_hash = File.exists?(disk_record_path) ? JSON.parse(File.read(api_record_path)) : {}
+      disk_record_hash = File.exists?(disk_record_path) ? JSON.parse(File.read(disk_record_path)) : {}
 
       # 判断最近十分钟是否有发短信记录，无则发送短信
       sended_sms = check_lastest_sended_sms(disk_record_hash)
       return if sended_sms
 
-      aliyun_sms_options = JSON.parse(config['aliyun_sms'].to_json) # deep clone
-      aliyun_sms_options['mobiles'] = config['mobiles'].map { |record| record['mobile'] }
-      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', disk_notifications.join(',')+"(#{Time.now.strftime('%y/%m/%d %H:%M')})")
+      aliyun_sms_options = JSON.parse(@config['aliyun_sms'].to_json) # deep clone
+      aliyun_sms_options['mobiles'] = @config['mobiles'].map { |record| record['mobile'] }
+      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', (disk_notifications.join(',')+"(#{Time.now.strftime('%H:%M')})")[0..19])
       aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
       disk_record_hash["#{timestamp}-sms"] = true
@@ -164,7 +164,7 @@ class SmsNotify
 
       aliyun_sms_options = JSON.parse(@config['aliyun_sms'].to_json) # deep clone
       aliyun_sms_options['mobiles'] = @config['mobiles'].map { |record| record['mobile'] }
-      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', "内存>=#{memory_usage}(#{Time.now.strftime('%y/%m/%d %H:%M')})")
+      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', ("内存>=#{memory_usage}(#{Time.now.strftime('%H:%M')})")[0..19])
       aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
       memory_record_hash["#{timestamp}-sms"] = true
