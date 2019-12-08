@@ -111,7 +111,7 @@ class SmsNotify
         puts "#{timestamp}, #{disk_usage < disk_config['threshold'].to_f ? 'ok' : 'boom'}, #{disk_config['mountedon']}, #{disk_usage}"
         next if disk_usage < disk_config['threshold'].to_f
         
-        disk_notifications.push("磁盘#{disk_config['mountedon']}>=#{disk_usage}")
+        disk_notifications.push("#{disk_config['mountedon']}>#{disk_usage}")
       end
       return if disk_notifications.empty?
 
@@ -124,7 +124,7 @@ class SmsNotify
 
       aliyun_sms_options = JSON.parse(@config['aliyun_sms'].to_json) # deep clone
       aliyun_sms_options['mobiles'] = @config['mobiles'].map { |record| record['mobile'] }
-      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', (disk_notifications.join(',')+"(#{Time.now.strftime('%H:%M')})")[0..19])
+      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', "磁盘#{disk_notifications.join(',')}(#{Time.now.strftime('%H:%M')})"[0..19])
       aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
       disk_record_hash["#{timestamp}-sms"] = true
@@ -164,7 +164,7 @@ class SmsNotify
 
       aliyun_sms_options = JSON.parse(@config['aliyun_sms'].to_json) # deep clone
       aliyun_sms_options['mobiles'] = @config['mobiles'].map { |record| record['mobile'] }
-      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', ("内存>=#{memory_usage}(#{Time.now.strftime('%H:%M')})")[0..19])
+      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', ("内存>#{memory_usage}(#{Time.now.strftime('%H:%M')})")[0..19])
       aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
       memory_record_hash["#{timestamp}-sms"] = true
