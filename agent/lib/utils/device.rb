@@ -71,7 +71,7 @@ module Sypctl
       end
 
       def wan_ip
-        `curl --silent --connect-timeout 1 --max-time 1 http://sypctl.com/api/v1/ifconfig.me`.strip
+        `curl --silent --connect-timeout 1 --max-time 1 https://api.sypctl.com/api/v1/ifconfig.me`.strip
       end
 
       def process_number
@@ -251,7 +251,7 @@ module Sypctl
       end
 
       def wan_ip
-        `curl --silent --connect-timeout 1 --max-time 1 http://sypctl.com/api/v1/ifconfig.me`.strip
+        `curl --silent --connect-timeout 1 --max-time 1 https://api.sypctl.com/api/v1/ifconfig.me`.strip
       end
 
       def process_number
