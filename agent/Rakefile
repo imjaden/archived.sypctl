@@ -4,7 +4,7 @@ require 'rubygems'
 ENV["SYPCTL_VERSION"] = File.read("../version") rescue "unknown"
 ENV['RUBY_VERSION'] = `ruby -v`.strip
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
-ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
 
 $LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])
 $LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/lib/tasks))

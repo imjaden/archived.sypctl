@@ -6,7 +6,7 @@ require 'securerandom'
 require File.expand_path('../../core_ext/string.rb', __FILE__)
 require File.expand_path('../../core_ext/numberic.rb', __FILE__)
 
-ENV["SYPCTL_API"] = "http://sypctl.com" #ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+ENV["SYPCTL_API"] = "https://api.sypctl.com"
 
 module Sypctl
   class Http

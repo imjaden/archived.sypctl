@@ -74,7 +74,7 @@ class BackupMySQL
       exit(1) unless File.exists?(@config_path)
         
       @backup_list = JSON.parse(File.read(@config_path))
-      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
 
       @options[:home] ||= Dir.pwd
       @options[:scope] ||= 'day'

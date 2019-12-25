@@ -25,7 +25,7 @@ end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
 
-ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
 Sypctl::Http.post_behavior({
   behavior: "升级 sypctl 代理版本 #{options[:old]} 至 #{options[:new]}", 
   object_type: 'agent', 
