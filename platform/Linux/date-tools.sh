@@ -37,7 +37,7 @@
 # ```
 #
 source platform/Linux/common.sh
-remote_api=http://sypctl.com/api/v1/linux.date
+remote_api=https://api.sypctl.com/api/v1/linux.date
 
 function fun_check_linux_date() {
     fun_sypctl_network || exit 1

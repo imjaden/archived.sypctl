@@ -31,9 +31,16 @@ option_parser = OptionParser.new do |opts|
     puts opts
     exit
   end
-  opts.on('-l', "--list", '查看最近通知') do |value|
+  opts.on('-l', "--list", '查看今天通知') do |value|
     options[:list] = value
   end
+
+  (1..7).to_a.each do |offset|
+    opts.on("--list-#{offset}", "查看#{offset}天前通知") do |value|
+      options["list_#{offset}".to_sym] = value
+    end
+  end
+
   opts.on('-r', "--render", '打印配置档') do |value|
     options[:render] = value
   end
@@ -79,7 +86,7 @@ class SmsNotify
 
         aliyun_sms_options = JSON.parse(@config['aliyun_sms'].to_json) # deep clone
         aliyun_sms_options['mobiles'] = @config['mobiles'].map { |record| record['mobile'] }
-        aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', api_config['project']).sub('${message}', 'API响应')
+        aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', api_config['project']).sub('${message}', "API响应(#{Time.now.strftime('%y/%m/%d %H:%M')})")
         aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
         api_record_hash["#{timestamp}-sms"] = true
@@ -117,7 +124,7 @@ class SmsNotify
 
       aliyun_sms_options = JSON.parse(config['aliyun_sms'].to_json) # deep clone
       aliyun_sms_options['mobiles'] = config['mobiles'].map { |record| record['mobile'] }
-      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', disk_notifications.join(','))
+      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', disk_notifications.join(',')+"(#{Time.now.strftime('%y/%m/%d %H:%M')})")
       aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
       disk_record_hash["#{timestamp}-sms"] = true
@@ -157,7 +164,7 @@ class SmsNotify
 
       aliyun_sms_options = JSON.parse(@config['aliyun_sms'].to_json) # deep clone
       aliyun_sms_options['mobiles'] = @config['mobiles'].map { |record| record['mobile'] }
-      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', "内存>=#{memory_usage}")
+      aliyun_sms_options['template_options'] = aliyun_sms_options['template_options'].sub('${project}', @config['project']).sub('${message}', "内存>=#{memory_usage}(#{Time.now.strftime('%y/%m/%d %H:%M')})")
       aliyun_sms_result = Aliyun::Sms.send_guard_nofity(aliyun_sms_options)
 
       memory_record_hash["#{timestamp}-sms"] = true
@@ -179,13 +186,25 @@ class SmsNotify
       memory_sms_guard if @config['memory']
     end
 
-    def list
+    def list(offset_date = 0)
       ['api', 'disk', 'memory'].each do |type|
-        path = File.join(@archived_path, "#{type}-#{Time.now.strftime('%y%m%d')}.json")
-        next unless File.exists?(path)
+        date = (Time.now-offset_date*24*60*60).strftime('%y%m%d')
+        path = File.join(@archived_path, "#{type}-#{date}.json")
+        unless File.exists?(path)
+          puts "#{date}, #{type.upcase} 异常列表为空."
+          next
+        end
 
-        puts "#{type} 监控列表:"
+        puts "#{type} 监控列表:(#{date})"
         puts JSON.pretty_generate(JSON.parse(File.read(path)))
+      end
+    end
+
+    def method_missing(method_name, arg = nil)
+      if m = method_name.to_s.match(/list_(\d+)/)
+        list(m[1].to_i)
+      else
+        super
       end
     end
 

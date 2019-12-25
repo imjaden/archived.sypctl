@@ -66,7 +66,7 @@ class BackupFile
 
       FileUtils.mkdir_p(@db_path) unless File.exists?(@db_path)
       FileUtils.mkdir_p(@snapshots_path) unless File.exists?(@snapshots_path)
-      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
 
       @db_jmd5 = File.read(@db_jmd5_path).strip
       @db_hash = JSON.parse(File.read(@db_hash_path))

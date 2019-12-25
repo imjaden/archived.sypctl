@@ -90,7 +90,7 @@ class Service
       @services  = @data_hash['services'] || []
       @services = @services.each { |service| service['user'] = whoami if service['user'].to_s.strip.empty? }
       
-      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://sypctl.com"
+      ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
     end
 
     def render
