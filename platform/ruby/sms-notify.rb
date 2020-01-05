@@ -47,6 +47,20 @@ option_parser = OptionParser.new do |opts|
   opts.on('-g', "--guard", '执行守护任务') do |value|
     options[:guard] = value
   end
+
+  opts.on('-e', "--enable service", '激活应用') do |value|
+    options[:enable] = value
+  end
+  opts.on('-d', "--disable service", '禁用应用') do |value|
+    options[:disable] = value
+  end
+  opts.on('-i', "--disabled_in interval", '禁用一段时间disabled_in') do |value|
+    options[:disabled_in] = value.to_i
+    options[:state] = 'disabled_in'
+  end
+  opts.on('-s', "--state", '应用状态') do |value|
+    options[:state] = value
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -56,13 +70,63 @@ unless File.exists?(config_path)
   puts "Error: not found #{config_path}"
   exit(1)
 end 
+options[:config_path] = config_path
 
 class SmsNotify
   class << self
-    def options(config_path)
-      @config = JSON.parse(File.read(config_path))
+    def options(options)
+      @options = options
+      @config = JSON.parse(File.read(@options[:config_path]))
       @archived_path = File.join(ENV['SYPCTL_HOME'], 'agent/db/sms-notify', 'archived')
+      @state_path = File.join(@archived_path, "../state.json")
+
       FileUtils.mkdir_p(@archived_path) unless File.exists?(@archived_path)
+
+      check_state if (['enable', 'disable', 'disabled_in'] & @options.keys.map(&:to_s)).length.zero?
+    end
+
+    def check_state
+      state_hash = JSON.parse(File.read(@state_path)) rescue {}
+      _state = state_hash['state']
+      if _state == 'disable'
+        puts _state
+        exit
+      end
+
+      if _state == 'disabled_in' && Time.now.to_i < state_hash['disabled_in'].to_i
+        puts "disabled_in #{Time.at(state_hash['disabled_in'])}"
+        exit
+      end
+    end
+
+    def state
+      state_hash = JSON.parse(File.read(@state_path)) rescue {}
+      _state = state_hash['state'] || 'enable'
+      if _state == 'enable'
+        puts _state
+      else
+        check_state
+      end
+    end
+
+    def enable
+      state_hash = JSON.parse(File.read(@state_path)) rescue {}
+      state_hash['state'] = 'enable'
+      File.open(@state_path, "w:utf-8") { |file| file.puts(state_hash.to_json) }
+    end
+
+    def disable
+      state_hash = JSON.parse(File.read(@state_path)) rescue {}
+      state_hash['state'] = 'disable'
+      File.open(@state_path, "w:utf-8") { |file| file.puts(state_hash.to_json) }
+    end
+
+    def disabled_in
+      state_hash = JSON.parse(File.read(@state_path)) rescue {}
+      state_hash['state'] = 'disabled_in'
+      state_hash['disabled_in'] = Time.now.to_i + @options[:disabled_in].to_i
+      File.open(@state_path, "w:utf-8") { |file| file.puts(state_hash.to_json) }
+      puts "disabled_in #{Time.at(state_hash['disabled_in'])}"
     end
 
     def api_sms_guard
@@ -233,6 +297,6 @@ class SmsNotify
   end
 end
 
-SmsNotify.options(config_path)
+SmsNotify.options(options)
 SmsNotify.send(options.keys.first)
 

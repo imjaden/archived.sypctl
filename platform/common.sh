@@ -380,7 +380,7 @@ function fun_sypctl_sendmail_caller() {
 }
 
 function fun_sypctl_sms_notify() {
-    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/sms-notify.rb "--$2"
+    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/sms-notify.rb "--$2" "$3"
 }
 
 function fun_sypctl_service_caller() {
