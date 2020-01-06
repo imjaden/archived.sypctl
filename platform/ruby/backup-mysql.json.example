@@ -1,0 +1,20 @@
+[
+  {
+    "name": "example",
+    "state": "enable",
+    "pre_actions": [],
+    "post_actions": [],
+    "config": {
+      "host": "syp.idata.mobi",
+      "port": 3306,
+      "username": "username",
+      "password": "password",
+      "encoding": "utf8"
+    },
+    "ignore_databases": [],
+    "ignore_tables": [
+      "(_|-)logs?$"
+    ],
+    "backup_path": "/data/backup/mysql"
+  }
+]

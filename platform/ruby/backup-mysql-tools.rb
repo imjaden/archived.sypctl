@@ -34,11 +34,11 @@ option_parser = OptionParser.new do |opts|
   opts.on('-v', "--view", '执行今日备份状态') do |value|
     options[:view] = value
   end
-  opts.on('-c', "--check", '检测配置档状态') do |value|
-    options[:check] = value
-  end
   opts.on('-s', "--state", '进程状态') do |value|
     options[:state] = value
+  end
+  opts.on('-c', "--check", '检测配置档状态') do |value|
+    options[:check] = value
   end
   opts.on('-e', "--execute", '执行备份操作') do |value|
     options[:execute] = value
@@ -61,6 +61,13 @@ option_parser = OptionParser.new do |opts|
   opts.on('-b', "--export", '备份数据库实例') do |value|
     options[:export] = value
   end
+
+  opts.on('-t', "--enable index", '激活第index个备份服务(从1开始)') do |value|
+    options[:enable] = value
+  end
+  opts.on('-u', "--disable index", '禁用第index个备份服务(从1开始)') do |value|
+    options[:disable] = value
+  end
 end.parse!
 
 puts `ruby #{__FILE__} -h` if options.keys.empty?
@@ -82,11 +89,12 @@ class BackupMySQL
     end
 
     def list
-      table_rows = @backup_list.map do |backup_config|
+      @backup_list = JSON.parse(File.read(@config_path))
+      table_rows = @backup_list.map.with_index do |backup_config, index|
         config = backup_config['config']
-        [backup_config['name'], config['host'], config['port'] || 3306, config['username'], backup_config['backup_path']]
+        [index+1, backup_config['name'], config['host'], config['port'] || 3306, config['username'], backup_config['state'] || 'enable', backup_config['backup_path']]
       end
-      puts Terminal::Table.new(headings: %w(Title Host Port UserName BackupPath), rows: table_rows)
+      puts Terminal::Table.new(headings: %w(- Title Host Port UserName State BackupPath), rows: table_rows)
     end
 
     def view
@@ -201,6 +209,12 @@ class BackupMySQL
 
       File.open(pid_path, 'w:utf-8') { |file| file.puts(Process.pid) }
       @backup_list.each do |backup_config|
+        next if (backup_config['state'] || 'enable') == 'disable'
+
+        (backup_config['pre_actions'] || []).each do |pre_action|
+          `#{pre_action}` rescue 'ignore'
+        end
+
         config = backup_config['config']
         client = Mysql2::Client.new(config)
         databases = client.query("show databases").map { |h| h.values }.flatten
@@ -300,6 +314,10 @@ class BackupMySQL
           object_type: 'mysql_backup', 
           object_id: "file_path"
         }, {}, {print_log: false})
+
+        (backup_config['post_actions'] || []).each do |post_action|
+          `#{post_action}` rescue 'ignore'
+        end
       end
 
       FileUtils.rm_f(pid_path) if File.exists?(pid_path)
@@ -320,7 +338,6 @@ class BackupMySQL
       databases_path = "#{config['host']}-#{config['port']}"
       FileUtils.mkdir_p(databases_path)
       databases.each do |database|
-        next if database == 'allergan_members'
         start_time = Time.now
         database_path = "#{databases_path}/#{database}.sql"
         command = "mysqldump -h#{config['host']} -P#{config['port'] || 3306} -u#{config['username']} -p#{config['password']} --default-character-set=utf8 --set-gtid-purged=OFF -ntd -R #{database} > #{database_path}"
@@ -328,6 +345,30 @@ class BackupMySQL
         `#{command}`
         puts "耗时 #{Time.now - start_time}s, 文件大小 #{File.size(database_path)}"
       end
+    end
+
+    def enable
+      i = @options[:enable].to_i - 1
+      set_state(i, 'enable')
+    end
+
+    def disable
+      i = @options[:disable].to_i - 1
+      set_state(i, 'disable')
+    end
+
+    protected
+
+    def set_state(_index, _state)
+      if _index < 0 or _index >= @backup_list.length
+        puts "无效序号 #{_index+1}, 期望: 1-#{@backup_list.length}"
+        exit(1)
+      end
+
+      @backup_list[_index]['state'] = _state
+      File.open(@config_path, "w:utf-8") { |file| file.puts(JSON.pretty_generate(@backup_list)) }
+
+      list
     end
 
     def ymd_scope
