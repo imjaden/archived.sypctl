@@ -45,6 +45,10 @@ module Sypctl
         {"total" => total, "wired" => wired, "free" => free}
       end
 
+      def top_memory_snapshot
+        {}
+      end
+
       def df_h
         titles, *disks = `df -h`.sub("Mounted on", "MountedOn").split("\n").map { |line| line.split(/\s+/) }
         disks.map do |disk|
@@ -195,6 +199,21 @@ module Sypctl
 
         titles.each_with_object({}).with_index do |(title, hsh), index|
           hsh[title] = memory[index]
+        end
+      end
+
+      def top_memory_snapshot
+        lines = `top -b -n 1 -d 3 -o %MEM | head -n 10`.split("\n")
+        title_index = lines.find_index { |line| line.include?("PID") }
+        titles = lines[title_index].strip.split(/\s+/).map(&:strip)
+        lines[title_index+1..-1].map do |line|
+          fields = line.split(/\s+/)
+          i = 0
+          titles.each_with_object({}) do |title, hsh|
+            hsh[title] = fields[i]
+            hsh["COMMAND"] = `ps --pid #{hsh["PID"]} --format cmd | tail -n 1`.strip if title == "COMMAND"
+            i += 1
+          end
         end
       end
 
@@ -375,6 +394,12 @@ module Sypctl
 
       def memory_usage_description
         klass.free_m
+      rescue => e
+        e.message
+      end
+
+      def top_memory_snapshot
+        klass.top_memory_snapshot
       rescue => e
         e.message
       end

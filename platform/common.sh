@@ -790,7 +790,7 @@ function fun_sypctl_backup_mysql_caller() {
         exit 1
     fi
 
-    support_commands=(help list state view check execute guard killer)
+    support_commands=(help list state view check execute guard killer disable enable)
     if [[ "${2}" = "execute" ||  "${2}" = "guard" ]]; then
         process_state="abort"
         pid=
@@ -818,6 +818,8 @@ function fun_sypctl_backup_mysql_caller() {
             echo "\$ sypctl backup:mysql state"
             echo "\$ sypctl backup:mysql view"
         fi
+    elif [[ "${2}" = "disable" ||  "${2}" = "enable" ]]; then
+        ruby platform/ruby/backup-mysql-tools.rb "--$2=$3" --home="${SYPCTL_HOME}"
     elif [[ "${support_commands[@]}" =~ "$2" ]]; then
         ruby platform/ruby/backup-mysql-tools.rb "--$2" --home="${SYPCTL_HOME}"
     else

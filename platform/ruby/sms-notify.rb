@@ -234,6 +234,7 @@ class SmsNotify
       memory_record_hash["#{timestamp}-sms"] = true
       memory_record_hash["#{timestamp}-sms-result"] = aliyun_sms_result
       memory_record_hash["#{timestamp}-notify-snapshot"] = memory_usage_description
+      memory_record_hash["#{timestamp}-memory-snapshot"] = Sypctl::Device.top_memory_snapshot
       File.open(memory_record_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(memory_record_hash)) }
     rescue => e
       puts e.message
