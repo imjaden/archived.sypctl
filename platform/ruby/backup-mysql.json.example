@@ -2,8 +2,12 @@
   {
     "name": "example",
     "state": "enable",
-    "pre_actions": [],
-    "post_actions": [],
+    "pre_actions": [
+      "sypctl sms:notify disabled_in 600"
+    ],
+    "post_actions": [
+      "sypctl sms:notify enable"
+    ],
     "config": {
       "host": "syp.idata.mobi",
       "port": 3306,
