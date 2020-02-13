@@ -905,7 +905,7 @@ function fun_prompt_java_already_installed() {
         echo " expect jdk version: ${expect_version}"
         echo "run the command to force install expect jdk:"
         echo
-        echo "$ sypctl toolkit jdk jdk:install:force"
+        echo "$ sypctl toolkit jdk install:jdk:force"
         echo
     fi
 
