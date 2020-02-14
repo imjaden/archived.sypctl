@@ -3,10 +3,10 @@
     "name": "example",
     "state": "enable",
     "pre_actions": [
-      "sypctl sms:notify disabled_in 600"
+      "sypctl notify disabled_in 600"
     ],
     "post_actions": [
-      "sypctl sms:notify enable"
+      "sypctl notify enable"
     ],
     "config": {
       "host": "syp.idata.mobi",

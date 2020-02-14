@@ -26,11 +26,11 @@ case "$1" in
         [[ "${hhmm}" = "0200" ]] && sypctl backup:mysql guard
         [[ "${hhmm}" = "0400" ]] && sypctl backup:mysql killer
 
+        bash $0 notify      guard
         bash $0 service     guard
         bash $0 agent:task  guard
         bash $0 agent:jobs  guard
         bash $0 backup:file guard
-        bash $0 sms:notify  guard
     ;;
     bundle)
         fun_execute_bundle_rake $@

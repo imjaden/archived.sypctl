@@ -392,11 +392,13 @@ module Sypctl
         e.message
       end
 
-      def memory_usage_description
+      def free_m
         klass.free_m
       rescue => e
         e.message
       end
+
+      alias_method :memory_usage_description, :free_m
 
       def top_memory_snapshot
         klass.top_memory_snapshot
