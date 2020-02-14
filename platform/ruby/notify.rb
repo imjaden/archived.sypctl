@@ -78,7 +78,8 @@ class Notify
     def options(options)
       @options = options
       @config = JSON.parse(File.read(@options[:config_path]))
-      @notify_type = @config['notify-type'] || 'sms'
+      @notify_type = check_notify_type
+
       @archived_path = File.join(ENV['SYPCTL_HOME'], "agent/db/#{@notify_type}-notify", 'archived')
       @state_path = File.join(@archived_path, "../state.json")
 
@@ -218,7 +219,7 @@ class Notify
         memory_notify_guard(true)
         return
       end
-
+      
       memory_record_hash, notify_result = memory_notify_sender(memory_record_hash, memory_usage, memory_info, timestamp)
       memory_record_hash["#{timestamp}-notify-snapshot"] = memory_usage_description
       memory_record_hash["#{timestamp}-memory-snapshot"] = Sypctl::Device.top_memory_snapshot
@@ -379,6 +380,21 @@ class Notify
       sended_notify = (1..10).to_a.any? do |interval|
         date = Time.now - interval*60
         record_hash["#{date.strftime('%y%m%d%H%M')}-sms"] == true
+      end
+    end
+
+    def check_notify_type
+      notify_type = @config['notify-type']
+      supported_types = ['sms', 'webhook']
+      if !notify_type
+        puts 'warning: 未配置 notify-type, 使用默认值 sms'
+        return 'sms'
+      elsif !supported_types.include?(notify_type)
+        puts "warning: 不支持的 notify-type 类型 - #{notify_type}, 使用默认值 sms"
+        return 'sms'
+      else
+        puts "notify-type: #{notify_type}"
+        return notify_type
       end
     end
   end
