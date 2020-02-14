@@ -379,8 +379,8 @@ function fun_sypctl_sendmail_caller() {
     SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/mail-tools.rb $@
 }
 
-function fun_sypctl_sms_notify() {
-    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/sms-notify.rb "--$2" "$3"
+function fun_sypctl_notify() {
+    SYPCTL_HOME=${SYPCTL_HOME} RAKE_ROOT_PATH=${SYPCTL_HOME}/agent ruby platform/ruby/notify.rb "--$2" "$3"
 }
 
 function fun_sypctl_service_caller() {
@@ -905,7 +905,7 @@ function fun_prompt_java_already_installed() {
         echo " expect jdk version: ${expect_version}"
         echo "run the command to force install expect jdk:"
         echo
-        echo "$ sypctl toolkit jdk jdk:install:force"
+        echo "$ sypctl toolkit jdk install:jdk:force"
         echo
     fi
 

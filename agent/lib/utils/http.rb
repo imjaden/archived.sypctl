@@ -191,11 +191,9 @@ module Sypctl
         puts "#" * 25
         exit 1
       rescue => e
-        puts e.class
-        puts "#{__FILE__}@#{__LINE__}: #{e.message}"
+        options = {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
         puts options
-
-        {'code' => 500, 'body' => e.message, 'backtrace' => e.backtrace.select{ |line| line.include?(__FILE__)}}
+        return options
       end
 
       def _timestamp

@@ -90,7 +90,7 @@ case "$1" in
         tar -xzvf ${jdk_package} -C ${jdk_install_path}
 
         jdk_path=${jdk_install_path}/${jdk_version}
-        ln -snf ${jdk_path}/bin/java /usr/bin/java
+        sudo ln -snf ${jdk_path}/bin/java /usr/bin/java
 
         echo "# jdk configuration" >> /etc/profile
         echo "export JAVA_HOME=${jdk_path}" >> /etc/profile

@@ -1,12 +1,24 @@
 {
+  "notify-type": "webhook-notify",
   "project": "Gitlab服务器",
-  "mobiles": [
-    {
-      "name": "李俊杰",
-      "mobile": "13564379606"
-    }
-  ],
-  "aliyun_sms": {
+  "webhook-config": {
+    "description": "qyweixin-webhook",
+    "url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send",
+    "keys": [
+      {
+        "name": "苏小匠/开发部",
+        "key": "78424a00-4a56-4544-b7b3-ec1720c5d76c"
+      }
+    ]
+  },
+  "sms-config": {
+    "description": "aliyun-sms",
+    "mobiles": [
+      {
+        "name": "李俊杰",
+        "mobile": "13564379606"
+      }
+    ],
     "sign_name": "胜因学院",
     "access_key_id": "access_key_id",
     "access_key_secret": "access_key_secret",
