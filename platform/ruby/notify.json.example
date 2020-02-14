@@ -1,5 +1,5 @@
 {
-  "notify-type": "webhook-notify",
+  "notify-type": "webhook",
   "project": "Gitlab服务器",
   "webhook-config": {
     "description": "qyweixin-webhook",
