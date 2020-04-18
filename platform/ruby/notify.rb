@@ -137,7 +137,7 @@ class Notify
       (@config['api'] || []).each do |api_config|
         response = Sypctl::Http.get(api_config['url'])
         body = response['body'].to_s
-        api_state = api_config['keywords']['success'].all? { |keyword| body.include?(keyword) }
+        api_state = api_config['keywords']['success'].all? { |keyword| body.downcase.include?(keyword.downcase) }
 
         api_record_path = File.join(@archived_path, "api-#{Time.now.strftime('%y%m%d')}.json")
         api_record_hash = File.exists?(api_record_path) ? JSON.parse(File.read(api_record_path)) : {}
@@ -282,7 +282,7 @@ class Notify
                 "监控到API响应异常，请相关同事处理。",
                 "> API: <font color=\"warning\">#{api_config['url']}</font>",
                 "> 时间点: <font color=\"comment\">#{Time.now.strftime('%y/%m/%d %H:%M:%S')}</font>",
-                "> 服务器: <font color=\"info\">#{@config['project']}</font>"
+                "> 监测站: <font color=\"info\">#{@config['project']}</font>"
               ].join("\n")
             }
           }

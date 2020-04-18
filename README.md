@@ -6,9 +6,9 @@
 
 ```
 # Linux
-$ curl -sS http://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/env.sh | bash
+$ curl -sS https://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/env.sh | bash
 # Darwin
-$ curl -sS http://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/darwin-env.sh | bash
+$ curl -sS https://gitlab.idata.mobi/syp-apps/sypctl/raw/dev-0.1-master/darwin-env.sh | bash
 ```
 
 ## 使用手册
