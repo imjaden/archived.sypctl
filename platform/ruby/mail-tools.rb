@@ -69,7 +69,7 @@ to_list = file_config[:to]
 from_email = file_config[:from]
 mail_body = file_config[:body]
 mail_content_type = file_config[:content_type] || 'text/html; charset=UTF-8'
-attacment = file_config[:attacment]
+attachment = file_config[:attachment]
 smtp_config = file_config[:smtp]
 
 to_list.each do |to_email|
@@ -82,7 +82,7 @@ to_list.each do |to_email|
       body mail_body
     end
 
-    add_file attacment if attacment
+    add_file attachment if attachment
   end
   mail.delivery_method :smtp, smtp_config
   mail.raise_delivery_errors = true

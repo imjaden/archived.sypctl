@@ -25,13 +25,13 @@ jenkins_project_name="SypDev-JavaApiServer"
 project_war_path="portal-webapp/portal-api/target/portal-api-1.0-SNAPSHOT.war"
 project_jar_path="portal-api-service-parent/portal-api-service/target/portal-api-service-1.0-SNAPSHOT.jar"
 
-remote_server_ips=("syp-dev.idata.mobi")
+remote_server_ips=("api-dev.idata.mobi")
 remote_backup_home="/data/backup/jenkins"
-remote_war_filepath="/data/work/www/tomcatAPI/webapps/saas-api.war"
-remote_jar_filepath="/data/work/www/providerAPI/api-service.jar"
+remote_war_filepath="/data/work/www/tomcatAPI/webapps/java-api-server.war"
+remote_jar_filepath="/data/work/www/providerAPI/java-api-service.jar"
 remote_ssh_user="sy-devops-user"
 remote_ssh_port="22"
-sypctl_tomcat_id="java-api"
+sypctl_tomcat_id="java-api-server"
 sypctl_provider_id="java-api-service"
 
 timestamp="$(date '+%Y%m%d%H%M%S')"
@@ -43,9 +43,8 @@ jenkins_war_path="${project_war_path}"
 jenkins_jar_path="${project_jar_path}"
 
 if [[ ! -f ${jenkins_war_path} || ! -f ${jenkins_jar_path} ]]; then
-    logger "ERROR - war/jar 文件不存在:"
-    logger "- ${jenkins_war_path}"
-    logger "- ${jenkins_jar_path}"
+    logger "ERROR - JAR 文件不存在: ${jenkins_jar_path}"
+    logger "ERROR - WAR 文件不存在: ${jenkins_war_path}"
     exit
 fi
 
@@ -66,6 +65,10 @@ for(( i=0; i<${#remote_server_ips[@]}; i++ )) do
     ip=${remote_server_ips[$i]}
     logger "> 启动子服务器, 开始 ${ip}"
     logger
+    if ssh ${remote_ssh_user}@${ip} test ! -e "${remote_backup_home}"; then
+        logger "中止操作，远程备份目录不存在: ${remote_backup_home}"
+        exit 1
+    fi
     logger "> 上传文件开始 ${jenkins_jar_filename}(${jenkins_jar_filesize})"
     scp -p -r ${project_jar_path} ${remote_ssh_user}@${ip}:${remote_jar_backup_path}
     logger "< 上传文件结束 ${remote_jar_backup_path}"
@@ -74,6 +77,14 @@ for(( i=0; i<${#remote_server_ips[@]}; i++ )) do
     scp -p -r ${jenkins_war_path} ${remote_ssh_user}@${ip}:${remote_war_backup_path}
     logger "< 上传文件结束 ${remote_war_backup_path}"
     logger
+    if ssh ${remote_ssh_user}@${ip} test ! -e "${remote_jar_backup_path}"; then
+        logger "中止操作，远程 JAR 文件不存在: ${remote_jar_backup_path}"
+        exit 1
+    fi
+    if ssh ${remote_ssh_user}@${ip} test ! -e "${remote_war_backup_path}"; then
+        logger "中止操作，远程 WAR 文件不存在: ${remote_war_backup_path}"
+        exit 1
+    fi
     logger "> 服务状态列表开始"
     ssh -p $remote_ssh_port $remote_ssh_user@$ip "sypctl service status"
     logger "< 服务状态列表结束"
@@ -83,8 +94,7 @@ for(( i=0; i<${#remote_server_ips[@]}; i++ )) do
     logger "< 停止提供者结束"
     logger
     logger "> 更新/启动提供者开始"
-    ssh -p $remote_ssh_port $remote_ssh_user@$ip "rm -f ${remote_jar_filepath}"
-    ssh -p $remote_ssh_port $remote_ssh_user@$ip "cp -p ${remote_jar_backup_path} ${remote_jar_filepath}"
+    ssh -p $remote_ssh_port $remote_ssh_user@$ip "rm -f ${remote_jar_filepath} && cp -p ${remote_jar_backup_path} ${remote_jar_filepath}"
     timeout 15s ssh -p $remote_ssh_port $remote_ssh_user@$ip "sypctl service start ${sypctl_provider_id}"
     logger "< 更新/启动提供者结束"
     logger
@@ -93,8 +103,7 @@ for(( i=0; i<${#remote_server_ips[@]}; i++ )) do
     logger "< 停止消费者结束"
     logger
     logger "> 更新/启动消费者开始"
-    ssh -p $remote_ssh_port $remote_ssh_user@$ip "rm -f ${remote_war_filepath}"
-    ssh -p $remote_ssh_port $remote_ssh_user@$ip "cp -p ${remote_war_backup_path} ${remote_war_filepath}"
+    ssh -p $remote_ssh_port $remote_ssh_user@$ip "rm -f ${remote_war_filepath} && cp -p ${remote_war_backup_path} ${remote_war_filepath}"
     ssh -p $remote_ssh_port $remote_ssh_user@$ip "sypctl service start ${sypctl_tomcat_id}"
     logger "< 更新/启动消费者结束"
     logger 

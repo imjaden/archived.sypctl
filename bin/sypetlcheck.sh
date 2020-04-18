@@ -15,6 +15,7 @@ function help() {
   echo "$ sypetlcheck 公司名称 模块名称"
   echo
   echo "脚本路径: /data/work/scripts/公司名称/模块名称/tools.sh"
+  ruby platform/ruby/sypetl-tools.rb --list --label sypetlcheck
   exit 1
 }
 
