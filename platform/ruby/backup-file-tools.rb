@@ -59,13 +59,13 @@ class BackupFile
       @db_sync_path = File.join(@db_path, 'db.sync')
       @snapshots_path = File.join(@db_path, 'snapshots')
 
-      if !File.exists?(@db_jmd5_path) || !File.exists?(@db_hash_path)
+      if !File.exist?(@db_jmd5_path) || !File.exist?(@db_hash_path)
         puts "Warning：本机暂未同步备份元信息\n退出操作"
         exit 1
       end
 
-      FileUtils.mkdir_p(@db_path) unless File.exists?(@db_path)
-      FileUtils.mkdir_p(@snapshots_path) unless File.exists?(@snapshots_path)
+      FileUtils.mkdir_p(@db_path) unless File.exist?(@db_path)
+      FileUtils.mkdir_p(@snapshots_path) unless File.exist?(@snapshots_path)
       ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
 
       @db_jmd5 = File.read(@db_jmd5_path).strip
@@ -86,7 +86,7 @@ class BackupFile
       puts "元信息哈希: #{@db_jmd5}"
       puts "元信息路径: #{@db_hash_path}"
       table_rows = @db_hash.map do |file|
-        if File.exists?(file['backup_path']) 
+        if File.exist?(file['backup_path']) 
           file_state = File.file?(file['backup_path']) ? 'File' : 'Dir'
         else
           file_state = 'NO'
@@ -111,11 +111,11 @@ class BackupFile
       end
 
       snapshots_hash = @db_hash.map.with_index do |record, backup_index|
-        next unless File.exists?(record['backup_path'])
+        next unless File.exist?(record['backup_path'])
 
         is_backup_files_updated = false
         snapshot_instance_path = File.join(@db_path, "#{record['backup_uuid']}-snapshot.json")
-        snapshot_instance_hash = File.exists?(snapshot_instance_path) ? JSON.parse(File.read(snapshot_instance_path)) : record
+        snapshot_instance_hash = File.exist?(snapshot_instance_path) ? JSON.parse(File.read(snapshot_instance_path)) : record
         
         snapshot_instance_hash['device_uuid'] = Sypctl::Device.uuid
         snapshot_instance_hash['file_type'] = 'file'
@@ -244,10 +244,10 @@ class BackupFile
     def force
       # clean file snapshot cached
       snapshots_hash = @db_hash.map.with_index do |record, backup_index|
-        next unless File.exists?(record['backup_path'])
+        next unless File.exist?(record['backup_path'])
 
         snapshot_instance_path = File.join(@db_path, "#{record['backup_uuid']}-snapshot.json")
-        File.delete(snapshot_instance_path) if File.exists?(snapshot_instance_path)
+        File.delete(snapshot_instance_path) if File.exist?(snapshot_instance_path)
       end
 
       # upload file and cache snapshot
@@ -256,13 +256,13 @@ class BackupFile
 
     def status
       snapshots_hash = @db_hash.map.with_index do |record, backup_index|
-        unless File.exists?(record['backup_path'])
+        unless File.exist?(record['backup_path'])
           puts "NotExist, #{record['backup_path']}"
           next
         end
 
         snapshot_instance_path = File.join(@db_path, "#{record['backup_uuid']}-snapshot.json")
-        snapshot_instance_hash = File.exists?(snapshot_instance_path) ? JSON.parse(File.read(snapshot_instance_path)) : record
+        snapshot_instance_hash = File.exist?(snapshot_instance_path) ? JSON.parse(File.read(snapshot_instance_path)) : record
         snapshot_instance_hash['file_list'] ||= {}
         glob_files = [record['backup_path']]
         if File.directory?(record['backup_path']) 

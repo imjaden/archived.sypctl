@@ -3,7 +3,7 @@ require 'json'
 require 'timeout'
 require 'fileutils'
 
-if ARGV.length.zero? || !File.exists?(ARGV[0])
+if ARGV.length.zero? || !File.exist?(ARGV[0])
   puts "请传参配置档路径"
   exit
 end
@@ -22,14 +22,14 @@ puts "#{Time.now} - #{databases.length} 个数据库，#{tables.length} 个数�
 
 def logger(start_time, database, table, script, result = 'successfully')
   path = "etl/db/log.json" # -#{Time.now.strftime('%y%m%d')}
-  File.open(path, "w:utf-8") { |file| file.puts([].to_json) } unless File.exists?(path)
+  File.open(path, "w:utf-8") { |file| file.puts([].to_json) } unless File.exist?(path)
   
   data = JSON.parse(File.read(path))
   data.push({database: database, table: table, start_time: start_time, finish_time: Time.now, executed_time: (Time.now.to_i - start_time.to_i), script: script, result: result})
   File.open(path, "w:utf-8") { |file| file.puts(data.to_json) }
 
   path = "etl/db/status.json" # -#{Time.now.strftime('%y%m%d')}
-  File.open(path, "w:utf-8") { |file| file.puts({}.to_json) } unless File.exists?(path)
+  File.open(path, "w:utf-8") { |file| file.puts({}.to_json) } unless File.exist?(path)
   
   data = JSON.parse(File.read(path))
   data["#{database}.#{table}"] = Time.now.strftime('%y%m%d %H:%M:%S')
@@ -39,7 +39,7 @@ end
 
 def import_status(database, table)
   path = "etl/db/status.json" # -#{Time.now.strftime('%y%m%d')}
-  File.open(path, "w:utf-8") { |file| file.puts({}.to_json) } unless File.exists?(path)
+  File.open(path, "w:utf-8") { |file| file.puts({}.to_json) } unless File.exist?(path)
   
   data = JSON.parse(File.read(path))
   if @import_mode == 'expired'

@@ -131,7 +131,7 @@ end
 client.close
 
 report_path = File.join(options[:temp], 'sync-report.json')
-File.open(report_path, 'w:utf-8') { |file| file.puts(report.to_json) } unless File.exists?(report_path)
+File.open(report_path, 'w:utf-8') { |file| file.puts(report.to_json) } unless File.exist?(report_path)
 
 threadFrom = Thread.new do
   while true

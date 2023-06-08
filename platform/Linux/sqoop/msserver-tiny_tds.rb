@@ -3,12 +3,12 @@ require 'json'
 require 'timeout'
 require 'fileutils'
 
-if ARGV.length.zero? || !File.exists?(ARGV[0])
+if ARGV.length.zero? || !File.exist?(ARGV[0])
   puts "请传参配置档路径"
   exit
 end
 
-if ARGV.length == 1 || !File.exists?(ARGV[1])
+if ARGV.length == 1 || !File.exist?(ARGV[1])
   puts "请传参 SQL 文档路径"
   exit
 end

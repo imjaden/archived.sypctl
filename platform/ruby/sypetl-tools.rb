@@ -91,7 +91,7 @@ def logger(message = '')
   puts output
 end
 
-unless File.exists?(@options[:scriptpath])
+unless File.exist?(@options[:scriptpath])
   puts("Error: 脚本不存在 - #{@options[:scriptpath]}".colorize(:yellow))
   exit(1)
 end
@@ -156,7 +156,7 @@ end
 # 2. 日志文件内容为空
 # 3. 日志内容包含 ERROR
 def _action_check_logstate
-  return "失败" unless File.exists?(@options[:logpath])
+  return "失败" unless File.exist?(@options[:logpath])
   content = File.read(@options[:logpath]).strip
   return "失败" if content.empty?
   return "失败" if content.include?("ERROR")
@@ -180,7 +180,7 @@ end
 def action_push_notify_when_error
   return if _action_check_logstate == '成功'
   notify_path = "/etc/sypctl/notify.json"
-  return unless File.exists?(notify_path)
+  return unless File.exist?(notify_path)
   notify_config = JSON.parse(File.read(notify_path))
   return unless notify_options = notify_config['webhook-config']
 

@@ -6,13 +6,13 @@ require 'securerandom'
 require File.expand_path('../../core_ext/string.rb', __FILE__)
 require File.expand_path('../../core_ext/numberic.rb', __FILE__)
 
-ENV["SYPCTL_API"] = "https://api.sypctl.com"
+ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://127.0.0.1:8085" # "https://api.sypctl.com"
 
 module Sypctl
   class Http
     class << self
       def default_header
-        {'User-Agent' => "sypctl #{ENV['SYPCTL_VERSION']};#{ENV['RUBY_VERSION']}"} # 'Content-Type' => 'application/json', 
+        {'User-Agent' => "sypctl #{ENV['SYPCTL_VERSION'].strip};#{ENV['RUBY_VERSION'].strip}"} # 'Content-Type' => 'application/json'
       end
 
       def post(url, playload = {}, headers = {}, external_options = {print_log: false})
@@ -26,7 +26,7 @@ module Sypctl
           response = RestClient.post(options[:url], options[:playload], default_header.merge(options[:headers]))
           if options[:external_options][:print_log]
             puts "post #{options[:url]}"
-            puts "parameters: \n#{JSON.pretty_generate(playload)}"
+            puts "parameters: \n#{JSON.pretty_generate(playload, {allow_nan:true, allow_blank:true})}"
             puts "response code: #{response.code}"
             puts "response body: \n#{JSON.pretty_generate(JSON.parse(response.body))}"
           end
@@ -53,7 +53,7 @@ module Sypctl
 
       def download_version_file(url, path, job_uuid)
         response = "下载中..."
-        FileUtils.rm_f(path) if File.exists?(path)
+        FileUtils.rm_f(path) if File.exist?(path)
         response = RestClient::Request.execute(method: :get, url: url, raw_response: true) #block_response: block)
         FileUtils.copy(response.file.path, path)
         response
@@ -66,7 +66,7 @@ module Sypctl
         params[:external_options] = external_options
 
         rescue_method params do |params|
-          unless File.exists?(agent_db_path)
+          unless File.exist?(agent_db_path)
             puts "该主机未注册，中断提交行为记录"
             return false 
           end
@@ -100,7 +100,7 @@ module Sypctl
         params[:external_options] = external_options
         
         rescue_method params do |params|
-          unless File.exists?(agent_db_path)
+          unless File.exist?(agent_db_path)
             puts "该主机未注册，中断提交行为记录"
             return false 
           end
@@ -131,7 +131,7 @@ module Sypctl
         params[:external_options] = external_options
         
         rescue_method params do |params|
-          unless File.exists?(agent_db_path)
+          unless File.exist?(agent_db_path)
             puts "该主机未注册，中断提交行为记录"
             return false 
           end
@@ -159,7 +159,7 @@ module Sypctl
         params[:external_options] = external_options
 
         rescue_method params do |params|
-          unless File.exists?(agent_db_path)
+          unless File.exist?(agent_db_path)
             puts "该主机未注册，中断提交行为记录"
             return false 
           end
@@ -218,7 +218,7 @@ module Sypctl
 
         sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
         job_output_path = File.join(sandbox_path, 'job.output')
-        job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+        job_output = File.exist?(job_output_path) ? IO.read(job_output_path) : "无输出"
         post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
       rescue => e
         puts "#{__FILE__}@#{__LINE__}: #{e.message}"

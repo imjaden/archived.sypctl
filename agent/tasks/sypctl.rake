@@ -5,7 +5,7 @@ require 'fileutils'
 
 namespace :sypctl do
   task print_json: :environment do
-    unless File.exists?(ENV['filepath'].to_s)
+    unless File.exist?(ENV['filepath'].to_s)
       puts "Error:\nJSON 文件路径不存在 - #{ENV['filepath']}，请使用绝对路径\n推荐命令: readlink -f #{ENV['filepath']}"
       exit
     end
@@ -25,7 +25,7 @@ namespace :sypctl do
   end
 
   task clean_empty_rows: :environment do
-    unless File.exists?(ENV['filepath'].to_s)
+    unless File.exist?(ENV['filepath'].to_s)
       puts "Error: 要清理多余空行的文件路径不存在（filepath）"
       exit
     end

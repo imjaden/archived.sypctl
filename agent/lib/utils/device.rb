@@ -335,7 +335,7 @@ module Sypctl
         uuid_tmp_path = File.join(rake_root_path, ".config/device-uuid")
 
         use_cache = true if `uname -s`.strip == 'Darwin'
-        if use_cache && File.exists?(uuid_tmp_path)
+        if use_cache && File.exist?(uuid_tmp_path)
           device_uuid = File.read(uuid_tmp_path).strip
 
           return device_uuid unless device_uuid.empty?

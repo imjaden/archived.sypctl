@@ -21,7 +21,7 @@ namespace :app do
 
     sandbox_path = File.join(ENV['RAKE_ROOT_PATH'], "db/jobs/#{job_uuid}")
     job_output_path = File.join(sandbox_path, 'job.output')
-    job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
+    job_output = File.exist?(job_output_path) ? IO.read(job_output_path) : "无输出"
 
     post_to_server_job({uuid: job_uuid, state: 'executing', output: job_output})
   rescue => e
@@ -29,7 +29,7 @@ namespace :app do
   end
 
   def check_file_md5(label, path, md5, job_uuid)
-    if File.exists?(path)
+    if File.exist?(path)
       local_md5 = Digest::MD5.file(path).hexdigest
       if md5 == local_md5
         execute_job_logger("#{label}检查: 文件哈希一致 #{md5}", job_uuid)
@@ -61,7 +61,7 @@ namespace :app do
     version_path = File.join(versions_path, config['version']['uuid'])
     version_file_path = File.join(version_path, config['version']['file_name'])
 
-    if File.exists?(version_file_path)
+    if File.exist?(version_file_path)
       current_md5 = Digest::MD5.file(version_file_path).hexdigest
       if current_md5 == config['version']['md5']
         execute_job_logger("下载状态: 版本文件已下载，哈希值一致为 #{current_md5}", job_uuid)
@@ -70,7 +70,7 @@ namespace :app do
       end
     end
     
-    FileUtils.mkdir_p(version_path) unless File.exists?(version_path)
+    FileUtils.mkdir_p(version_path) unless File.exist?(version_path)
     File.open(File.join(version_path, 'config.json'), 'w:utf-8') { |file| file.puts(config.to_json) }
 
     execute_job_logger("下载链接: #{url}", job_uuid)
@@ -78,8 +78,8 @@ namespace :app do
     response = Sypctl::Http.download_version_file(url, version_file_path, job_uuid)
 
     execute_job_logger("下载状态: #{response.inspect}", job_uuid)
-    execute_job_logger("文件路径: #{version_file_path}", job_uuid) if File.exists?(version_file_path)
-    execute_job_logger("文件大小: #{File.exists?(version_file_path) ? File.size(version_file_path).number_to_human_size : 'NotFound'}", job_uuid)
+    execute_job_logger("文件路径: #{version_file_path}", job_uuid) if File.exist?(version_file_path)
+    execute_job_logger("文件大小: #{File.exist?(version_file_path) ? File.size(version_file_path).number_to_human_size : 'NotFound'}", job_uuid)
     execute_job_logger("下载用时: #{Time.now - btime}s", job_uuid)
     return version_file_path
   end
@@ -89,7 +89,7 @@ namespace :app do
     version_folder = File.join(versions_path, config['version']['uuid'])
     version_file_path = File.join(version_folder, config['version']['file_name'])
 
-    if File.exists?(version_file_path)
+    if File.exist?(version_file_path)
       current_md5 = Digest::MD5.file(version_file_path).hexdigest
       if current_md5 == config['version']['md5']
         execute_job_logger("下载状态: 版本文件已下载，哈希值一致为 #{current_md5}", job_uuid)
@@ -98,7 +98,7 @@ namespace :app do
       end
     end
     
-    FileUtils.mkdir_p(version_folder) unless File.exists?(version_folder)
+    FileUtils.mkdir_p(version_folder) unless File.exist?(version_folder)
     File.open(File.join(version_folder, 'config.json'), 'w:utf-8') { |file| file.puts(config.to_json) }
 
     bash_command = "bash lib/utils/version_downloader.sh #{url} #{config['version']['file_name']} db/versions/#{config['version']['uuid']}"
@@ -115,7 +115,7 @@ namespace :app do
       execute_job_logger("下载状态: #{bash_message}", job_uuid)
       sleep 5
 
-      if File.exists?(download_pid_path)
+      if File.exist?(download_pid_path)
         download_pid = File.read(download_pid_path).strip
         expected_pid = `ps ax | awk '{print $1}' | grep -e "^#{download_pid}$"`.strip
         download_state = (download_pid == expected_pid ? "running" : "done")
@@ -124,15 +124,15 @@ namespace :app do
       end
     end
 
-    execute_job_logger("文件路径: #{version_file_path}", job_uuid) if File.exists?(version_file_path)
-    execute_job_logger("文件大小: #{File.exists?(version_file_path) ? File.size(version_file_path).number_to_human_size : 'NotFound'}", job_uuid)
+    execute_job_logger("文件路径: #{version_file_path}", job_uuid) if File.exist?(version_file_path)
+    execute_job_logger("文件大小: #{File.exist?(version_file_path) ? File.size(version_file_path).number_to_human_size : 'NotFound'}", job_uuid)
     execute_job_logger("下载用时: #{Time.now - begin_time}s", job_uuid)
     return version_file_path
   end
 
   def delete_file_if_exists(label, path, backup_path = nil, job_uuid)    
-    return unless File.exists?(path)
-    if backup_path && File.exists?(backup_path)
+    return unless File.exist?(path)
+    if backup_path && File.exist?(backup_path)
       backup_file_path = File.join(backup_path, Time.now.strftime('%y%m%d%H%M%S') + '-' + File.basename(path))
       FileUtils.mv(path, backup_file_path)
       execute_job_logger("#{label}预检: 移动文件 #{path} 至 #{backup_file_path}", job_uuid)
@@ -199,34 +199,34 @@ namespace :app do
     target_file_path = File.join(config['app']['file_path'], config['app']['file_name'])
     delete_file_if_exists('部署', target_file_path, (config['version.backup_path'] || []).dig(0), job_uuid)
 
-    unless File.exists?(config['app']['file_path'])
+    unless File.exist?(config['app']['file_path'])
       FileUtils.mkdir_p(config['app']['file_path'])
       execute_job_logger("部署预检: 创建待部署的目录 #{config['app']['file_path']}", job_uuid)
     end
 
     FileUtils.cp(local_version_path, target_file_path)
-    execute_job_logger("部署状态: 拷贝#{File.exists?(target_file_path) ? '成功' : 失败} #{target_file_path}", job_uuid)
+    execute_job_logger("部署状态: 拷贝#{File.exist?(target_file_path) ? '成功' : 失败} #{target_file_path}", job_uuid)
 
     unless check_file_md5('部署', target_file_path, config['version']['md5'], job_uuid)
       execute_job_logger("退出操作", job_uuid)
       exit 1 
     end
 
-    if File.extname(target_file_path).downcase == ".war" and File.exists?(target_file_path.sub(/\.war$/i, ''))
+    if File.extname(target_file_path).downcase == ".war" and File.exist?(target_file_path.sub(/\.war$/i, ''))
       target_file_folder = target_file_path.sub(/\.war$/i, '')
       FileUtils.rm_rf(target_file_folder)
       execute_job_logger("部署清理: 删除Tomcat旧目录 #{target_file_folder}", job_uuid)
     end
 
     (config['version.backup_path'] || []).each do |backup_path|
-      unless File.exists?(backup_path)
+      unless File.exist?(backup_path)
         execute_job_logger("备份异常: 备份目录不存在 #{backup_path}", job_uuid)
         next
       end
 
       backup_file_path = File.join(backup_path, config['version']['version'] + '@' + config['app']['file_name'])
       FileUtils.cp(local_version_path, backup_file_path)
-      execute_job_logger("版本备份: 备份#{File.exists?(backup_file_path) ? '成功' : 失败} #{backup_file_path}", job_uuid)
+      execute_job_logger("版本备份: 备份#{File.exist?(backup_file_path) ? '成功' : 失败} #{backup_file_path}", job_uuid)
     end
     execute_job_logger('部署完成!', job_uuid)
 

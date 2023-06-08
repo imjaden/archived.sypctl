@@ -56,7 +56,7 @@ if options[:script]
   exit
 end
 
-if !options[:file] || !File.exists?(options[:file])
+if !options[:file] || !File.exist?(options[:file])
   puts `ruby #{__FILE__} -h` if options.keys.empty?
   puts "Error: 请提供配置档路径！"
   exit

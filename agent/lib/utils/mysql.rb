@@ -21,7 +21,7 @@ module Sypctl
 
       def report
         path = '/etc/sypctl/backup-mysql.json'
-        return unless File.exists?(path)
+        return unless File.exist?(path)
 
         mysqls = JSON.parse(File.read(path))
         mysqls.map do |mysql|

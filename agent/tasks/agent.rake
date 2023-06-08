@@ -23,8 +23,8 @@ namespace :agent do
     job_json_path = File.join(sandbox_path, 'job.json')
     job_output_path = File.join(sandbox_path, 'job.output')
     job_output_bundle_path = File.join(sandbox_path, 'job.output.bundle')
-    job_output = File.exists?(job_output_path) ? IO.read(job_output_path) : "无输出"
-    job_bundle_output = File.exists?(job_output_bundle_path) ? IO.read(job_output_bundle_path) : "无输出"
+    job_output = File.exist?(job_output_path) ? IO.read(job_output_path) : "无输出"
+    job_bundle_output = File.exist?(job_output_bundle_path) ? IO.read(job_output_bundle_path) : "无输出"
     options = JSON.parse(File.read(job_json_path))
     options['state'] = 'done'
     options['output'] = job_bundle_output + "\n\n#{'-' * 20}\n\n" + job_output

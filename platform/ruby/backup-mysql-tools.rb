@@ -78,7 +78,7 @@ class BackupMySQL
       @options = options
 
       @config_path = '/etc/sypctl/backup-mysql.json'
-      exit(1) unless File.exists?(@config_path)
+      exit(1) unless File.exist?(@config_path)
         
       @backup_list = JSON.parse(File.read(@config_path))
       ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
@@ -101,10 +101,10 @@ class BackupMySQL
       @backup_list.each do |backup_config|
         config = backup_config['config']
         backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", ymd_scope)
-        FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+        FileUtils.mkdir_p(backup_path) unless File.exist?(backup_path)
         output_path = File.join(backup_path, 'mysqldump.json')
         databases_path = File.join(backup_path, 'databases.json')
-        next unless File.exists?(output_path)
+        next unless File.exist?(output_path)
 
         backup_hash = JSON.parse(File.read(output_path))
         database_list = JSON.parse(File.read(databases_path))
@@ -119,7 +119,7 @@ class BackupMySQL
       pid_path = File.join(@options[:home], 'tmp/backup-mysql-ruby.pid')
       log_path = File.join(@options[:home], 'logs/backup-mysql-nohup.log')
 
-      if File.exists?(pid_path)
+      if File.exist?(pid_path)
         pid = File.read(pid_path).strip
         result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
         if result.empty?
@@ -131,7 +131,7 @@ class BackupMySQL
         puts "pid: -"
       end
 
-      if File.exists?(log_path)
+      if File.exist?(log_path)
         puts "log: #{log_path}"
       else
         puts "log: -"
@@ -147,10 +147,10 @@ class BackupMySQL
         client.close
 
         backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", ymd_scope)
-        FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+        FileUtils.mkdir_p(backup_path) unless File.exist?(backup_path)
         databases.each do |database|
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
-          if File.exists?(file_path) && File.size(file_path) == 0
+          if File.exist?(file_path) && File.size(file_path) == 0
             puts "rm -f #{file_path}"
             FileUtils.rm_f(file_path)
           end
@@ -160,7 +160,7 @@ class BackupMySQL
 
     def killer
       pid_path = File.join(@options[:home], 'tmp/backup-mysql-ruby.pid')
-      if File.exists?(pid_path)
+      if File.exist?(pid_path)
         pid = File.read(pid_path).strip
         result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
         if result.empty?
@@ -198,7 +198,7 @@ class BackupMySQL
 
     def execute
       pid_path = File.join(@options[:home], 'tmp/backup-mysql-ruby.pid')
-      if File.exists?(pid_path)
+      if File.exist?(pid_path)
         pid = File.read(pid_path).strip
         result = `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip
         unless result.empty?
@@ -221,19 +221,19 @@ class BackupMySQL
         client.close
 
         backup_path = File.join(backup_config['backup_path'], "#{config['host']}-#{config['port'] || 3306}", ymd_scope)
-        FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+        FileUtils.mkdir_p(backup_path) unless File.exist?(backup_path)
         output_path = File.join(backup_path, 'mysqldump.json')
         databases_path = File.join(backup_path, 'databases.json')
         File.open(databases_path, 'w:utf-8') { |file| file.puts(databases.to_json) }
 
         backup_hash, databases_btime = {}, Time.now
-        backup_hash = JSON.parse(File.read(output_path)) rescue {} if File.exists?(output_path)
+        backup_hash = JSON.parse(File.read(output_path)) rescue {} if File.exist?(output_path)
         databases.each do |database|
           next if !(backup_config['databases'] || []).empty? && !backup_config['databases'].any? { |regexp| database =~ Regexp::new(regexp) }
           next if (backup_config['ignore_databases'] || []).include?(database)
 
           file_path = File.join(backup_path, "#{database}.sql.tar.gz")
-          if File.exists?(file_path) && backup_hash.dig(database, 'backup_state') == 'successfully' && backup_hash.dig(database, 'upload_state') == '上传成功'
+          if File.exist?(file_path) && backup_hash.dig(database, 'backup_state') == 'successfully' && backup_hash.dig(database, 'upload_state') == '上传成功'
             puts "#{database} backuped to #{file_path}"
             next
           end
@@ -266,8 +266,8 @@ class BackupMySQL
             port: config['port'],
             database_name: database,
             backup_name: File.basename(file_path),
-            backup_size: (File.exists?(file_path) ? File.size(file_path) : 0).number_to_human_size(true),
-            backup_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'NotExist'),
+            backup_size: (File.exist?(file_path) ? File.size(file_path) : 0).number_to_human_size(true),
+            backup_md5: (File.exist?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'NotExist'),
             backup_time: database_btime.strftime('%y-%m-%d %H:%M:%S'),
             backup_duration: "#{(Time.now - database_btime).round(2)}s",
             backup_state: state,
@@ -282,7 +282,7 @@ class BackupMySQL
             host: "#{config['host']}-#{config['port']||3306}",
             ymd: ymd_scope,
             backup_name: File.basename(file_path),
-            backup_md5: (File.exists?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'NotExist'),
+            backup_md5: (File.exist?(file_path) ? Digest::MD5.file(file_path).hexdigest : 'NotExist'),
             backup_file: File.new(file_path, 'rb')
           }
 
@@ -320,11 +320,11 @@ class BackupMySQL
         end
       end
 
-      FileUtils.rm_f(pid_path) if File.exists?(pid_path)
+      FileUtils.rm_f(pid_path) if File.exist?(pid_path)
     end
 
     def export
-      if !@options[:config] || !File.exists?(@options[:config])
+      if !@options[:config] || !File.exist?(@options[:config])
         puts "请传参配置档 --config=配置档路径"
         exit(1)
       end

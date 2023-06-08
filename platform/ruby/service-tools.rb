@@ -279,7 +279,7 @@ class Service
     # 提交监控服务配置档至服务器
     def post_to_server
       output_content, total_count, stopped_count = "FileNotExist", -1, -1
-      if File.exists?(@service_output_path)
+      if File.exist?(@service_output_path)
         output_content = File.read(@service_output_path)
         output_array = JSON.parse(output_content)["data"]
         total_count = output_array.count
@@ -291,7 +291,7 @@ class Service
         service: {
           uuid: Sypctl::Device.uuid,
           hostname: `hostname`.strip,
-          config: File.exists?(@service_config_path) ? File.read(@service_config_path) : "FileNotExist",
+          config: File.exist?(@service_config_path) ? File.read(@service_config_path) : "FileNotExist",
           monitor: output_content,
           total_count: total_count,
           stopped_count: stopped_count
@@ -405,7 +405,7 @@ class Service
     end
 
     def process_status_by_pid(pid_path)
-      if File.exists?(pid_path) && !(pid = File.read(pid_path).strip).empty?
+      if File.exist?(pid_path) && !(pid = File.read(pid_path).strip).empty?
         (pid == `ps ax | awk '{print $1}' | grep -e "^#{pid}$"`.strip ? [true, "运行中(#{pid})"] : [false, "未运行"])
       else
         `rm -f #{pid_path}`
@@ -421,7 +421,7 @@ class Service
 
       state, message = process_status_by_pid(pid_path)
       return false unless state
-      return false unless File.exists?(pid_path)
+      return false unless File.exist?(pid_path)
       
       pid = File.read(pid_path).strip
       if try_time > 1

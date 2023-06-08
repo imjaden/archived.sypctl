@@ -3,9 +3,9 @@ require "sinatra/cookies"
 require 'sinatra/multi_route'
 
 class ApplicationController < Sinatra::Base
-  register Sinatra::Reloader unless ENV['RACK_ENV'].eql?('production')
+  # register Sinatra::Reloader unless ENV['RACK_ENV'].eql?('production')
   register Sinatra::MultiRoute
-  register Sinatra::Flash
+  # register Sinatra::Flash
   helpers Sinatra::Cookies
 
   use AssetHandler
@@ -100,7 +100,7 @@ class ApplicationController < Sinatra::Base
 
   get '/index', '/info' do
     index_path = app_root_join("monitor/index/index.html")
-    if File.exists?(index_path)
+    if File.exist?(index_path)
       File.read(index_path)
     else
       "#{ENV['PLATFORM_OS']}:#{ENV['APP_RUNNER']}@#{ENV['HOSTNAME']} sypctl agent server"
@@ -110,7 +110,7 @@ class ApplicationController < Sinatra::Base
   get '/page', '/monitor/page' do
     @page_path = app_root_join("monitor/pages/#{params[:page]}")
 
-    if File.exists?(@page_path)
+    if File.exist?(@page_path)
       haml :page, layout: settings.layout
     else
       "404 - File Not Found!"
@@ -120,8 +120,8 @@ class ApplicationController < Sinatra::Base
   post '/login' do
     password_path = File.join(ENV['APP_ROOT_PATH'], '.config/password')
     username_path = File.join(ENV['APP_ROOT_PATH'], '.config/username')
-    if File.exists?(password_path)
-      expect_username = File.exists?(username_path) ? File.read(username_path).strip : 'sypagent'
+    if File.exist?(password_path)
+      expect_username = File.exist?(username_path) ? File.read(username_path).strip : 'sypagent'
       expect_password = File.read(password_path).strip
 
       message = (expect_username == params[:username] && expect_password == params[:password] ? '登录成功' : '登录失败，账号或密码错误')
@@ -136,7 +136,7 @@ class ApplicationController < Sinatra::Base
   get '/logout' do
     set_login_cookie(nil)
 
-    flash[:success] = '登出成功'
+    # flash[:success] = '登出成功'
     respond_with_json({message: '登出成功', code: 200}, 200)
   end
 

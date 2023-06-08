@@ -33,10 +33,10 @@ module Cpanel
     get '/file_backup/:type' do
       file_path = File.join(ENV['APP_ROOT_PATH'], 'db/file-backups/snapshots', params[:snapshot_filename])
       if params[:type] == 'read'
-        data = File.exists?(file_path) ? File.read(file_path) : "文档不存在 #{file_path}"
+        data = File.exist?(file_path) ? File.read(file_path) : "文档不存在 #{file_path}"
         respond_with_json({data: data, message: "读取成功"}, 200)
       else
-        halt_with_json({data: params[:snapshot_filename], message: "文档不存在"}, 200) unless File.exists?(file_path) 
+        halt_with_json({data: params[:snapshot_filename], message: "文档不存在"}, 200) unless File.exist?(file_path) 
       
         send_file(file_path, type: 'text/plain', filename: params[:snapshot_filename], disposition: 'attachment')
       end
@@ -60,8 +60,8 @@ module Cpanel
       data = packages.map do |package|
         file_name, file_md5 = package.split('@')
         package_path = app_root_join("../linux/packages/#{file_name}")
-        package_state = File.exists?(package_path) ? '已安装' : '未安装'
-        package_size = File.exists?(package_path) ? File.size(package_path).number_to_human_size(true).split(/\s/)[0] : '-'
+        package_state = File.exist?(package_path) ? '已安装' : '未安装'
+        package_size = File.exist?(package_path) ? File.size(package_path).number_to_human_size(true).split(/\s/)[0] : '-'
         [file_name, package_size, file_md5, package_state]
       end
       {
@@ -76,7 +76,7 @@ module Cpanel
 
     def get_data_register
       json_path = File.join(ENV['APP_ROOT_PATH'], 'db/agent.json')
-      if File.exists?(json_path)
+      if File.exist?(json_path)
         JSON.parse(File.read(json_path))
       else
         {'error': '配置档不存在，' + json_path}
@@ -89,7 +89,7 @@ module Cpanel
 
     def get_data_service_config
       json_path = '/etc/sypctl/services.json'
-      if File.exists?(json_path)
+      if File.exist?(json_path)
         JSON.parse(File.read(json_path))
       else
         {'error': '配置档不存在，' + json_path}
@@ -98,7 +98,7 @@ module Cpanel
 
     def get_data_service_output
       json_path = '/etc/sypctl/services.output'
-      if File.exists?(json_path)
+      if File.exist?(json_path)
         {timestamp: Time.now.strftime('%Y/%m/%d %H:%M:%S')}.merge(JSON.parse(File.read(json_path)))
       else
         {'error': '配置档不存在，' + json_path}

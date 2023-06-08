@@ -4,7 +4,7 @@ require 'rubygems'
 ENV["SYPCTL_VERSION"] = File.read("../version") rescue "unknown"
 ENV['RUBY_VERSION'] = `ruby -v`.strip
 ENV['RAKE_ROOT_PATH'] = File.dirname(__FILE__)
-ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "https://api.sypctl.com"
+ENV["SYPCTL_API"] = ENV["SYPCTL_API_CUSTOM"] || "http://localhost:8085" # "https://api.sypctl.com"
 
 $LOAD_PATH.unshift(ENV['RAKE_ROOT_PATH'])
 $LOAD_PATH.unshift(%(#{ENV['RAKE_ROOT_PATH']}/lib/tasks))
@@ -22,7 +22,7 @@ task environment: 'Gemfile.lock' do
   ENV['RACK_ENV'] ||= 'production'
   ENV['RAILS_ENV'] = ENV['RACK_ENV']
 
-  if File.exists?("local-sypctl-server")
+  if File.exist?("local-sypctl-server")
     require File.expand_path('../config/boot.rb', __FILE__)
 
     Rack::Builder.parse_file File.expand_path('../config.ru', __FILE__)

@@ -67,7 +67,7 @@ end.parse!
 puts `ruby #{__FILE__} -h` if options.keys.empty?
 
 config_path = "/etc/sypctl/notify.json"
-unless File.exists?(config_path)
+unless File.exist?(config_path)
   puts "Error: not found #{config_path}"
   exit(1)
 end 
@@ -83,7 +83,7 @@ class Notify
       @archived_path = File.join(ENV['SYPCTL_HOME'], "agent/db/#{@notify_type}-notify", 'archived')
       @state_path = File.join(@archived_path, "../state.json")
 
-      FileUtils.mkdir_p(@archived_path) unless File.exists?(@archived_path)
+      FileUtils.mkdir_p(@archived_path) unless File.exist?(@archived_path)
 
       check_state if (['enable', 'disable', 'disabled_in'] & @options.keys.map(&:to_s)).length.zero?
     end
@@ -140,7 +140,7 @@ class Notify
         api_state = api_config['keywords']['success'].all? { |keyword| body.downcase.include?(keyword.downcase) }
 
         api_record_path = File.join(@archived_path, "api-#{Time.now.strftime('%y%m%d')}.json")
-        api_record_hash = File.exists?(api_record_path) ? JSON.parse(File.read(api_record_path)) : {}
+        api_record_hash = File.exist?(api_record_path) ? JSON.parse(File.read(api_record_path)) : {}
         api_record_hash[timestamp] = api_state
         api_record_hash["#{timestamp}-api"] = api_config['url']
         File.open(api_record_path, 'w:utf-8') { |file| file.puts(JSON.pretty_generate(api_record_hash)) }
@@ -178,7 +178,7 @@ class Notify
       return if disk_notifications.empty?
 
       disk_record_path = File.join(@archived_path, "disk-#{Time.now.strftime('%y%m%d')}.json")
-      disk_record_hash = File.exists?(disk_record_path) ? JSON.parse(File.read(disk_record_path)) : {}
+      disk_record_hash = File.exist?(disk_record_path) ? JSON.parse(File.read(disk_record_path)) : {}
 
       # 判断最近十分钟是否有发短信记录，无则发送短信
       sended_notify = check_lastest_sended_notify(disk_record_hash)
@@ -204,7 +204,7 @@ class Notify
       return if memory_usage < @config['memory']['threshold'].to_f
 
       memory_record_path = File.join(@archived_path, "memory-#{Time.now.strftime('%y%m%d')}.json")
-      memory_record_hash = File.exists?(memory_record_path) ? JSON.parse(File.read(memory_record_path)) : {}
+      memory_record_hash = File.exist?(memory_record_path) ? JSON.parse(File.read(memory_record_path)) : {}
 
       # 判断最近十分钟是否有发短信记录，无则发送短信
       sended_notify = check_lastest_sended_notify(memory_record_hash)
@@ -243,7 +243,7 @@ class Notify
       ['api', 'disk', 'memory'].each do |type|
         date = (Time.now-offset_date*24*60*60).strftime('%y%m%d')
         path = File.join(@archived_path, "#{type}-#{date}.json")
-        unless File.exists?(path)
+        unless File.exist?(path)
           puts "#{date}, #{type.upcase} 异常列表为空."
           next
         end

@@ -20,14 +20,14 @@ def generate_username_and_password
   password_path = agent_root_join(".config/password")
   username_path = agent_root_join(".config/username")
   
-  File.open(username_path, "w:utf-8") { |file| file.puts('sypagent') } unless File.exists?(username_path)
-  File.open(password_path, "w:utf-8") { |file| file.puts((0..9).to_a.sample(6).join) } unless File.exists?(password_path)
+  File.open(username_path, "w:utf-8") { |file| file.puts('sypagent') } unless File.exist?(username_path)
+  File.open(password_path, "w:utf-8") { |file| file.puts((0..9).to_a.sample(6).join) } unless File.exist?(password_path)
 
   [username_path, password_path].map { |path| File.read(path).strip }
 end
 
 def print_agent_regisitered_info(print_or_not = true)
-  if File.exists?(agent_json_path)
+  if File.exist?(agent_json_path)
     data_hash = JSON.parse(File.read(agent_json_path))
     if print_or_not
       table_rows = data_hash.each_with_object([]) { |(key, value), arr| arr.push([key, value]) if value.to_s.length < 80 }
@@ -45,7 +45,7 @@ def print_agent_will_regisiter_info(print_or_not = true)
   puts 
   puts "该主机 UUID: " + Sypctl::Device.uuid(false)
 
-  if File.exists?(agent_json_path)
+  if File.exist?(agent_json_path)
     data_hash = JSON.parse(File.read(agent_json_path))
     puts "已注册 UUID: " + data_hash['uuid']
   else
@@ -56,7 +56,7 @@ end
 
 def print_agent_log
   puts record_list_path
-  if File.exists?(record_list_path)
+  if File.exist?(record_list_path)
     IO.readlines(record_list_path).each do |line|
       puts JSON.pretty_generate(JSON.parse(line))
     end
@@ -106,7 +106,7 @@ def post_to_server_register()
   params = {device: agent_device_init_info(false)}
    
   init_uuid_path = agent_root_join(".config/init-uuid")
-  if File.exists?(init_uuid_path)
+  if File.exist?(init_uuid_path)
     init_uuid = File.read(init_uuid_path).strip
     if init_uuid.length >= 10
       params[:uuid] = init_uuid
@@ -114,14 +114,14 @@ def post_to_server_register()
     end
   end
   human_name_path = agent_root_join(".config/human-name")
-  params[:device][:human_name] = File.read(human_name_path).strip if File.exists?(human_name_path)
+  params[:device][:human_name] = File.read(human_name_path).strip if File.exist?(human_name_path)
   response = Sypctl::Http.post(url, params)
 
   if response['code'] == 201
     response['hash']['synced'] = true
     File.open(agent_json_path, "w:utf-8") { |file| file.puts(response['hash'].to_json) }
-    # FileUtils.rm_f(init_uuid_path) if File.exists?(init_uuid_path)
-    FileUtils.rm_f(human_name_path) if File.exists?(human_name_path)
+    # FileUtils.rm_f(init_uuid_path) if File.exist?(init_uuid_path)
+    FileUtils.rm_f(human_name_path) if File.exist?(human_name_path)
 
     uuid_path = agent_root_join(".config/device-uuid")
     File.open(uuid_path, 'w:utf-8') { |file| file.puts(response['hash']['uuid']) }
@@ -136,10 +136,10 @@ end
 
 def file_backup_db_hash
   backup_path = agent_root_join('db/file-backups')
-  FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+  FileUtils.mkdir_p(backup_path) unless File.exist?(backup_path)
   db_hash_path = File.join(backup_path, 'db.hash')
   db_json_path = File.join(backup_path, 'db.json')
-  return 'FileNotExist' unless File.exists?(db_json_path)
+  return 'FileNotExist' unless File.exist?(db_json_path)
 
   db_hash = Digest::MD5.hexdigest(JSON.parse(File.read(db_json_path)).to_json)
   File.open(db_hash_path, 'w:utf-8') { |file| file.puts(db_hash) }
@@ -168,7 +168,7 @@ def post_to_server_submitor
         `command -v dos2unix > /dev/null 2>&1 || sudo yum install -y dos2unix`
         response['hash']['jobs'].each do |job_hash|
           job_path = agent_root_join("db/jobs/#{job_hash['uuid']}")
-          FileUtils.mkdir_p(job_path) unless File.exists?(job_path)
+          FileUtils.mkdir_p(job_path) unless File.exist?(job_path)
           job_json_path = File.join(job_path, 'job.json')
           job_command_path = File.join(job_path, 'job.sh')
           job_todo_path = agent_root_join("db/jobs/#{job_hash['uuid']}.todo")
@@ -188,7 +188,7 @@ def post_to_server_submitor
 
       unless response['hash']['file_backups'].empty?
         backup_path = agent_root_join('db/file-backups')
-        FileUtils.mkdir_p(backup_path) unless File.exists?(backup_path)
+        FileUtils.mkdir_p(backup_path) unless File.exist?(backup_path)
         db_jmd5_path = File.join(backup_path, 'db.jmd5')
         db_hash_path = File.join(backup_path, 'db.json')
         db_jmd5 = Digest::MD5.hexdigest(response['hash']['file_backups'].to_json)
@@ -207,8 +207,8 @@ def post_service_to_server_submitor
   service_path = "/etc/sypctl/services.json"
   status_data_path = "/etc/sypctl/services.output"
 
-  monitor_content, total_count, stopped_count = "file not exists", -1, -1
-  if File.exists?(status_data_path)
+  monitor_content, total_count, stopped_count = "file not exist", -1, -1
+  if File.exist?(status_data_path)
     monitor_content = File.read(status_data_path)
     staus_data = JSON.parse(monitor_content)["data"]
     total_count = staus_data.count
@@ -221,7 +221,7 @@ def post_service_to_server_submitor
     service: {
       uuid: uuid,
       hostname: `hostname`.strip,
-      config: File.exists?(service_path) ? File.read(service_path) : "FileNotExist",
+      config: File.exist?(service_path) ? File.read(service_path) : "FileNotExist",
       monitor: monitor_content,
       total_count: total_count,
       stopped_count: stopped_count
@@ -297,7 +297,7 @@ def add_id_rsa_pub_to_authorized_keys(ssh, config)
     command = <<-EOF.strip_heredoc
         grep "#{id_rsa_pub}" ~/.ssh/authorized_keys > /dev/null 2>&1
         if [[ $? -eq 0 ]]; then
-            echo "alread exists: #{id_rsa_pub}"
+            echo "alread exist: #{id_rsa_pub}"
         else
             echo "echo '#{id_rsa_pub}' >> ~/.ssh/authorized_keys"
             echo '#{id_rsa_pub}' >> ~/.ssh/authorized_keys
